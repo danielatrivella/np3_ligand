@@ -1,0 +1,74 @@
+### np3_blob_label installation workflow for GPU in 4 stes. The pip requirements are listed in step 3 and are not commented with a hastag (#)
+###
+### 1. Global requirements:
+###
+### Install CCP4 e GCC >= 7.4.0
+### Install build-essentials and libopenblas-dev
+#> sudo apt install build-essential libopenblas-dev g++-7
+
+###
+### 2. Install python 3.8 - Select installation option 2.A or 2.B
+###
+### 2.A CONDA install
+#> conda create -n np3_blob_label python=3.8
+#> conda activate np3_blob_label
+#> conda install openblas-devel -c anaconda
+## For CUDA capability also install cudatoolkit
+#> conda install cudatoolkit=11.1 -c pytorch -c conda-forge  # use '-c nvidia' option for older versions of cuda
+### 2.B SYSTEM PYTHON
+#> apt install python3.8 
+#> apt install python3-dev python3-distutils python3-apt
+## install git
+#> sudo apt install git
+## check if pip is installed:
+#> python3 -m pip --version 
+## if not installed than run:
+#> python3 -m ensurepip --upgrade # install pip
+## apt install -f python3-pip # or another option to install pip
+## For CUDA capability also install CUDA 11.1 and cudatoolkit on the system
+
+###
+### 3. Then install the NP3 BLOB LABEL requirements with pip, run:
+###
+#> pip install -r requirements_np3_blob_label_cuda11.1.txt  -f https://download.pytorch.org/whl/torch_stable.html
+compiletools
+setuptools==59.5.0
+torch==1.9.0+cu111 
+torchvision
+torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+torchmetrics
+#openblas-devel
+pytorch-lightning==1.6.5
+tensorboardX
+gemmi==0.5.8
+numpy
+mkl-include
+matplotlib
+pandas
+addict
+plyfile
+scikit-learn
+open3d==0.16
+tqdm
+multiprocess
+pathlib
+p-tqdm  # missing after install with pip - strange
+ninja
+rdkit
+
+###
+### 4. Finally install Minkowski Engine package with pip - last version - Select installation option 4.A or 4.B
+###
+### 4.A CPU only
+#> pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas_include_dirs=${CONDA_PREFIX}/include:/usr/include/:" --install-option="--blas=openblas" --install-option="--cpu_only" 
+### 4.B CUDA capability - here example with cuda 11.1 
+## make sure CUDA version 11.1 is installed on the system!
+#> nvcc --version
+## Install Minkowski Engine package with pip and cuda capability
+#> export CXX=g++-7; # set this if you want to use a different C++ compiler
+#> export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
+#> pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas=openblas" --install-option="--force_cuda"
+
+###
+### Finish!
+###

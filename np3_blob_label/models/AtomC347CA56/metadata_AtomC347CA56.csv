@@ -1,0 +1,3 @@
+Model Filename,Job Name, epoch,Grid spacing,Image type
+modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt,train_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5_train_qRankMask_5_kfold_13_model-MinkUNet34C_CONVATROUS_HYBRID_Thu_Mar_16_19-40-44_2023,200,0.5,qRankMask_5
+modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt,train_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5_train_qRankMask_5_kfold_1_model-MinkUNet34C_CONVATROUS_HYBRID_Wed_Mar_8_12-02-55_2023,200,0.5,qRankMask_5

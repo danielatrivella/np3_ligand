@@ -1,0 +1,14 @@
+.idea
+.Rhistory
+__pychache__
+*.pyc
+*.cif
+*.sdf
+*.pdb
+*.mtz
+*.csv
+np3_encode_JTVAE/icml18-jtnn/
+*.ent
+np3_SP_segm/outputs*
+np3_pointcloud_DB/outs*
+data/*

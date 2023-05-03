@@ -1,0 +1,20 @@
+This document describes the columns present in the report tables of found blobs that are created by the NP³ Blob Label application. Each found blob is stored in a new row of this table with the blob’s information in the columns of its respective row.,
+,
+column_name,column_description
+entryID,the name of the entry where the blob was found
+blobID,the name of the found blob (unique value)
+x,the x position of the blob in the crystal real space
+y,the y position of the blob in the crystal real space
+z,the z position of the blob in the crystal real space
+blobVolume,"the blob volume in Å³ unit, measured with the sigma contour used in the search"
+blobScore,the blob score equal to the sum of the density values of all its points present in the sigma contour used in the search
+blobPeak,the blob peak equal to the density value of its most intense point in the sigma contour used in the search
+blobMeanScore,"the blob mean score is equal to the blob score divided by the blob volume, and thus, is equal to the mean density values of all its points in the sigma contour used in the search"
+xyz_bound,"the blob extend in x, y and z dimensions separated by comma and in Å unit, measured with the sigma contour used in the search"
+chainResAtom,"the information of the nearest atom of the entry structure to the blob center position with a maximum radius search of 8 Å. It contains the atom’s symbol, residue position, residue name and chain name"
+chainResAtom_dist,the distance in Å from the blob center to the nearest atom of the entry structure. The maximum value that is searched is 8 Å
+resolution,the blob’s entry resolution in Å
+grid_space,the spacing value in Å to be used in the blob’s point cloud images creation. It must be the same spacing value used in the model training (informed with the available models)
+point_cloud_size,the blob’s mask image size equal to the number of points in the point cloud image of the blob mask 
+point_cloud_size_qRank<contour>,the blob’s final images size equal to the number of points in the point cloud image of the respective quantile rank contour value
+<class>_size,The number of points in the blob’s image that were predicted as the respective class of the model used. The blob image here is the same image type used in the model training and informed with the available models. The class ‘background_solvent’ represents the points predicted as background

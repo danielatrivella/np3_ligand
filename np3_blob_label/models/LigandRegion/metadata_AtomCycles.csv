@@ -1,0 +1,2 @@
+Model Filename,Job Name, epoch,Grid spacing,Image type
+modelLigandRegion_ligs-78902_img-qRankMask_5_gridspace-05_k1.ckpt,train_lr-8_lossSL_w1-2.5_batch16iter1_gridsp0.5_rot0.5_train_qRankMask_5_kfold_1_model-MinkUNet34C_CONVATROUS_HYBRID_Sat_Apr_1_21-27-49_2023,120,0.5,qRankMask_5

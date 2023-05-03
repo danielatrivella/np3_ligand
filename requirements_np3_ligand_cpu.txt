@@ -1,0 +1,73 @@
+### np3_lig installation workflow for CPU in 4 stes. The pip requirements are listed in step 3 and are not commented with a hashtag (#)
+###
+### 1. Global requirements:
+###
+### Install CCP4 e GCC >= 7.4.0
+### Install ANACONDA
+### Install build-essentials and libopenblas-dev
+#> sudo apt install build-essential libopenblas-dev g++-7
+
+###
+### 2. Install python 3.8 with ANACONDA
+###
+#> conda create -n np3_lig python=3.8
+#> conda activate np3_lig
+#> conda install openblas-devel -c anaconda
+#> conda install r-base=3.6.3 r-readr r-dplyr -c conda-forge
+## install R anticlust package - not present in conda                            
+#> Rscript -e 'install.packages("anticlust",repos = "http://cran.us.r-project.org")'
+## For CUDA capability also install cudatoolkit
+#> conda install cudatoolkit=11.1 -c pytorch -c conda-forge  # use '-c nvidia' option for older versions of cuda
+
+
+###
+### 3. Then install the NP3 LIGANDS requirements with pip, run:
+###
+#> pip install -r requirements_np3_ligand_cpu.txt
+compiletools
+torch==1.9.0
+torchvision
+torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+torchmetrics
+#openblas-devel
+pytorch-lightning==1.6.5
+tensorboardX
+gemmi==0.5.8
+numpy
+mkl-include
+matplotlib
+pandas
+addict
+plyfile
+scikit-learn
+open3d==0.12
+tqdm
+multiprocess
+pathlib
+p-tqdm
+ninja
+setuptools==59.5.0
+## Only for np3_pc_DB:
+## ld_impl_linux-64 ?
+rdkit
+biopython
+mordred
+seaborn
+## conda install r-base=3.6.3 r-readr r-dplyr -c conda-forge
+
+###
+### 4. Finally install Minkowski Engine package with pip - last version - Select installation option 4.A or 4.B
+###
+### 4.A CPU only
+#> pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas_include_dirs=${CONDA_PREFIX}/include:/usr/include/:" --install-option="--blas=openblas" --install-option="--cpu_only" 
+### 4.B CUDA capability - here example with cuda 11.1 
+## make sure CUDA version 11.1 is installed on the system!
+#> nvcc --version
+## Install Minkowski Engine package with pip and cuda capability
+#> export CXX=g++-7; # set this if you want to use a different C++ compiler
+#> export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
+#> pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas=openblas" --install-option="--force_cuda"
+
+###
+### Finish!
+###
