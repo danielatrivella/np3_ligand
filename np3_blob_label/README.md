@@ -19,7 +19,7 @@
   The following models are available in the NP³ Blob Label repository and gave the better results:
 
 - *Model AtomC347CA56* : Predicts generic atoms out of cycles, cycles with sizes from 3 to 7 and aromatic cycles with sizes 5 and 6
-- *ModelAtomSymbolGroups* : Predicts the atoms symbols with groupings. The halo group with the halogen atoms (Cl, Br, I, F) and the PSe group with the minority atoms (P, S, Se)
+- *Model AtomSymbolGroups* : Predicts the atoms symbols with groupings. The halo group with the halogen atoms (Cl, Br, I, F) and the PSe group with the minority atoms (P, S, Se)
 
 
 ![](docs/imgs/best_DL_models_app_accuracy.png)
@@ -194,3 +194,18 @@ And finally install que Minkowski Engine with pip:
 ```
 pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas=openblas" --install-option="--cpu_only"
 ```
+
+
+## Application evaluation with all validated models
+
+--------------------
+
+
+![](docs/imgs/app_evaluation.png)
+
+
+---------------------------------------------------------------
+
+## Citing
+
+_Paper in preparation to be published._
