@@ -30,7 +30,7 @@ torchvision
 torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 torchmetrics
 #openblas-devel
-pytorch-lightning==1.6.5
+pytorch-lightning>=1.6.5
 tensorboardX
 gemmi==0.5.8
 numpy
@@ -59,14 +59,14 @@ seaborn
 ### 4. Finally install Minkowski Engine package with pip - last version - Select installation option 4.A or 4.B
 ###
 ### 4.A CPU only
-#> pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas_include_dirs=${CONDA_PREFIX}/include:/usr/include/:" --install-option="--blas=openblas" --install-option="--cpu_only" 
+#> pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas_include_dirs=${CONDA_PREFIX}/include:/usr/include/:" --global-option="--blas=openblas" --global-option="--cpu_only" 
 ### 4.B CUDA capability - here example with cuda 11.1 
 ## make sure CUDA version 11.1 is installed on the system!
 #> nvcc --version
 ## Install Minkowski Engine package with pip and cuda capability
 #> export CXX=g++-7; # set this if you want to use a different C++ compiler
 #> export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
-#> pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas=openblas" --install-option="--force_cuda"
+#> pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--force_cuda"
 
 ###
 ### Finish!

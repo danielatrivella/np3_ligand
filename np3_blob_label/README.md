@@ -124,7 +124,7 @@ pip install -r requirements_np3_blob_label_cpu.txt
 And finally install que Minkowski Engine package with pip:
 
 ```
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas=openblas" --install-option="--cpu_only"
+pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--cpu_only"
 ```
 
 #### GPU compatibility
@@ -151,7 +151,7 @@ And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine
 ```
 export CXX=g++-7;  # set this if you want to use a different C++ compiler
 export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas=openblas" --install-option="--force_cuda"
+pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--force_cuda"
 ```
 
 #### Clean the installation space
@@ -192,7 +192,7 @@ pip install -r requirements_np3_blob_label_cpu.txt
 And finally install que Minkowski Engine with pip:
 
 ```
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas=openblas" --install-option="--cpu_only"
+pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--cpu_only"
 ```
 
 
