@@ -1,15 +1,15 @@
-# NP³ Lig-PCDB: Labeled Databases of X-ray Ligands Images in 3D Point Clouds and Validated Deep Learning Models
+# NP³ LigPCDS: Labeled Dataset of X-ray Ligands Images in 3D Point Clouds and Validated Deep Learning Models
 
-This repository contains the code used to create the Lig-PCDB databases and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
+This repository contains the code used to create the LigPCDS dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
 The code for the models training pipeline and validation (step 6 from part B and part C of the workflow) is presented in the np3_DL_segmentation repository.
 
-The workflow used to obtain Lig-PCDB, the deep learning models, and the validated labeling approaches is presented in the figure bellow.
+The workflow used to obtain LigPCDS, the deep learning models, and the validated labeling approaches is presented in the figure bellow.
 
-![np3_lig-pcdb_workflow](docs/np3_lig-pcdb_workflow.png)
+![np3_LigPCDS_workflow](docs/np3_ligpcds_workflow.png)
 
 ###### _Modified images 'Machine Learning' by Srinivas Agra and 'intelligence' by Gacem Tachfin from Noun Project (CCBY3.0)._
 
-##### Part A: Lig-PCDB creation schema 
+##### Part A: LigPCDS creation schema 
 
 In Step 1, a list of PDB entries from 1.5 to 2.2 Å was retrieved (.pdb and .mtz) and their free and organic ligands were filtered and validated (.sdf). It resulted in the list of valid ligands with 244226 entries. 
 
@@ -17,7 +17,7 @@ In Step 2, vocabularies of chemical classes were created and used for labeling a
 
 In Step 3, Dimple [ref] was used to refine the PDB entries and produced their Fo-Fc maps. Next, for each ligand, it was defined a grid sizing that covers its entire blob. Each ligand grid was interpolated from its Fo-Fc map to a 3D point cloud image and processed to create the final images of the ligands. 
 
-Then, in Step 4 the labels of the structure of the ligands were extrapolated pointwise using an atomic sphere model for labeling the final images of the ligands. This resulted in Lig-PCDB. 
+Then, in Step 4 the labels of the structure of the ligands were extrapolated pointwise using an atomic sphere model for labeling the final images of the ligands. This resulted in LigPCDS. 
 
 The viable modeling approaches are detailed bellow. It presents all viable vocabularies with their imbalance ratio in the list of valid ligands, their classes names and size.
 
@@ -31,9 +31,9 @@ The viable modeling approaches are detailed bellow. It presents all viable vocab
 
 ##### Part B: The general schema used to train and obtain the validated DL models. 
 
-In step 5 a stratified training dataset was created from Lig-PCDB with n=78902 ligands entries, separated in k=13 similar groups.
+In step 5 a stratified training dataset was created from LigPCDS with n=78902 ligands entries, separated in k=13 similar groups.
 
-In step 6 the Lig-PCDB entries of this dataset were used to train DL models in semantic segmentation tasks using Minkowski Engine [ref] architecture and its networks based on the 3D U-Net [ref]; cycles of training, evaluation and changes continued until good performance DL models were obtained. 
+In step 6 the LigPCDS entries of this dataset were used to train DL models in semantic segmentation tasks using Minkowski Engine [ref] architecture and its networks based on the 3D U-Net [ref]; cycles of training, evaluation and changes continued until good performance DL models were obtained. 
 
 ##### Part C: Validated labeling approaches. 
 
@@ -65,13 +65,13 @@ The average performance in the cross-validation of their best DL model is presen
 - A table with the atomic radii from theoretical and experimental data, located in the root folder:
   - _atomic_radii_tables.csv_
 
-#### Lig-PCDB databases record
+#### LigPCDS - dataset record
 
-The databases created by Lig-PCDB can be retrieved from [Zenodo](https://zenodo.org/), an open dissemination research data repository. The deposit data is located in the record xTODOlinkX, and contains:
+The LigPCDS can be retrieved from [Zenodo](https://zenodo.org/), an open dissemination research data repository. The deposit data is located in the record xTODOlinkX, and contains:
 
-- Lig-PCDB-SP_record : The database with the SP-based modeling images, vocabulary, structure labeling result (xyz record) and DL models.
-- Lig-PCDB-AtomSymbol_record : The database with the AtomSymbol-based modeling images, vocabulary, structure labeling result (xyz record) and DL models.
-- Lig-PCDB-Grids_reso-1.5-2.2_gridspace-0.5 : The database with the ligand grid image of the valid ligands list.
+- LigPCDS-SP_record : The dataset with the SP-based modeling images, vocabulary, structure labeling result (xyz record) and DL models.
+- LigPCDS-AtomSymbol_record : The dataset with the AtomSymbol-based modeling images, vocabulary, structure labeling result (xyz record) and DL models.
+- LigPCDS-Grids_reso-1.5-2.2_gridspace-0.5 : The dataset with the ligand grid image of the valid ligands list.
 
 ---------------------------
 ---------------------------
@@ -79,7 +79,7 @@ The databases created by Lig-PCDB can be retrieved from [Zenodo](https://zenodo.
 ## How to use
 
 The scripts used in each step from 1 to 5 are detailed below in separated subsections.
-This corresponds to parts A and B from the workflow to create the Lig-PCDB databases and the stratified training dataset. 
+This corresponds to parts A and B from the workflow to create the LigPCDS dataset and the stratified training dataset. 
  
 At the end there is also some visualization scripts and an additional testing script.
 
@@ -95,7 +95,7 @@ Manually download two report lists from the PDB website using the following filt
 - With experimental data (with electron density maps also deposited)
 - From X-ray experiments with proteins
 
-The PDB lists downloaded for Lig-PCDB were retrieved in July 2019 and are present in the PDB_lists folder, named as:
+The PDB lists downloaded for LigPCDS were retrieved in July 2019 and are present in the PDB_lists folder, named as:
 - PDB report list: _PDB_entries_hasLigand_structureFactors_xray_protein.csv_
   - List of PDB entries and the ligands codes they have. It must contain the PDB IDs entries, with two mandatory columns: 'PDBID', 'Resolution'
 - Ligand report list: _Ligands_PDB_entries_hasLigand_structureFactors_xray_protein.csv_ 
@@ -247,7 +247,7 @@ Ligands with mismatching labels in this test are removed. Ligands with bad defin
 
 1. data_folder_path: The path to the data folder where the vocabulary output will be stored and where the 'ligands' folder with the ligands in .sdf format is located.
 2. ligands_list_path: The path to the CSV file containing the valid ligands list and their smiles. This file is expected to be the output of the quality filter script. Mandatory columns = 'ligID','smiles'.
-The name of this file will be used to label the output vocabulary file, the ligands SMILES database file and the xyz folder that will store the labeled ligands .xyz files;
+The name of this file will be used to label the output vocabulary file, the ligands SMILES dataset file and the xyz folder that will store the labeled ligands .xyz files;
 3. label_SP: (optional) Set to 'True' to use the atoms' SP hybridization to create the vocabulary (default), otherwise it will use the atoms' symbol. Both labeling approaches will be concatenated with the atoms' cyclic information.
 4. row_start: (optional) The number of the row in the ligands_list_path file where the script should start. Skip to the given row or, if missing, start from the beginning;
 5. row_end: (optional) The number of the row in the ligands_list_path file where the script should stop. Stop in the given row or, if missing, stop in the last row.
@@ -255,7 +255,7 @@ The name of this file will be used to label the output vocabulary file, the liga
 *Return:*
 
 Two files will be created inside the data_folder_path directory:
-   - 'ligs_smiles_<ligands_list_path.name>.txt' containing all the smiles used in the vocabulary creation (the smiles database) and;
+   - 'ligs_smiles_<ligands_list_path.name>.txt' containing all the smiles used in the vocabulary creation (the smiles dataset) and;
    - 'vocabulary_<ligands_list_path.name>.txt' containing all the classes that resulted from the smiles labeling, with one class by row (the vocabulary itself). The rows order indicate the index of the vocabulary classes, starting in 0.
 
 And one folder called 'xyz_<ligands_list_path>' will be created inside the "<data_folder_path>/ligands" folder to store the labeled structure of the ligands, it will contain:
@@ -351,17 +351,17 @@ For each ligand entry that had its ligand grid image successfully created, it wi
 then create the final images of the ligands. The following image types will be created: 
 qRank0.5, qRank0.7, qRank0.75, qRank0.8, qRank0.85, qRank0.9, qRank0.95, qRankMask, and qRankMask_5.
 At the end, the final images will be stored in a point cloud file inside the subfolder of each ligand's PDB entry 
-in the output path (parameter output_LigPCDB_path).
+in the output path (parameter output_LigPCDS_path).
 
 *Run:*
 
-> ``` python src/grid_pointcloud_to_quantile_rank_scale.py xyz_labels_path output_grid_path output_ligPCDB_path num_parallel overwrite row_start row_end```
+> ``` python src/grid_pointcloud_to_quantile_rank_scale.py xyz_labels_path output_grid_path output_ligPCDS_path num_parallel overwrite row_start row_end```
 
 *Parameters:*
 
 1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list csv name>' where the ligands .xyz files with their labels are located. It must also contain the CSV file with the valid ligands list that had the ligand grid image successfully created. This file is named as '<valid ligand list csv name>_box_pc.csv' and is expected to be the output of the mtz_to_grid_pointcloud.py script. Mandatory columns = 'ligID', 'ligCode', 'entry';
 2. output_grid_path: The path to the folder where the ligands grid image in point clouds are stored ('data/lig_point_clouds_grids');
-3. output_ligPCDB_path: The path to the output folder where the point clouds of the final images of the ligands in quantile rank scale will be stored ('data/lig_pcdb' or other);
+3. output_ligPCDS_path: The path to the output folder where the point clouds of the final images of the ligands in quantile rank scale will be stored ('data/lig_pcds' or other);
 4. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (Default to 2);
 5. overwrite: (optional) A boolean True or False indicating if the already processed ligands should be overwritten (Default to False);
 6. row_start: (optional) The number of the row of the '<valid ligand list csv name>_box_pc.csv' file where the script should start. Skip to the given row or, if missing, start from the beginning;
@@ -369,7 +369,7 @@ in the output path (parameter output_LigPCDB_path).
 
 *Output:*
 
-The output_ligPCDB_path folder will be created with one subfolder for each PDB entry of the ligands that had all their final images successfully created and labeled:
+The output_ligPCDS_path folder will be created with one subfolder for each PDB entry of the ligands that had all their final images successfully created and labeled:
 - The subfolder of each PDB entry will contain the final images of all ligands (.xyzrgb files) that appear in the respective entry and that were successfull in all image types creation.
 
 One file will be created inside the xyz_labels_path directory:
@@ -379,7 +379,7 @@ The size of these images is equal to the number of points in the point cloud ima
 
 *Example:*
 
-> ``` python src/grid_pointcloud_to_quantile_rank_scale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_point_cloud_grid data/ligs_pcdb_SP 10```
+> ``` python src/grid_pointcloud_to_quantile_rank_scale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_point_cloud_grid data/ligs_pcds_SP 10```
 
 #### 3.4 Ligands Image Labeling Test 
 
@@ -393,12 +393,12 @@ If draw_pc is enabled, it will draw the ligands images being tested and will col
 
 *Run:*
 
-> ``` python test/test_ligands_pointcloud_label_qRankScale.py xyz_folder_path output_ligPCDB_path num_parallel draw_pc```
+> ``` python test/test_ligands_pointcloud_label_qRankScale.py xyz_folder_path output_ligPCDS_path num_parallel draw_pc```
 
 *Parameters:*
 
  1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' where the ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with the valid ligands list and their grid sizing and position. This file is named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the output of the 'run_vocabulary_encode_ligands.py' script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound';
- 2. output_ligPCDB_path: The path to the data folder where the point clouds of the final images of the ligands in quantile rank scale are be stored ('data/lig_pcdb' or other);
+ 2. output_ligPCDS_path: The path to the data folder where the point clouds of the final images of the ligands in quantile rank scale are be stored ('data/lig_pcds' or other);
  3. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (default to 2);
  4. draw_pc: (optional) Boolean True or False to draw the images point clouds. If True, enable drawing the final images of the ligands and color them using their labels. If False, do not draw the images (default to False).
 
@@ -412,7 +412,7 @@ It will print to the screen the inconsistencies found for each valid ligand in t
 
 *Example:*
 
-> ``` python test/test_ligands_pointcloud_label_qRankScale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_pcdb_SP 4 False```
+> ``` python test/test_ligands_pointcloud_label_qRankScale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_pcds_SP 4 False```
 
 ### Step 5
 
@@ -421,7 +421,7 @@ It will print to the screen the inconsistencies found for each valid ligand in t
 Creation of a stratified training dataset from a list of valid ligands. 
 This dataset is intended to be used in the training pipeline of the DL semantic segmentation task (np3_DL_segmentation repository).
 
-#### 5.1 Undersampling in Lig-PCDB
+#### 5.1 Undersampling in LigPCDS
 
 Applies an undersampling technique in a list of valid ligands (provided dataset). It will filter the ligands entries using their occurrence by selected class of the given vocabulary and by ligand code (unique structure).
 An anti-clustering algorithm is used in the undersampling approach to keep diversity among the filtered entries related to their occurrence by class, size of the qRank0.95 image, B factor, resolution and occupancy.
@@ -488,9 +488,9 @@ Separate the ligands entries in k=13 similar groups:
 -------------------------------
 -------------------------------
 
-### Visualize Lig-PCDB
+### Visualize LigPCDS
 
-The visualization script will render, for each ligand ID present in the database (user provided: list_ligands_path and lig-pcdb_path):
+The visualization script will render, for each ligand ID present in the dataset (user provided: list_ligands_path and lig-pcds_path):
 - The 3D point clouds of its images, further colored by the points' feature value and for each image type selected by the user (img_types). 
   - The image types are separated by columns in the x-axis, with a distance equal to 2 times its x-axis size of the image. 
 - If the vocabulary is informed, the images are rendered in another row colored by the labeled class of each point from the ligands' label files (user provided: vocab_path). 
@@ -505,25 +505,25 @@ The user can register the nice poses by taking pictures of the display
 
 *Run:*
 
-> ``` python src/visualize_lig-pcdb.py list_ligands_path lig-pcdb_path img_types vocab_path class_mapping_path predictions_path```
+> ``` python src/visualize_ligpcds.py list_ligands_path lig-pcds_path img_types vocab_path class_mapping_path predictions_path```
 
 *Parameters:*
 
-1. list_ligands_path: A table with a list of ligands in CSV format containing the ligID column with the ligands' ID that you want to visualize from the database;
-2. lig-pcdb_path: The path to the database folder where the ligands' images in point clouds are located;
+1. list_ligands_path: A table with a list of ligands in CSV format containing the ligID column with the ligands' ID that you want to visualize from the dataset;
+2. lig-pcds_path: The path to the dataset folder where the ligands' images in point clouds are located;
 3. img_types: The images types that you want to visualize, separated by comma and without spaces (e.g. qRankMask_5,qRank0.95,qRank0.5);
-4. vocab_path: (optional) The path to the vocabulary file used to label the database. Default to 'none' - won't draw the ligands images colored by the labels;
+4. vocab_path: (optional) The path to the vocabulary file used to label the dataset. Default to 'none' - won't draw the ligands images colored by the labels;
 5. class_mapping_path: (optional) The path to a class mapping file in CSV format or 'none'. Default to 'none';
 6. predictions_path: (optional) The path to a directory with the predictions result coming from the np3_DL_segmentation module and organized in subfolders, one for each PDB entry that appear in the ligands' list table, or 'none'. Default to 'none'.
 
 *Example:*
 
-Visualize the images from the valid ligands list present in the Lig-PCDB-SP and color them with their expected labels from model AtomC347CA56:
-> ``` python src/visualize_lig-pcdb.py PDB_lists/valid_ligands_list/valid_ligands_lists/valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.csv Lig-PCDB-SP/ qRankMask_5,qRank0.95,qRank0.75,qRank0.5 vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt vocabularies/SP-based/mapping_atomC347CA56.csv```
+Visualize the images from the valid ligands list present in the LigPCDS-SP and color them with their expected labels from model AtomC347CA56:
+> ``` python src/visualize_ligpcds.py PDB_lists/valid_ligands_list/valid_ligands_lists/valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.csv LigPCDS-SP/ qRankMask_5,qRank0.95,qRank0.75,qRank0.5 vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt vocabularies/SP-based/mapping_atomC347CA56.csv```
 
 #### Visualize the Class Distribution of a Vocabulary in a List of Ligands
 
-Plot the class distribution of a vocabulary by labeled atom and by labeled entry in a list of ligands entries from Lig-PCDB and 
+Plot the class distribution of a vocabulary by labeled atom and by labeled entry in a list of ligands entries from LigPCDS and 
 outputs their statistics to allow computing their imbalance ratio.
 
 *Run:*
@@ -570,7 +570,7 @@ defined as the truth table of each test case.
 
 The choice of these ligands sought to cover a wide range of classes from the proposed vocabularies in different chemical arrangements. 
 More structures code be manually added to this list of use cases to increase the coverage of this test. 
-To add a new ligand code to the list of use cases, the following steps are necessary (executed from the repository np3_Lig-PCDB):
+To add a new ligand code to the list of use cases, the following steps are necessary (executed from the repository np3_LigPCDS):
 - One must first manually add the respective ligand smiles and code to the table 'test/ligands_label/ligands_code_smiles.csv'. 
 - Next, one may use the script `test/draw_smiles_test.py` to draw the structure of the ligands codes present in this table and to enumerate their atoms. 
   - Their images are saved to PNG files and stored in the folder 'test/ligands_label/ligands_draw/', which is also created by this script.
