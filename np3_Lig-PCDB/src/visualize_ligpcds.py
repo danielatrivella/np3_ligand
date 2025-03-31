@@ -141,13 +141,14 @@ if __name__ == "__main__":
                 if len(sys.argv) >= 7:
                     pred_directory = (sys.argv[6] if sys.argv[6] != 'none' else None)
     else:
-        sys.exit("Wrong number of parameters. There are three mandatory parameters to visualize a Lig-PCDB. \n"
+        sys.exit("Wrong number of parameters. There are three mandatory parameters to visualize a LigPCDS. \n"
                  "If the vocabulary is informed, the ligands' images colored by labels are draw. \n"
                  "If the predictions directory is informed, the ligands' images colored by the predicted labels are draw.\n"
                  "List of parameters:\n"
                  "1. list_ligands_path: A table with a list of ligands in CSV format containing the ligID column with "
                  "the ligands' ID that you want to visualize from the database;;\n"
-                 "2. lig-pcdb_path: The path to the database folder where the ligands' images in point clouds are located;\n"
+                 "2. lig-pcds_path: The path to the dataset folder where the ligands' images in point clouds are located."
+                 "It should contain subfolders named with the PDB entries names and containing the ligands' images inside;\n"
                  "3. img_types: The images types that you want to visualize, separated by comma and without spaces "
                  "(e.g. qRankMask_5,qRank0.95,qRank0.5);\n"
                  "4. vocab_path: (optional) The path to the vocabulary file used to label the database. "
