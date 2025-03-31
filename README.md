@@ -4,8 +4,8 @@
 
 This repository stores the NP³ projects for ligand interpretation in X-ray protein crystallography. It contains three modules:
 
-- **np3_Lig-PCDB**: the repository of the Lig-PCDB project with the code to create the ligands image databases and the stratified training dataset.
-- **np3_DL_segmentation**: the repository with the training pipeline for semantic segmentation tasks used to validate Lig-PCDB and obtain the DL models.
+- **np3_LigPCDS**: the repository of the LigPCDS project with the code to create the ligands image dataset and the stratified training dataset.
+- **np3_DL_segmentation**: the repository with the training pipeline for semantic segmentation tasks used to validate LigPCDS and obtain the DL models.
 - **np3_blob_label**: repository of the NP³ Blob Label application
 
 The NP³ is a project from the Drug Discovery Platform ([DDP](https://lnbio.cnpem.br/innovation-core/technological-platforms/drug-discovery/)) of the Brazilian Biosciences National Laboratory (LNBio) from the Brazilian Center for Research in Energy and Materials (CNPEM) to empower natural products research with automations for biochemistry data processing and analysis. 
@@ -17,7 +17,7 @@ The NP³ is a project from the Drug Discovery Platform ([DDP](https://lnbio.cnpe
 
 --------------------
 
-The dependencies of all repositories are unified here in a single environment. Separated installation instructions may be found in the respective repository, if present.
+The dependencies of all repositories are unified here in a single conda environment. Separated installation instructions may be found in the respective repository, if present.
 
 - Ubuntu >= 14.04 (may also work with other Unix operating systems, but was not tested)
 - Anaconda (https://www.anaconda.com/download/)
