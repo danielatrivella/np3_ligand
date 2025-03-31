@@ -132,4 +132,4 @@ More instructions are present in each repository documentation.
 ### Acknowledment
 
 This research was funded by the [Serrapilheira](https://serrapilheira.org/en/) Institute, grant number Serra-1709-19681 (to Daniela B. B. Trivella).
-It was part of the [Master's thesis](https://hdl.handle.net/20.500.12733/14270) of Cristina Freitas Bazzano, developed within an interdisciplinary project from the DDP-LNBio-CNPEM and the Institute of Computing from the University of Campinas (UNICAMP). 
+It was part of the [Master's thesis](https://repositorio.unicamp.br/acervo/detalhe/1371294) of Cristina Freitas Bazzano, developed within an interdisciplinary project from the DDP-LNBio-CNPEM and the Institute of Computing from the University of Campinas (UNICAMP). 
