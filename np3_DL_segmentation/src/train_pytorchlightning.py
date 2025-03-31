@@ -395,6 +395,16 @@ class MinkowskiSegmentationModule(LightningModule):
                                                   ]).reshape(
                         [1, 1 + len(self.class_names) * len(self.class_names)]),
                                delimiter=',', fmt='%s')
+                # save header of f1, recall and precision by ligand entry
+                # header: ligID, dataset_classnames_f1, dataset_classnames_recall, dataset_classnames_prec
+                with open(save_pred_dir + '/entries_f1_recall_precision.csv', "ab") as f:
+                    np.savetxt(f, np.concatenate([['ligID'],
+                                                  [name+"_f1" for name in self.class_names],
+                                                  [name+"_recall" for name in self.class_names],
+                                                  [name + "_precision" for name in self.class_names]
+                                                  ]).reshape(
+                        [1, 1 + len(self.class_names) * 3]),
+                               delimiter=',', fmt='%s')
         elif self.config.save_prediction:
             logging.info('ERROR Saving predictions in: ' + self.config.save_pred_dir +
                          '\n----> The total allowed batch size must be equals 1')

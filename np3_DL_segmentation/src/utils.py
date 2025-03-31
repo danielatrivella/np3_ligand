@@ -180,7 +180,7 @@ def per_class_recall(hist):
         return np.diag(hist) / hist.sum(0)
 
 # confusion matrix normalized by the row (target), where the total is the union TT FN FP by target
-# TODO? could be normilzed by prediction (column) or by the total or None
+# This could also be normalized by prediction (column) or by the total or None, not implemented
 def per_class_confusion_matrix(hist):
     confusion_matrix = np.zeros(hist.shape)
     # return hist
@@ -440,7 +440,8 @@ elements_color_SP_test = {'0': np.array([0, 0, 0]), '1': np.array([0, 1, 1]),
 
 def save_predictions(coords, labels, pred, ligID, entry_hist, save_pred_dir):
     """Save predictions results in the voxelized coords scale, save original coords and labels and the predicted labels
-    Save the ious by entry"""
+    Save the ious by entry, with all confusion matrix information by class,
+    and also save f1, precision and recall by entry and by class in a separated csv"""
     # coords = coords.numpy() # converting to numpy in the function call -> reverting the spacing by * grid_space
     labels = labels.numpy().astype(int)
     pred = pred.numpy().astype(int)
@@ -461,53 +462,14 @@ def save_predictions(coords, labels, pred, ligID, entry_hist, save_pred_dir):
                                        for j in range(entry_confusion_matrix.shape[1]) if i != j]]).reshape(
             [1, 1 + len(ious)*len(ious)]),
                    delimiter=',', fmt='%s')
-
-# def save_predictions(coords, upsampled_pred, transformation, dataset, config, iteration,
-#                      save_pred_dir):
-#     """Save prediction results in original pointcloud scale."""
-#     from lib.dataset import OnlineVoxelizationDatasetBase
-#     if dataset.IS_ONLINE_VOXELIZATION:
-#         assert transformation is not None, 'Need transformation matrix.'
-#     iter_size = coords[:, -1].max() + 1  # Normally batch_size, may be smaller at the end.
-#     if dataset.IS_TEMPORAL:  # Iterate over temporal dilation.
-#         iter_size *= config.temporal_numseq
-#     for i in range(iter_size):
-#         # Get current pointcloud filtering mask.
-#         if dataset.IS_TEMPORAL:
-#             j = i % config.temporal_numseq
-#             i = i // config.temporal_numseq
-#         batch_mask = coords[:, -1].numpy() == i
-#         if dataset.IS_TEMPORAL:
-#             batch_mask = np.logical_and(batch_mask, coords[:, -2].numpy() == j)
-#         # Calculate original coordinates.
-#         coords_original = coords[:, :3].numpy()[batch_mask] + 0.5
-#         if dataset.IS_ONLINE_VOXELIZATION:
-#             # Undo voxelizer transformation.
-#             curr_transformation = transformation[i, :16].numpy().reshape(4, 4)
-#             xyz = np.hstack((coords_original, np.ones((batch_mask.sum(), 1))))
-#             orig_coords = (np.linalg.inv(curr_transformation) @ xyz.T).T
-#         else:
-#             orig_coords = coords_original
-#         orig_pred = upsampled_pred[batch_mask]
-#         # Undo ignore label masking to fit original dataset label.
-#         if dataset.IGNORE_LABELS:
-#             if isinstance(dataset, OnlineVoxelizationDatasetBase):
-#                 label2masked = dataset.label2masked
-#                 maskedmax = label2masked[label2masked < 255].max() + 1
-#                 masked2label = [label2masked.tolist().index(i) for i in range(maskedmax)]
-#                 orig_pred = np.take(masked2label, orig_pred)
-#             else:
-#                 decode_label_map = {}
-#                 for k, v in dataset.label_map.items():
-#                     decode_label_map[v] = k
-#                 orig_pred = np.array([decode_label_map[x] for x in orig_pred], dtype=np.int64)
-#         # Determine full path of the destination.
-#         full_pred = np.hstack((orig_coords[:, :3], np.expand_dims(orig_pred, 1)))
-#         filename = 'pred_%04d_%02d.npy' % (iteration, i)
-#         if dataset.IS_TEMPORAL:
-#             filename = 'pred_%04d_%02d_%02d.npy' % (iteration, i, j)
-#         # Save final prediction as npy format.
-#         np.save(os.path.join(save_pred_dir, filename), full_pred)
+    # Also save the F1 score, precision and recall
+    entry_f1 = per_class_dice_f1(entry_hist)
+    entry_recall = per_class_recall(entry_hist)
+    entry_prec = per_class_precision(entry_hist)
+    with open(save_pred_dir + '/entries_f1_recall_precision.csv', "ab") as f:
+        np.savetxt(f, np.concatenate([[ligID], entry_f1, entry_recall, entry_prec]).reshape(
+                        [1, 1 + len(entry_f1) * 3]),
+                   delimiter=',', fmt='%s')
 
 
 def visualize_results(coords, input, target, upsampled_pred, config, iteration):
