@@ -8,7 +8,7 @@ This repository stores the NP³ projects for ligand interpretation in X-ray prot
 - **np3_DL_segmentation**: the repository with the training pipeline for semantic segmentation tasks used to validate LigPCDS and obtain the DL models.
 - **np3_blob_label**: repository of the NP³ Blob Label application
 
-The NP³ is a project from the Drug Discovery Platform ([DDP](https://lnbio.cnpem.br/innovation-core/technological-platforms/drug-discovery/)) of the Brazilian Biosciences National Laboratory (LNBio) from the Brazilian Center for Research in Energy and Materials (CNPEM) to empower natural products research with automations for biochemistry data processing and analysis. 
+The NP³ is a project from the Drug Discovery Division ([DDD](https://lnbio.cnpem.br/en/divisoes-cientificas/nucleos-avancados-saude/descoberta-de-farmacos/)) of the Brazilian Biosciences National Laboratory (LNBio) from the Brazilian Center for Research in Energy and Materials (CNPEM) to empower natural products research with automation for biochemistry data processing and analysis. 
 
 -------------------------------------------------------------
 -------------------------------------------------------------
