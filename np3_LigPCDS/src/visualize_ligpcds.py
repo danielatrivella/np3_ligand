@@ -28,7 +28,7 @@ elements_color_ABC347CA56 = {'0': np.array([0, 0, 0]), '1': np.array([0, 1, 1]),
                           '20': np.array([230,145,56]) / 255, '21': np.array([0,255,105]) / 255,
                           '22': np.array([0, 1, 1]), '23': np.array([0, 1, 0]),
                           '24': np.array([0, 0.5, 0])}
-elements_color_set = elements_color_ABC347CA56
+
 
 def read_pc_labels(pcfile_labels, class_mapping, num_labels):
     if os.path.exists(pcfile_labels):
@@ -49,6 +49,7 @@ def read_pc_labels(pcfile_labels, class_mapping, num_labels):
 def read_point_clouds_lig(ligID, pc_dir, pred_directory, num_labels,
                           pc_types=["qRankMask","qRank0.5", "qRank0.75", "qRank0.95"],
                           class_mapping=None):
+    elements_color_set = elements_color_ABC347CA56
     entry = ligID.split('_')[0]
     lig_views = []
     # read all pc for the selected image types and translate them in the x-axis
@@ -63,6 +64,12 @@ def read_point_clouds_lig(ligID, pc_dir, pred_directory, num_labels,
     # if vocab was informed
     # visualize the images colored by the labels below the previous ones, translate on the z axis
     if num_labels > 0:
+        # change the color set in case this is a AtomSymbol-based vocab
+        if num_labels == 6:
+            elements_color_set = elements_color_AtomSymbolGroups
+        elif num_labels == 11:
+            elements_color_set = elements_color_AtomSymbol
+        #
         pc_0_bound = (lig_pcds[0].get_max_bound()[2] - lig_pcds[0].get_min_bound()[2]) * 3
         lig_labels = [read_pc_labels(pc_dir + '/' + entry + '/' + ligID + '_lig_pc_labels_'+pc_t+'.txt',
                                      class_mapping, num_labels).astype(str)
