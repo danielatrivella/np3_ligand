@@ -52,6 +52,7 @@ def compute_variables_stats_ci_bootstrap(entries_pred_file, output_path, output_
             ax.set_title('Histogram with density for metric ' + var_interest)
             ax.set_xlabel(var_interest)
             fig.savefig(path.join(output_path, "vars_distribution"+"_"+output_suffix, "hist_"+var_interest+"_"+output_suffix+".png"))
+            plt.close()
             #plt.show()
         #
         # compute confidence interval and print result
@@ -80,13 +81,14 @@ def compute_variables_stats_ci_bootstrap(entries_pred_file, output_path, output_
             ax.set_ylabel('frequency')
             fig.savefig(path.join(output_path, "vars_ci_bootstrap_distribution"+"_"+output_suffix,
                                   "boot_dist_" + var_interest + "_"+output_suffix+ ".png"))
+            plt.close()
             #plt.show()
         # add the variable information to the results dataframe
         res_vars_interest.loc[i,:] = res_var_stats_ci
 
     # store final result, stats and ci of variables of interest
     res_vars_interest.to_csv(path.join(output_path,
-                                       "res_stats_ci_bootstrap_"+"_".join(variables_interest)+"_"+output_suffix+".csv"))
+                                       "res_stats_ci_bootstrap_"+output_suffix+".csv"))
 
 
 if __name__ == "__main__":
