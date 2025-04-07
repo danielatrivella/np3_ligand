@@ -16,7 +16,7 @@ def compute_variables_stats_ci_bootstrap(entries_pred_file, output_path, output_
                                          plot_variable_distribution = True,
                                          plot_ci_distribution = True):
     entries_pred = pd.read_csv(entries_pred_file)
-    res_vars_interest = pd.DataFrame(columns=["variable_name", "mean", "std", "ci_error_low",
+    res_vars_interest = pd.DataFrame(columns=["variable_name", "mean", "median", "std", "ci_error_low",
                                               "ci_error_high", "ci_low", "ci_high", "ci_std"])
     rng = np.random.default_rng()
 
@@ -34,14 +34,16 @@ def compute_variables_stats_ci_bootstrap(entries_pred_file, output_path, output_
         # store the results for the variable of interest - statistics and confidence interval
         # will store the variable_name, mean, std, ci_error_low, ci_error_high, ci_low, ci_high, ci_std
         res_var_stats_ci = []
-        #
+        # save var name, mean, median, std
         res_var_stats_ci.append(var_interest)
         res_var_stats_ci.append(entries_pred[var_interest].mean())
+        res_var_stats_ci.append(entries_pred[var_interest].median())
         res_var_stats_ci.append(entries_pred[var_interest].std())
         # print statistics
         print("\n* Statistics for",var_interest)
         print("Data mean: ",str(res_var_stats_ci[1]))
-        print("Data std: ",str(res_var_stats_ci[2]))
+        print("Data median: ",str(res_var_stats_ci[2]))
+        print("Data std: ", str(res_var_stats_ci[3]))
         #
         if plot_variable_distribution:
             if not path.exists(path.join(output_path, "vars_distribution"+"_"+output_suffix)):
@@ -64,12 +66,12 @@ def compute_variables_stats_ci_bootstrap(entries_pred_file, output_path, output_
         res_var_stats_ci.append(res_var_stats_ci[1]-res.confidence_interval.low)
         res_var_stats_ci.append(res_var_stats_ci[1]+res.confidence_interval.high)
         res_var_stats_ci.append(res.standard_error)
-        print("Confidence interval of", confidence_interval_level,"low and high error: ", res_var_stats_ci[3],",",
-              res_var_stats_ci[4])
+        print("Confidence interval of", confidence_interval_level,"low and high error: ", res_var_stats_ci[4],",",
+              res_var_stats_ci[5])
         print("Confidence interval of", confidence_interval_level,": ",
-              res_var_stats_ci[5],",",
-              res_var_stats_ci[6])
-        print("Confidence interval standard error: ", res_var_stats_ci[7])
+              res_var_stats_ci[6],",",
+              res_var_stats_ci[7])
+        print("Confidence interval standard error: ", res_var_stats_ci[8])
         #
         if plot_ci_distribution:
             if not path.exists(path.join(output_path, "vars_ci_bootstrap_distribution"+"_"+output_suffix)):
