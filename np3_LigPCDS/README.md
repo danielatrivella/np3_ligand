@@ -56,7 +56,7 @@ The average performance in the cross-validation of their best DL model is presen
   - _PDB_entries_hasLigand_structureFactors_xray_protein.csv_ : list of PDB entries and the ligands codes they have 
   - _Ligands_PDB_entries_hasLigand_structureFactors_xray_protein.csv_ : list of ligands codes, types and PDB entry in which it appears
 - List of valid ligands: located inside the 'PDB_lists/valid_ligands_list' folder in zip format:
-  - _valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_AtomSymbol.zip_ : the valid ligands list labeled with the Atom-based approach
+  - _valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_AtomSymbol.zip_ : the valid ligands list labeled with the AtomSymbol-based approach
   - _valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.zip_ : the valid ligands list labeled with the SP-base approach
   - _valid_ligands_list_columns_description.csv_ : a table describing the columns of the tables with the list of valid ligands
 - The proposed vocabularies and mappings for the viable labeling approaches, located in the 'vocabularies' folder:
@@ -268,7 +268,7 @@ And one folder called 'xyz_<ligands_list_path>' will be created inside the "<dat
 SP-based structure labeling.
 > ``` python src/run_vocabulary_encode_ligands.py data/ ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv True```
 
-Atom-based structure labeling.
+AtomSymbol-based structure labeling.
 > ``` python src/run_vocabulary_encode_ligands.py data/ ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv False```
 
 
@@ -561,7 +561,7 @@ Plot the classes distribution of the modeling AtomC347CA56 in the valid ligands 
 For developers debugging. 
 
 An automatic test was implemented to check the quality of the structure labeling procedure with 8 manually labeled ligands' code.
-A total of 8 ligands structure were selected and manually labeled. The ligands were labeled with the SP-based and the Atom-based modelings.  
+A total of 8 ligands structure were selected and manually labeled. The ligands were labeled with the SP-based and the AtomSymbol-based modelings.  
 
 The chosen ligands that compose the list of test cases have the following codes in PDB: 0YB, 1EJ, 58T, DJ4, I3C, MB5, MTE and Q0S. 
 
@@ -586,7 +586,7 @@ table of labeled ligands stored at 'test/ligands_label/ligands_label.csv'.
 
 *Output:*
 
-For the Atom-based and SP-based structure labeling approaches, it outputs to the screen the inconsistencies found for each ligand code 
+For the AtomSymbol-based and SP-based structure labeling approaches, it outputs to the screen the inconsistencies found for each ligand code 
 present in the list of use cases.
 
 ---------------------------------------------------------------
