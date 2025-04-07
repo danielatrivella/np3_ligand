@@ -45,8 +45,6 @@ class LigandPointCloudDataset(Dataset):
         self.ligs_retrieve = pd.read_csv(ligs_retrieve_filepath,
                                          usecols = ['ligID', 'entry', 'grid_space', 'kfolds', 'test_val'])
                                                    #+[pc_type_size_col])  # + vocab_cols # not used anymore
-        # check if the ligands files exists and if not remove the missing entries
-        self.checkLigandsFiles()
         # not used anymore - compute initial class weights based on the class representation (total #atoms) imbalance ratio
         # self.class_H_imbalance_ratio = compute_imbalance_ratio_H(self.ligs_retrieve[vocab_cols].sum(0).values, pc_type)
         #
@@ -56,6 +54,9 @@ class LigandPointCloudDataset(Dataset):
         else: # data type == 'val' or 'test'
             self.ligs_retrieve = self.ligs_retrieve[((self.ligs_retrieve.kfolds == kfold) &
                                            (self.ligs_retrieve.test_val == data_type))].reset_index(drop=True)
+        #
+        # check if the ligands files exists and if not remove the missing entries
+        self.checkLigandsFiles()
         #
         # read mapping if present
         if class_mapping_path:
