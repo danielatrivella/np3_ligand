@@ -67,7 +67,7 @@ The average performance in the cross-validation of their best DL model is presen
 
 #### LigPCDS - dataset record
 
-The LigPCDS can be retrieved from [Zenodo](https://zenodo.org/), an open dissemination research data repository. The deposit data is located in the record xTODOlinkX, and contains:
+The LigPCDS can be retrieved from Zenodo, an open dissemination research data repository. The deposit data is located in record [10.5281/zenodo.7872577](https://doi.org/10.5281/zenodo.7872577), and contains:
 
 - LigPCDS-SP_record : The dataset with the SP-based modeling images, vocabulary, structure labeling result (xyz record) and DL models.
 - LigPCDS-AtomSymbol_record : The dataset with the AtomSymbol-based modeling images, vocabulary, structure labeling result (xyz record) and DL models.
