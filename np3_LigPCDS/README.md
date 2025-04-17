@@ -596,4 +596,4 @@ _Paper in preparation to be published._
 
 
 ## License
-LigPCDS by Cristina Freitas Bazzano, Luiz G. Alves,Guilherme P. Telles, Daniela B. B. Trivella is marked with [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/?ref=chooser-v1).
+LigPCDS © 2023 by Cristina Freitas Bazzano, Luiz G. Alves,Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
