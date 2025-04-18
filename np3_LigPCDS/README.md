@@ -11,13 +11,13 @@ The workflow used to obtain LigPCDS, the deep learning models, and the validated
 
 ##### Part A: LigPCDS creation schema 
 
-In Step 1, a list of PDB entries from 1.5 to 2.2 Å was retrieved (.pdb and .mtz) and their free and organic ligands were filtered and validated (.sdf). It resulted in the list of valid ligands with 244226 entries. 
+In Step 1, a list of PDB entries from 1.5 to 2.2 Å was retrieved (.pdb and .mtz) and their free and organic ligands were filtered and validated (.sdf). It resulted in the list of valid ligands with 244,226 entries. 
 
-In Step 2, vocabularies of chemical classes were created and used for labeling atom-wise the structure of the valid ligands. They were based on the chemical atoms themselves and on cyclic substructures of the ligands. 
+In Step 2, Dimple [ref] v2.6.1 was used to refine the PDB entries and produced their Fo-Fc maps. Next, for each ligand, it was defined a grid sizing that covers its entire blob. Each ligand grid was interpolated from its Fo-Fc map to a 3D point cloud image and processed to create the final images of the ligands. 
 
-In Step 3, Dimple [ref] was used to refine the PDB entries and produced their Fo-Fc maps. Next, for each ligand, it was defined a grid sizing that covers its entire blob. Each ligand grid was interpolated from its Fo-Fc map to a 3D point cloud image and processed to create the final images of the ligands. 
+In Step 3, vocabularies of chemical classes were created and used for labeling atom-wise the structure of the valid ligands. They were based on the chemical atoms themselves and on cyclic substructures of the ligands. 
 
-Then, in Step 4 the labels of the structure of the ligands were extrapolated pointwise using an atomic sphere model for labeling the final images of the ligands. This resulted in LigPCDS. 
+Then, in Step 4 the labels of the structure of the ligands were extrapolated pointwise using an atomic sphere model for labeling the final images of the ligands. This resulted in LigPCDS with 244,226 entries. 
 
 The viable modeling approaches are detailed bellow. It presents all viable vocabularies with their imbalance ratio in the list of valid ligands, their classes names and size.
 
@@ -31,13 +31,13 @@ The viable modeling approaches are detailed bellow. It presents all viable vocab
 
 ##### Part B: The general schema used to train and obtain the validated DL models. 
 
-In step 5 a stratified training dataset was created from LigPCDS with n=78902 ligands entries, separated in k=13 similar groups.
+In step 5 a stratified training dataset was created from LigPCDS with n=78,902 ligands entries, separated in k=13 similar groups.
 
-In step 6 the LigPCDS entries of this dataset were used to train DL models in semantic segmentation tasks using Minkowski Engine [ref] architecture and its networks based on the 3D U-Net [ref]; cycles of training, evaluation and changes continued until good performance DL models were obtained. 
+In step 6 the LigPCDS entries of this dataset were used to train DL models in semantic segmentation tasks using Minkowski Engine [ref] architecture and its modified networks based on the 3D U-Net [ref]; cycles of training, evaluation and changes continued until good performance DL models were obtained. 
 
 ##### Part C: Validated labeling approaches. 
 
-Four of the proposed labeling approaches were validated and are illustrated with ligand FUL from PDB entry 4Z4T. 
+Four of the proposed labeling approaches were validated.
 The average performance in the cross-validation of their best DL model is presented below using the mIoU, mF1, Precision and Recall metrics. 
 
 | DL Model          | dmax | Loss  weights             | Epochs | Test mIoU | F1 score | Precision | Recall |
@@ -222,11 +222,11 @@ Two tables will be created in the current directory:
 Do not apply the quality filters related to bfactor, occupancy and disorder.
 > ``` python src/quality_filter_pdb_ligands_lists.py PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv data/ ligands_valid_sdf_info.csv 10000 10000 0 TRUE 0 10000```
 
-### Step 2
+### Step 3
 
 --------------------
 
-#### 2.1 Vocabulary Creation and Ligands Structure Labeling 
+#### 3.1 Vocabulary Creation and Ligands Structure Labeling 
 
 Create a vocabulary from the list of valid ligands that passed the quality filter and label the ligands structure. 
 
@@ -272,13 +272,13 @@ AtomSymbol-based structure labeling.
 > ``` python src/run_vocabulary_encode_ligands.py data/ ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv False```
 
 
-### Steps 3 and 4
+### Steps 2 and 4
 
 ----------------------
 
 Ligands' image creation and labeling.
 
-#### 3.1 Refinement
+#### 2.1 Refinement
 
 Execute Dimple to refine the retrieved entries present in a list. A 2x slow refinement is performed and without hetero atoms (hetatm removed). 
 This allows the blob of ligands to appear in their calculated Fo-Fc map.
@@ -307,7 +307,7 @@ If overwrite is False, it will skip the already refined entries and continue fro
 > ``` python src/refinement_dimple.py data/ PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv 10```
 
 
-#### 3.2 Ligand Grid Image Creation 
+#### 2.2 Ligand Grid Image Creation 
 
 Create the ligand grid image for all ligands entries that had their structure successfully labeled and refined.
 
@@ -343,7 +343,7 @@ It will also add columns with the electron density descriptive statistics of the
 
 > ``` python src/mtz_to_grid_pointcloud.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/refinement/ data/ligs_point_cloud_grid True 10 0.5```
 
-#### 3.3 Ligands Image Creation and Labeling (Step 4)** 
+#### 2.3 Ligands Image Creation and Labeling (Step 4)** 
 
 Create the final images of the ligands in quantile rank scale and also create their labeling files for each image type.
 
@@ -381,7 +381,7 @@ The size of these images is equal to the number of points in the point cloud ima
 
 > ``` python src/grid_pointcloud_to_quantile_rank_scale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_point_cloud_grid data/ligs_pcds_SP 10```
 
-#### 3.4 Ligands Image Labeling Test 
+#### 2.4 Ligands Image Labeling Test 
 
 Tests the labels of the ligands images against their expected labels from their structure labeling (in .xyz files from their SDF files). 
 It will check for each atom of a ligand if the points around it and inside 1/4 of its atomic sphere have all the same label equals to the expected label from its structure labeling result (.xyz file).
