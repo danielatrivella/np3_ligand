@@ -13,13 +13,13 @@ The workflow used to obtain LigPCDS, the deep learning models, and the validated
 
 In Step 1, a list of PDB entries from 1.5 to 2.2 Å was retrieved (.pdb and .mtz) and their free and organic ligands were filtered and validated (.sdf). It resulted in the list of valid ligands with 244,226 entries. 
 
-In Step 2, Dimple [ref] v2.6.1 was used to refine the PDB entries and produced their Fo-Fc maps. Next, for each ligand, it was defined a grid sizing that covers its entire blob. Each ligand grid was interpolated from its Fo-Fc map to a 3D point cloud image and processed to create the final images of the ligands. 
+In Step 2, Dimple (https://ccp4.github.io/dimple/) v2.6.1 was used to refine the PDB entries and produced their Fo-Fc maps. Next, for each ligand, it was defined a grid sizing that covers its entire blob. Each ligand grid was interpolated from its Fo-Fc map to a 3D point cloud image and processed to create the final images of the ligands. 
 
 In Step 3, vocabularies of chemical classes were created and used for labeling atom-wise the structure of the valid ligands. They were based on the chemical atoms themselves and on cyclic substructures of the ligands. 
 
 Then, in Step 4 the labels of the structure of the ligands were extrapolated pointwise using an atomic sphere model for labeling the final images of the ligands. This resulted in LigPCDS with 244,226 entries. 
 
-The viable modeling approaches are detailed bellow. It presents all viable vocabularies with their imbalance ratio in the list of valid ligands, their classes names and size.
+The viable labeling approaches are detailed bellow. It presents all viable vocabularies with their imbalance ratio in the list of valid ligands, their classes names and size.
 
 | Vocabulary                        | dmax   | Classes                                        | Number of Classes |
 |-----------------------------------|--------|------------------------------------------------|-------------------|
@@ -29,11 +29,15 @@ The viable modeling approaches are detailed bellow. It presents all viable vocab
 | Atom Symbols with Groups          | 41.4   | Background, C, O, N, PSe, Halo                 | 6                 |
 
 
+To exemplify the LigPCDS image labeling in 3D point cloud, five different ligand image types and two ligands are used for illustration: 4ZV (PDB entry 5cc6, resolution 2.1 Å) and FUL (PDB entry 4z4t, resolution 1.8 Å). Their Fo-Fc maps are shown in the top of the panel with a contour of 3σ (created with Coot). The LigPCDS visualization script was used to draw the ligands images in 3D point cloud format.
+
+![ligands_image_lableling](docs/best_labelling_ligands_images_example.png)
+
 ##### Part B: The general schema used to train and obtain the validated DL models. 
 
 In step 5 a stratified training dataset was created from LigPCDS with n=78,902 ligands entries, separated in k=13 similar groups.
 
-In step 6 the LigPCDS entries of this dataset were used to train DL models in semantic segmentation tasks using Minkowski Engine [ref] architecture and its modified networks based on the 3D U-Net [ref]; cycles of training, evaluation and changes continued until good performance DL models were obtained. 
+In step 6 the LigPCDS entries of this dataset were used to train DL models in semantic segmentation tasks using Minkowski Engine (https://nvidia.github.io/MinkowskiEngine/) architecture and its modified networks based on the 3D U-Net; cycles of training, evaluation and changes continued until good performance DL models were obtained. 
 
 ##### Part C: Validated labeling approaches. 
 
@@ -168,7 +172,7 @@ The db_path folder is created and inside it four subfolders are created:
 The list of available ligands contains the entries that were retrieved (download ok) and have a valid SDF file.
 
 This step will check if the SDF files of the retrieved ligands (ligands_data_folder) are valid and will add the information of the valid entries to the list of available ligands.
-If the SDF file of a ligand entry can be parsed by rdkit [ref] and results in a valid molecular graph, then this ligand's file is valid. Otherwise it is removed from the resulting list.
+If the SDF file of a ligand entry can be parsed by rdkit (https://www.rdkit.org/) and results in a valid molecular graph, then this ligand's file is valid. Otherwise it is removed from the resulting list.
 
 *Run:*
 
