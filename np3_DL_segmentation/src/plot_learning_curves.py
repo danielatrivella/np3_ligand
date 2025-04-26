@@ -12,7 +12,14 @@ def str2flist(l):
 # matplotlib palletes
 colors_set1 = np.asarray(['0.97,0.51,0.75', '0.60,0.60,0.60', '0.65,0.34,0.16', '1.00,1.00,0.20', '1.00,0.50,0.00',
                '0.60,0.31,0.64', '0.30,0.69,0.29', '0.22,0.49,0.72', '0.89,0.10,0.11'])
+colors_set2 = np.asarray(['0.60,0.60,0.60', '0.97,0.51,0.75', '0.65,0.34,0.16', '1.00,1.00,0.20', '1.00,0.50,0.00',
+               '0.60,0.31,0.64', '0.30,0.69,0.29', '0.22,0.49,0.72', '0.89,0.10,0.11'])
 colors_tab21 = np.asarray(['0.12,0.47,0.71', '0.60,0.60,0.60', '0.68,0.78,0.91', '1.00,0.50,0.05', '1.00,0.73,0.47',
+                '0.17,0.63,0.17',
+                '0.60,0.87,0.54', '0.84,0.15,0.16', '1.00,0.60,0.59', '0.58,0.40,0.74', '0.77,0.69,0.84',
+                '0.55,0.34,0.29', '0.77,0.61,0.58', '0.89,0.47,0.76', '0.97,0.71,0.82', '0.50,0.50,0.50',
+                '0.78,0.78,0.78', '0.74,0.74,0.13', '0.86,0.86,0.55', '0.09,0.75,0.81', '0.62,0.85,0.90'])
+colors_set3 = np.asarray(['0.60,0.60,0.60', '0.12,0.47,0.71', '0.68,0.78,0.91', '1.00,0.50,0.05', '1.00,0.73,0.47',
                 '0.17,0.63,0.17',
                 '0.60,0.87,0.54', '0.84,0.15,0.16', '1.00,0.60,0.59', '0.58,0.40,0.74', '0.77,0.69,0.84',
                 '0.55,0.34,0.29', '0.77,0.61,0.58', '0.89,0.47,0.76', '0.97,0.71,0.82', '0.50,0.50,0.50',
@@ -28,6 +35,7 @@ def smooth(scalars, weight):  # Weight between 0 and 1
         last = smoothed_val  # Anchor the last smoothed value
     return smoothed
 
+# linestyle {'-', '--', '-.', ':', '', (offset, on-off-seq), ...}
 def plot_learning_curves(curves_path, curves_names, curves_colors, curves_steps_by_epoch, curves_style, max_epoch, output_img_path,
                          curves_title, curves_xlabel, curves_ylabel, smooth_rate=0.0, figsize=(8, 6),legend_ncol=1, ylim = None):
     # read the learning curves
@@ -39,7 +47,7 @@ def plot_learning_curves(curves_path, curves_names, curves_colors, curves_steps_
     curves_data = [curve.loc[curve.epoch <= max_epoch, :] for curve in curves_data]
     # set styling
     mpl.style.use('seaborn')
-    params = {'legend.fontsize': 'xx-large',
+    params = {'legend.fontsize': 'x-large',
               'figure.figsize': figsize,
               'axes.labelsize': 'xx-large',
               'axes.titlesize':'xx-large',
@@ -53,13 +61,14 @@ def plot_learning_curves(curves_path, curves_names, curves_colors, curves_steps_
                  color=str2flist(curves_colors[i]),  label=curves_names[i])
     # set the plot title and labels
     plt.title(curves_title)
-    plt.xlabel(curves_xlabel), plt.ylabel(curves_ylabel), plt.legend(loc="best",frameon=True,ncol=legend_ncol)
+    plt.xlabel(curves_xlabel), plt.ylabel(curves_ylabel), plt.legend(loc="lower right",frameon=True,ncol=legend_ncol) # loc="best"
     if ylim is not None:
         plt.ylim(ylim[0], ylim[1])
     plt.tight_layout()
     # save figure and show plot
     plt.savefig(output_img_path)
     plt.show()
+    plt.close()
 
 
 #####################################
@@ -95,4 +104,3 @@ for c in ['Atom', 'Background', 'C3', 'C4', 'C5', 'C6', 'C7', 'CA5', 'CA6']:
     curves_ylabel = "IoU %"
     plot_learning_curves(curves_path, curves_names, curves_colors, curves_steps_by_epoch, curves_style,
                          max_epoch, output_img_path, curves_title, curves_xlabel, curves_ylabel, figsize=(9, 7), legend_ncol=2, smooth_rate=0.4)
-
