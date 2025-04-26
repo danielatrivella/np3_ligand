@@ -133,3 +133,6 @@ More instructions are present in each repository documentation.
 
 This research was funded by the [Serrapilheira](https://serrapilheira.org/en/) Institute, grant number Serra-1709-19681 (to Daniela B. B. Trivella).
 It was part of the [Master's thesis](https://repositorio.unicamp.br/acervo/detalhe/1371294) of Cristina Freitas Bazzano, developed within an interdisciplinary project from the DDP-LNBio-CNPEM and the Institute of Computing from the University of Campinas (UNICAMP). 
+
+### License
+LigPCDS © 2023 by Cristina Freitas Bazzano, Luiz G. Alves,Guilherme P. Telles, Daniela B. B. Trivella is licensed under CC BY-SA 4.0
