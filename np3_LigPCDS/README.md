@@ -82,10 +82,10 @@ The LigPCDS can be retrieved from Zenodo, an open dissemination research data re
 
 ## How to use
 
-The scripts used in each step from 1 to 5 are detailed below in separated subsections.
-This corresponds to parts A and B from the workflow to create the LigPCDS dataset and the stratified training dataset. 
+The scripts used in each step from 1 to 5 are detailed below in separated subsections. Here Step 3 is presented before Step 2 to easy the use of the available scripts, this does not affect the order of Figure 1 because Steps 2 and 3 are parallel procedures.
+These steps correspond to parts A and B from the workflow to create the LigPCDS dataset and the stratified training dataset. 
  
-At the end there is also some visualization scripts and an additional testing script.
+At the end there is also some available visualization scripts and an additional testing script.
 
 ### Step 1
 
