@@ -135,4 +135,4 @@ This research was funded by the [Serrapilheira](https://serrapilheira.org/en/) I
 It was part of the [Master's thesis](https://repositorio.unicamp.br/acervo/detalhe/1371294) of Cristina Freitas Bazzano, developed within an interdisciplinary project from the DDP-LNBio-CNPEM and the Institute of Computing from the University of Campinas (UNICAMP). 
 
 ### License
-LigPCDS © 2023 by Cristina Freitas Bazzano, Luiz G. Alves,Guilherme P. Telles, Daniela B. B. Trivella is licensed under CC BY-SA 4.0
+LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under CC BY 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by/4.0/
