@@ -209,3 +209,7 @@ pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --glob
 ## Citing
 
 _Paper in preparation to be published._
+
+## License
+
+    LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
