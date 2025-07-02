@@ -1,9 +1,9 @@
-# NP³ LigPCDS: Labeled Dataset of X-ray Ligands Images in 3D Point Clouds and Validated Deep Learning Models
+# NP³ LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models
 
 This repository contains the code used to create the LigPCDS dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
 The code for the models training pipeline and validation (step 6 from part B and part C of the workflow) is presented in the np3_DL_segmentation repository.
 
-The workflow used to obtain LigPCDS, the deep learning models, and the validated labeling approaches is presented in the figure bellow.
+The workflow used to obtain LigPCDS, the deep learning models, and the validated labeling approaches is presented in the figure below.
 
 ![np3_LigPCDS_workflow](docs/np3_ligpcds_workflow.png)
 
@@ -19,14 +19,14 @@ In Step 3, vocabularies of chemical classes were created and used for labeling a
 
 Then, in Step 4 the labels of the structure of the ligands were extrapolated pointwise using an atomic sphere model for labeling the final images of the ligands. This resulted in LigPCDS with 244,226 entries. 
 
-The viable labeling approaches are detailed bellow. It presents all viable vocabularies with their imbalance ratio in the list of valid ligands, their classes names and size.
+The viable labeling approaches are detailed bellow. It presents all viable vocabularies with their imbalance ratio (dmax) in the list of valid ligands, their classes names and size.
 
 | Vocabulary                        | dmax   | Classes                                        | Number of Classes |
 |-----------------------------------|--------|------------------------------------------------|-------------------|
 | Ligand Region                     | 1      | Background, Atom                               | 2                 |
-| Generic Atoms and Cycles          | 2.1    | Background, Atom, C                            | 3                 |
-| Generic Atoms and Cycles C347CA56 | 1535.2 | Background, Atom, C5, CA5, C6, CA6, C3, C4, C7 | 9                 |
-| Atom Symbols with Groups          | 41.4   | Background, C, O, N, PSe, Halo                 | 6                 |
+| Generic Atoms and HeteroCycles          | 2.1    | Background, Atom, C (heteroCycle)                            | 3                 |
+| Generic Atoms and HeteroCycles C347CA56 | 1535.2 | Background, Atom, C5 (heteroCycle of size 5), CA5, C6, CA6, C3, C4, C7 | 9                 |
+| Atom Symbols with Groups          | 41.4   | Background, C (carbon), O (oxigen), N (nitrogen), PSe, Halo                 | 6                 |
 
 
 To exemplify the LigPCDS image labeling in 3D point cloud, five different ligand image types and two ligands are used for illustration: 4ZV (PDB entry 5cc6, resolution 2.1 Å) and FUL (PDB entry 4z4t, resolution 1.8 Å). Their Fo-Fc maps are shown in the top of the panel with a contour of 3σ (created with Coot). The LigPCDS visualization script was used to draw the ligands images in 3D point cloud format.
@@ -41,15 +41,15 @@ In step 6 the LigPCDS entries of this dataset were used to train DL models in se
 
 ##### Part C: Validated labeling approaches. 
 
-Four of the proposed labeling approaches were validated.
-The average performance in the cross-validation of their best DL model is presented below using the mIoU, mF1, Precision and Recall metrics. 
+Four of the proposed labeling approaches were validated, their models names follow the same order of the vocabulary used from the previous table.
+The average performance in the cross-validation of their best DL model is presented below using the mIoU, mF1, Precision and Recall metrics. The 95% bootstrap confidence interval of the metrics is presented between squared brackets. 
 
 | DL Model          | dmax | Loss  weights             | Epochs | Test mIoU | F1 score | Precision | Recall |
 |-------------------|------|---------------------------|--------|-----------|----------|-----------|--------|
-| LigandRegion      | 1    | 1,2.5                     | 120    | 77.4      | 87.0     | 86.5      | 87.4   |
-| AtomCycle         | 1.4  | 1,2.5,2.5                 | 120    | 71.0      | 82.5     | 80.5      | 84.9   |
-| Atom C347CA56     | 865  | 1,10,5,5,50,5,500,500,500 | 200    | 49.7      | 62.4     | 58.2      | 74.1   |
-| AtomSymbol Groups | 81.5 | 16,16,44,108,853          | 160    | 59.0      | 73.1     | 68.6      | 79.5   |
+| LigandRegion      | 1    | 1,2.5                     | 120    | 77.4 [-11.7,12.1]     | 87.0 [-8.4,8.8]    | 86.5 [-8.7,9.1]     | 87.4 [-7.8,8.2]  |
+| AtomCycle         | 1.4  | 1,2.5,2.5                 | 120    | 71.0 [-16.3,17.1]      | 82.5 [-14.7,15.6]    | 80.5 [-13.7,14.5]     | 84.9 [-11.7,12.6]  |
+| Atom C347CA56     | 865  | 1,10,5,5,50,5,500,500,500 | 200    | 49.7 [-19.4,20.2]     | 62.4 [-18.8,19.7]    | 58.2 [-15.7,16.6]     | 74.1 [-14.9,15.8]  |
+| AtomSymbol Groups | 81.5 | 16,16,44,108,853          | 160    | 59.0 [-19.8,20.5]     | 73.1 [-19.6,20.3]    | 68.6 [-18.8,19.5]     | 79.5  [-15.4,16.2] |
 
 ----------------------------
 
@@ -578,7 +578,7 @@ To add a new ligand code to the list of use cases, the following steps are neces
 - One must first manually add the respective ligand smiles and code to the table 'test/ligands_label/ligands_code_smiles.csv'. 
 - Next, one may use the script `test/draw_smiles_test.py` to draw the structure of the ligands codes present in this table and to enumerate their atoms. 
   - Their images are saved to PNG files and stored in the folder 'test/ligands_label/ligands_draw/', which is also created by this script.
-  - The symbol of the atoms concatenated with the smaller or aromatic cycle in which it appears and its number, as present in the created images, is used as the atoms' ID.
+  - The symbol of the atoms concatenated with the smaller or aromatic cyclic structure in which it appears and its number, as present in the created images, is used as the atoms' ID.
 - Then, one must create a CSV table with the labels of the new structure containing one atom by row, referenced by their atom ID and 
 following the format of the files present in 'test/ligands_label' for the already labeled use cases (e.g. 'I3C.csv' for ligand code I3C).
 - And finally, execute the script `test/ligands_label/ligands_label_concatenate.py` to add the new use case to the 
