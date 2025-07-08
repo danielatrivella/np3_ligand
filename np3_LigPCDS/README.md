@@ -24,8 +24,8 @@ The viable labeling approaches are detailed bellow. It presents all viable vocab
 | Vocabulary                        | dmax   | Classes                                        | Number of Classes |
 |-----------------------------------|--------|------------------------------------------------|-------------------|
 | Ligand Region                     | 1      | Background, Atom                               | 2                 |
-| Generic Atoms and HeteroCycles          | 2.1    | Background, Atom, C (heteroCycle)                            | 3                 |
-| Generic Atoms and HeteroCycles C347CA56 | 1535.2 | Background, Atom, C5 (heteroCycle of size 5), CA5, C6, CA6, C3, C4, C7 | 9                 |
+| Generic Atoms and Cycles          | 2.1    | Background, Atom, C (Cycle)                            | 3                 |
+| Generic Atoms and Cycles C347CA56 | 1535.2 | Background, Atom, C5 (Cycle of size 5), CA5, C6, CA6, C3, C4, C7 | 9                 |
 | Atom Symbols with Groups          | 41.4   | Background, C (carbon), O (oxigen), N (nitrogen), PSe, Halo                 | 6                 |
 
 
@@ -47,7 +47,7 @@ The average performance in the cross-validation of their best DL model is presen
 | DL Model          | dmax | Loss  weights             | Epochs | Test mIoU | F1 score | Precision | Recall |
 |-------------------|------|---------------------------|--------|-----------|----------|-----------|--------|
 | LigandRegion      | 1    | 1,2.5                     | 120    | 77.4 [-11.7,12.1]     | 87.0 [-8.4,8.8]    | 86.5 [-8.7,9.1]     | 87.4 [-7.8,8.2]  |
-| AtomCycle         | 1.4  | 1,2.5,2.5                 | 120    | 71.0 [-16.3,17.1]      | 82.5 [-14.7,15.6]    | 80.5 [-13.7,14.5]     | 84.9 [-11.7,12.6]  |
+| AtomCycles         | 1.4  | 1,2.5,2.5                 | 120    | 71.0 [-16.3,17.1]      | 82.5 [-14.7,15.6]    | 80.5 [-13.7,14.5]     | 84.9 [-11.7,12.6]  |
 | Atom C347CA56     | 865  | 1,10,5,5,50,5,500,500,500 | 200    | 49.7 [-19.4,20.2]     | 62.4 [-18.8,19.7]    | 58.2 [-15.7,16.6]     | 74.1 [-14.9,15.8]  |
 | AtomSymbol Groups | 81.5 | 16,16,44,108,853          | 160    | 59.0 [-19.8,20.5]     | 73.1 [-19.6,20.3]    | 68.6 [-18.8,19.5]     | 79.5  [-15.4,16.2] |
 
