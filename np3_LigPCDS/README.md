@@ -112,7 +112,7 @@ These report files must follow the table format exported by PDB in july 2019.
 
 *Run:*
 
-> ``` Rscript src/filter_pdb_ligs_entries.R pdb_report ligand_report min_pdbids resolution_min resolution_max np_filter deposit_date_min```
+> ``` Rscript src/filter_pdb_lig_report_list.R pdb_report ligand_report min_pdbids resolution_min resolution_max np_filter deposit_date_min```
 
 *Parameters:*
 
@@ -123,7 +123,7 @@ These report files must follow the table format exported by PDB in july 2019.
    4. resolution_min: Minimum resolution of a PDB entry to be included in the resulting list;
    5. resolution_max: Maximum resolution of a PDB entry to be included in the resulting list;
    6. np_filter: TRUE or FALSE to apply the natural products filter and only retain ligands that have the following organic atoms: C,H,O,N,P,S,I,Br,Cl,F,Se;
-   7. deposit_date_min: The minimum deposit date that a PDB entry must have to be included in the resulting list (default to no deposit date filter). All filtered entries must have been deposited after or in this date. The informed date must follow the format yyyy-mm-dd, as in 2008-01-01, where yyyy is the year, mm is the month and dd is the day.
+   7. deposit_date_min: The minimum deposit date that a PDB entry must have to be included in the resulting list (default to no deposit date filter). All filtered entries must have been deposited after or in this date. The informed date must follow the format yyyy-mm-dd, as in 2008-02-01, where yyyy is the year, mm is the month and dd is the day.
 
 *Return:*
 
@@ -224,7 +224,7 @@ Two tables will be created in the current directory:
 *Example:*
 
 Do not apply the quality filters related to bfactor, occupancy and disorder.
-> ``` python src/quality_filter_pdb_ligands_lists.py PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv data/ ligands_valid_sdf_info.csv 10000 10000 0 TRUE 0 10000```
+> ``` python src/quality_filter_pdb_ligands_lists.py PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv data/ ligands_valid_sdf_info.csv 10000 10000 0 TRUE 10000```
 
 ### Step 3
 
