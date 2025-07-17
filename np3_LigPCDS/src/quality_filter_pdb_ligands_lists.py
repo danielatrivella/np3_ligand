@@ -227,7 +227,7 @@ if __name__ == "__main__":
                  "  7. allow_missingHeavyAtoms: The missingHeavyAtoms boolean TRUE (1) or FALSE (0) to allow missing "
                  "heavy atoms in the ligands. If FALSE, no ligands entries with missing heavy atoms will be allowed;\n"
                  "  8. num_disordered_cutoff: The maximum numDisordered that a ligand entry is allowed to have. "
-                 "\nResults: Two tables will be created in the current directory: "
+                 "\n\nResults: Two tables will be created in the current directory: "
                  "- '<pdb_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_"
                  "<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the "
                  "filtered pdb entries that passed the quality criteria;\n"

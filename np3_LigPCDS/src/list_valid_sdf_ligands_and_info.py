@@ -108,7 +108,7 @@ if __name__ == "__main__":
         sys.exit("Wrong number of arguments. One parameter must be supplied in order to create a list of the available "
                  "ligands, which were retrieved and have a valid sdf, and are present in the provided data folder. Their information is stored in the resulting list.\nParameter: \n"
                  "  1. ligands_data_folder: The path to the data folder where the SDF files of the retrieved ligands are located. "
-                 "\nResult: One table will be created in the current directory named: "
+                 "\n\nResult: One table will be created in the current directory named: "
                  "- ligands_data_folder.name+'_valid_sdf_info.csv': containing the list of available ligands with a valid SDF file and their information."
                  )
     list_valid_sdf_ligands_and_info(db_ligand_path)
