@@ -6,7 +6,7 @@
 
   This application is capable of finding new ligands sites in difference electron density maps, called blobs, and for each found blob the application will predict chemical substructures that fill and explain each part of the blob. The predictions serve as an initial proposal to help in the complete manual reconstructions of the ligand chemical structure, as illustrated below.
 
-![](docs/imgs/schema-Lig-PCDB-DLModels-NP3BlobLabel.png)
+![](docs/imgs/schema-LigPCDS-DLModels-NP3BlobLabel.png)
 
 ### How
 
@@ -32,7 +32,7 @@
 
 ## Getting Started
 
-  Nine PDB entries from the stratified training dataset of Lig-PCDB with k=1 are used as example.
+  Nine PDB entries from the stratified training dataset of LigPCDS with k=1 are used as example.
 Their data is present in the 'examples_top_down' folder. A previous refinement result is also present.
 
   To execute the NP³ Blob Label to search for blobs in the entire Fo-Fc map of these nine entries, run:
@@ -209,3 +209,7 @@ pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --glob
 ## Citing
 
 _Paper in preparation to be published._
+
+## License
+
+    LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

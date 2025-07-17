@@ -4,9 +4,9 @@
 
 This repository stores the NP³ projects for ligand interpretation in X-ray protein crystallography. It contains three modules:
 
-- **np3_LigPCDS**: the repository of the LigPCDS project with the code to create the ligands image dataset and the stratified training dataset.
+- **np3_LigPCDS**: the repository of the LigPCDS project with the code to create the ligands' 3D image dataset in point cloud and the stratified training dataset.
 - **np3_DL_segmentation**: the repository with the training pipeline for semantic segmentation tasks used to validate LigPCDS and obtain the DL models.
-- **np3_blob_label**: repository of the NP³ Blob Label application
+- **np3_blob_label**: repository of the NP³ Blob Label application &copy;
 
 The NP³ is a project from the Drug Discovery Division ([DDD](https://lnbio.cnpem.br/en/divisoes-cientificas/nucleos-avancados-saude/descoberta-de-farmacos/)) of the Brazilian Biosciences National Laboratory (LNBio) from the Brazilian Center for Research in Energy and Materials (CNPEM) to empower natural products research with automation for biochemistry data processing and analysis. 
 
@@ -135,4 +135,4 @@ This research was funded by the [Serrapilheira](https://serrapilheira.org/en/) I
 It was part of the [Master's thesis](https://repositorio.unicamp.br/acervo/detalhe/1371294) of Cristina Freitas Bazzano, developed within an interdisciplinary project from the DDP-LNBio-CNPEM and the Institute of Computing from the University of Campinas (UNICAMP). 
 
 ### License
-LigPCDS © 2023 by Cristina Freitas Bazzano, Luiz G. Alves,Guilherme P. Telles, Daniela B. B. Trivella is licensed under CC BY-SA 4.0
+LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under CC BY 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by/4.0/
