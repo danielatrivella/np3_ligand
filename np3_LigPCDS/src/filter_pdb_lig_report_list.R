@@ -170,7 +170,7 @@ cat("Final number of PDB entries = ", nrow(pdb_entries))
 cat("\nFinal Number of ligands = ", nrow(ligands_counts),"\n\n")
 cat("** PDB list summary\n\n")
 
-cat("Sum of PDB entries in which the ligands appear = ", sum(ligands_counts$count),
+cat("Sum of the ligands counts in the PDB entries in which they appear = ", sum(ligands_counts$count),
     "\n  - This is the minimum number of ligands entries, each ligand can ",
     "appear more than once in a single PDB entry\n")
 cat("\nSummary of the Count of PDB entries in which the ligands appear= \n")
