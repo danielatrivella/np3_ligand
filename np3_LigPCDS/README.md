@@ -219,7 +219,7 @@ python src/quality_filter_pdb_ligands_lists.py pdb_list_file db_path ligands_lis
 Two tables will be created in the current directory:
    
     - '<pdb_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the filtered pdb entries that passed the quality criteria;
-    - '<ligands_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the ligands that passed the quality criteria. ligands_valid_sdf_info.csv
+    - '<ligands_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the ligands that passed the quality criteria. This is the list of available ligands.
 
 *Example:*
 
