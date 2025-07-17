@@ -94,7 +94,7 @@ At the end there is also some available visualization scripts and an additional 
 #### 1.1 Download PDB List (Manual) 
 
 Manually download two report lists from the PDB website using the following filters:
-- Resolution between 1.5 Å and 2.5 Å
+- Resolution between 1.5 Å and 2.2 Å
 - With free ligands (non-covalent)
 - With experimental data (with electron density maps also deposited)
 - From X-ray experiments with proteins
