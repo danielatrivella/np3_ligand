@@ -85,7 +85,7 @@ The LigPCDS v1.0.1 can be retrieved from Zenodo, an open dissemination research 
 The scripts used in each step from 1 to 5 are detailed below in separated subsections. Here Step 3 is presented before Step 2 to easy the use of the available scripts, this does not affect the order of Figure 1 because Steps 2 and 3 are parallel procedures.
 These steps correspond to parts A and B from the workflow to create the LigPCDS dataset and the stratified training dataset. 
  
-At the end there is also some available visualization scripts and an additional testing script.
+At the end, there is also some available visualization scripts and an additional testing script.
 
 ### Step 1
 
@@ -106,8 +106,8 @@ The RCSB PDB lists downloaded for LigPCDS were retrieved in July 2019 and are pr
 
 #### 1.2 Filter PDB List   
 
-Filter the PDB report lists using as criteria the PDB entries resolution, a list of organic atoms (natural products filter), the deposit date of the PDB entries and the ligand's counts by PDB entry.
-These report files must follow the table format exported by PDB in july 2019. 
+Filter the RCSB PDB report lists using as criteria the PDB entries resolution, a list of organic atoms (natural products filter), the deposit date of the PDB entries and the ligand's counts by PDB entry.
+These report files must follow the table format exported by RCSB PDB in july 2019. 
 
 *Run:*
 
@@ -122,16 +122,16 @@ These report files must follow the table format exported by PDB in july 2019.
    4. resolution_min: Minimum resolution of a PDB entry to be included in the resulting list;
    5. resolution_max: Maximum resolution of a PDB entry to be included in the resulting list;
    6. np_filter: TRUE or FALSE to apply the natural products filter and only retain ligands that have the following organic atoms: C,H,O,N,P,S,I,Br,Cl,F,Se;
-   7. deposit_date_min: The minimum deposit date that a PDB entry must have to be included in the resulting list (default to no deposit date filter). All filtered entries must have been deposited after or in this date. The informed date must follow the format yyyy-mm-dd, as in 2008-02-01, where yyyy is the year, mm is the month and dd is the day.
+   7. deposit_date_min: The minimum deposit date that a PDB entry must have to be included in the resulting list (default to no deposit date filter). All filtered entries must have been deposited after or in this date. The informed date must follow the format yyyy-mm-dd, as in 2008-02-01 (used in LigPCDS), where yyyy is the year, mm is the month and dd is the day.
 
 *Return:*
 
-Two CSV files with the filtered lists and with the ligands aggregated by PDBID. The files will saved to the current directory and be named as follows:
+Two CSV files with the filtered lists and with the ligands aggregated by PDBID. The files will be saved to the current directory and will be named as follow:
 
     - PDB_<min_resolution>_<max_resolution>_<all|CHONPSIBrClF>_atoms_free_ligands_<min_count>_counts_<deposit_data_fitler>_depDate.csv
     - ligands_free_PDB_<min_resolution>_<max_resolution>_<all|CHONPSIBrClFSe>_atoms_<min_count>_counts_<deposit_data_fitler>_depDate.csv
 
-*Example:*
+*Example used to create LigPCDS v1.0.1:*
 
 > ``` Rscript src/filter_pdb_ligs_entries.R PDB_lists/PDB_entries_structure_factors_xray_protein.csv PDB_lists/Ligands_PDB_entries_structure_factors_xray_protein.csv 1 1.5 2.2 TRUE 2008-02-01```
 
@@ -140,7 +140,7 @@ Two CSV files with the filtered lists and with the ligands aggregated by PDBID. 
 Retrieve the data from the PDB IDs and the ligands present in the provided filtered PDB list.
 This data will enable the refinement of the entries with and without the ligands structure.
 
-This code was intended to work with PDB APIs from July 2019. Any updates in PDB API must be updated in the code.
+This code was intended to work with RCSB PDB APIs from July 2019. Any updates in RCSB PDB API must be updated in the code.
   
 *Run:*
 
@@ -150,8 +150,8 @@ This code was intended to work with PDB APIs from July 2019. Any updates in PDB 
 
     1. db_path: The path to the data folder where the data will be stored. If missing it will be recursively created.
     2. pdb_report_entries_filtered: The path to the CSV file outputed by the filter_pdb_ligs_entries script containing the PDB IDs of the entries and the ligands of each entry to be retrieved. Mandatory columns = 'PDBID' and 'ligandsID'. The column 'ligandsID' must have the names separated by a space of all the desired ligands present in the structure with code equals 'PDBID'.
-    3. row_entry_start: (default: 0)The number of the row of the entries CSV file where the script should start. Skip to the given row or, if missing, start from the beginning.
-    4. row_entry_stop: (default: number of rows in the pdb_report_entries_filtered) The number of the row of the ligands CSV file where the script should stop. Stop in the given row or, if missing, stop in the last row.
+    3. row_entry_start: (default to 0) The number of the row of the entries CSV file where the script should start. Skip to the given row or, if missing, start from the beginning.
+    4. row_entry_stop: (default to number of rows in the pdb_report_entries_filtered) The number of the row of the ligands CSV file where the script should stop. Stop in the given row or, if missing, stop in the last row.
   
 *Return:*
 
@@ -194,7 +194,7 @@ One table will be created in the current directory named:
 
 #### 1.5 Quality filters in the PDB and in the Available Ligands lists 
 
-Filter the free ligands and apply global quality filters (parameters) to all PDB and available ligand entries present in the provided lists.
+Filter the free ligands and apply global quality filters (parameters) to all PDB entries and available ligand entries present in the provided lists.
 
 *Run:*
 
@@ -206,7 +206,7 @@ python src/quality_filter_pdb_ligands_lists.py pdb_list_file db_path ligands_lis
 
     1. pdb_list_file: The path to the CSV file containing the list of filtered PDB entries. Mandatory columns = 'PDBID', 'Resolution', 'SpaceGroup', 'AverageBFactor', 'ligandsID';
     2. db_path: The path to the data folder where the directories 'pdb' and 'coefficients' are located;
-    3. ligands_list_file: The path to the CSV file containing the list of available ligands with a valid sdf file and their info. Mandatory columns: ligID, entry, ligCode, bfactor, min_occupancy, missingHeavyAtoms, numDisordered;
+    3. ligands_list_file: The path to the CSV file containing the list of available ligands with a valid sdf file and their info (result of step 1.4). Mandatory columns: ligID, entry, ligCode, bfactor, min_occupancy, missingHeavyAtoms, numDisordered;
     4. bfactor_ratio: The maximum allowed bfactor ratio between a ligand bfactor and its PDB entry bfactor;
     5. bfactor_std: The maximum allowed bfactor standard deviation between the ligand atom's bfactor;
     6. occupancy_cutoff: The minimum occupancy cutoff to keep a ligand;
@@ -218,28 +218,28 @@ python src/quality_filter_pdb_ligands_lists.py pdb_list_file db_path ligands_lis
 Two tables will be created in the current directory:
    
     - '<pdb_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the filtered pdb entries that passed the quality criteria;
-    - '<ligands_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the ligands that passed the quality criteria. This is the list of available ligands.
+    - '<ligands_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the ligands that passed the quality criteria. This is the list of available ligands with filters.
 
 *Example:*
 
-Do not apply the quality filters related to bfactor, occupancy and disorder.
+Do not apply the quality filters related to bfactor, occupancy and disorder (used in LigPCDS v1.0.1 creation).
 > ``` python src/quality_filter_pdb_ligands_lists.py PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv data/ ligands_valid_sdf_info.csv 10000 10000 0 TRUE 10000```
 
 ### Step 3
 
 --------------------
 
-#### 3.1 Vocabulary Creation and Ligands Structure Labeling 
+#### 3.1 Vocabulary Creation and Ligand Structure Labeling 
 
-Create a vocabulary from the list of valid ligands that passed the quality filter and label the ligands structure. 
+Create a vocabulary from the list of valid ligands that passed the quality filter and label the structure of the ligands. 
 
-The smiles of each ligand will be used to extract all the classes necessary to label the list of valid ligands. The unique list of classes will compose the new vocabulary.
-Then, it will get each ligand SDF file and use the new vocabulary to label the ligands' atoms. Finally, for each ligand its structure labeling result will be exported to a .xyz file, containing the class of each atom by row. 
+The SMILES of each ligand will be used to extract all the classes necessary to label the list of valid ligands. The unique list of classes will compose the new vocabulary.
+Then, it will get each ligand SDF file and use the new vocabulary to label the ligand's atoms. Finally, for each ligand its structure labeling result will be exported to a .xyz file, containing the class of each atom by row and their 3D coordinates. 
 Also computes the sizing of the ligand grid, a minimum bounding box around the ligand atomic positions (minimum and maximum position in xyz) plus a gap in all axis equal to 4.2 Angstrons and centered in the atomic positions center value. 
 
-The vocabulary can be based on: the atoms' SP hybridization concatenated with cyclic information or the atoms' symbols concatenated with cyclic information. The user must choose one of the labeling approaches using the parameter 'label_SP'.
+The vocabulary can be based on: the atom's SP hybridization concatenated with cyclic information (SP-based) or the atom's symbols concatenated with cyclic information (AtomSymbol-based). The user must choose one of these major labeling approaches using the parameter 'label_SP'.
 
-During the ligands SDF file labeling a reverse engineering testing is applied. It tests the ligands labels from their SDF files against their predicted labels using the ligands smiles. If a ligand have missing atoms in its SDF file, then try to match only the present substructure. 
+During the labeling of the ligand's SDF file, a reverse engineering testing is applied. It matches the labels of the ligand's atoms from their SDF files against their predicted labels using the ligand's SMILES. If a ligand have missing atoms in its SDF file, then try to match only the present substructure. 
 Ligands with mismatching labels in this test are removed. Ligands with bad defined SDF files, that raises an error when reading them are also removed here.
 
 *Run:*
@@ -249,17 +249,17 @@ Ligands with mismatching labels in this test are removed. Ligands with bad defin
 *Parameters:*
 
 1. data_folder_path: The path to the data folder where the vocabulary output will be stored and where the 'ligands' folder with the ligands in .sdf format is located.
-2. ligands_list_path: The path to the CSV file containing the valid ligands list and their smiles. This file is expected to be the output of the quality filter script. Mandatory columns = 'ligID','smiles'.
-The name of this file will be used to label the output vocabulary file, the ligands SMILES dataset file and the xyz folder that will store the labeled ligands .xyz files;
-3. label_SP: (optional) Set to 'True' to use the atoms' SP hybridization to create the vocabulary (default), otherwise it will use the atoms' symbol. Both labeling approaches will be concatenated with the atoms' cyclic information.
+2. ligands_list_path: The path to the CSV file containing the list of valid ligands and their SMILES. This file is expected to be the output of the quality filter script (step 1.5). Mandatory columns = 'ligID','smiles'.
+The name of this file will be used to label the output vocabulary file, the ligand's SMILES dataset file and the xyz folder, which will store the labeled ligands .xyz files;
+3. label_SP: (optional) Set to 'True' to use the SP-based approach to create the vocabulary (default), otherwise it will use the AtomSymbol-based labeling approach. Both labeling approaches contains the atoms' cyclic information.
 4. row_start: (optional) The number of the row in the ligands_list_path file where the script should start. Skip to the given row or, if missing, start from the beginning;
 5. row_end: (optional) The number of the row in the ligands_list_path file where the script should stop. Stop in the given row or, if missing, stop in the last row.
 
 *Return:*
 
 Two files will be created inside the data_folder_path directory:
-   - 'ligs_smiles_<ligands_list_path.name>.txt' containing all the smiles used in the vocabulary creation (the smiles dataset) and;
-   - 'vocabulary_<ligands_list_path.name>.txt' containing all the classes that resulted from the smiles labeling, with one class by row (the vocabulary itself). The rows order indicate the index of the vocabulary classes, starting in 0.
+   - 'ligs_smiles_<ligands_list_path.name>.txt' containing all the SMILES used in the vocabulary creation (the SMILES dataset file) and;
+   - 'vocabulary_<ligands_list_path.name>.txt' containing all the classes that resulted from the SMILES labeling, with one class by row (the vocabulary itself). The rows order indicate the index of the vocabulary classes, starting in 0.
 
 And one folder called 'xyz_<ligands_list_path>' will be created inside the "<data_folder_path>/ligands" folder to store the labeled structure of the ligands, it will contain:
    - One .xyz file for each successfully labeled ligand structure present in the ligands_list_path file, containing the ligands' atoms by row with their information and label;
@@ -283,8 +283,8 @@ Ligands' image creation and labeling.
 
 #### 2.1 Refinement
 
-Execute Dimple to refine the retrieved entries present in a list. A 2x slow refinement is performed and without hetero atoms (hetatm removed). 
-This allows the blob of ligands to appear in their calculated Fo-Fc map.
+Execute Dimple to refine the retrieved entries present in a PDB list. A 2x slow refinement is performed and without hetero atoms (hetatm removed). 
+This allows the blob of the ligands to appear in their calculated Fo-Fc map.
 
 This is a slow step. At least 10 minutes is expected for the refinement of each entry in a personal computer.
 
@@ -310,9 +310,9 @@ If overwrite is False, it will skip the already refined entries and continue fro
 > ``` python src/refinement_dimple.py data/ PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv 10```
 
 
-#### 2.2 Ligand Grid Image Creation 
+#### 2.2 Ligand Grid Representation Creation 
 
-Create the ligand grid image for all ligands entries that had their structure successfully labeled and refined.
+Creates the ligand grid representation in 3D point cloud for all ligand entries that had their structure successfully labeled and refined.
 
 For each ligand entry, it reads the respective PDB entry Fo-Fc map from the refined MTZ file (parameter refinement_path); 
 and the ligand atomic positions from the ligand's structure label file .xyz (parameter xyz_labels_path). 
