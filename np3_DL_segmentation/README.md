@@ -1,26 +1,29 @@
-# NP³ DL Segmentation: A Deep Learning Pipeline for the Semantic Segmentation of Lig-PCDB
+# NP³ DL Segmentation: A Deep Learning Pipeline for the Semantic Segmentation of LigPCDS
 
-  This repository contains the code for the DL models training pipeline and validation (step 6 from part B and part C of the workflow presented in np3_Lig-PCDB).
+  This repository contains the code for training and validation of the DL models from LigPCDS (step 6 from part B and part C of the workflow presented in np3_LigPCDS).
 
-  Four labeling approaches were validated by training good performance DL models for the semantic 
-segmentation of a stratified training dataset of Lig-PCDB. 
-The average performance in the cross-validation of their best DL model is presented below using the mIoU, mF1, Precision and Recall metrics. 
+  Four vocabularies were validated by training good performance DL models for the semantic 
+segmentation of a stratified training dataset of LigPCDS. 
+The average performance in the cross-validation of their best DL model is presented below using the mIoU, mF1, Precision and Recall metrics. Their bootstrap confidence intervals are presented between squared brackets. 
 
-| DL Model         | dmax | Loss  weights             | Epochs | Test mIoU | F1 score | Precision | Recall |
-|------------------|------|---------------------------|--------|-----------|----------|-----------|--------|
-| LigandRegion     | 1    | 1,2.5                     | 120    | 77.4      | 87.0     | 86.5      | 87.4   |
-| AtomCycle        | 1.4  | 1,2.5,2.5                 | 120    | 71.0      | 82.5     | 80.5      | 84.9   |
-| AtomC347CA56     | 865  | 1,10,5,5,50,5,500,500,500 | 200    | 49.7      | 62.4     | 58.2      | 74.1   |
-| AtomSymbolGroups | 81.5 | 16,16,44,108,853          | 160    | 59.0      | 73.1     | 68.6      | 79.5   |
+| DL Model         | dmax | Loss  weights | Epochs | Test mIoU | F1 score | Precision | Recall |
+|------------------|------|---------------|--------|-----------|----------|-----------|--------|
+| LigandRegion     | 1    | 1,2.5                     | 120    | 77.4 [-11.7,12.1]     | 87.0 [-8.4,8.8]     | 86.5  [-8.7,9.1]    | 87.4 [-7.8,8.2]  |
+| AtomCycle        | 1.4  | 1,2.5,2.5                 | 120    | 71.0 [-16.3,17.1]     | 82.5 [-14.7,15.6]    | 80.5  [-13.7,14.5]    | 84.9 [-11.7,12.6]  |
+| AtomC347CA56     | 865  | 1,10,5,5,50,5, 500,500,500 | 200    | 49.7 [-19.4,20.2]     | 62.4 [-18.8,19.7]    | 58.2 [-15.7,16.6]     | 74.1  [-14.9,15.8] |
+| AtomSymbolGroups | 81.5 | 16,16,44,108,853          | 160    | 59.0 [-19.8,20.5]     | 73.1 [-19.6,20.3]    | 68.6  [-18.8,19.5]    | 79.5  [-15.4,16.2] |
 
 --------------------------------------
 ## Confusion matrix of the validated modeling
 
-  The confusion matrix presented herein contains the test IoU evaluation of the validated models (n=3035).
+  The confusion matrices presented in the image below contains the test IoU evaluation of the validated models (n=3035).
 The rows of the confusion matrix represent the expected classes and the columns represent the predicted classes. 
 The main diagonal of this matrix contains the IoU by class. The values of the confusion matrix are normalized by the
-expected class (by row), where the total per class is the sum of its rows and columns.
+expected class (by row), where the total per class is the sum of its rows and columns. The confidence intervals by class are presented between squared brackets. 
 
+![confusion_matrices_LigPCDS_models](docs/lipcds_models_confusion_matrix.png)
+
+<!--
 #### Confusion matrix of model LigandRegion.
 
 | K=1        | Background | Atom     |
@@ -60,6 +63,7 @@ expected class (by row), where the total per class is the sum of its rows and co
 | N          |       15.1 |     17.9 |      3.2 | **51.2** |      0.1 |      0.1 |
 | PSe        |        9.6 |      4.8 |      4.4 |      0.1 | **64.7** |      0.3 |
 | Halo       |       21.6 |     13.1 |     11.1 |      0.2 |      1.0 | **37.6** |
+-->
 
 --------------------------------------------
 
@@ -72,7 +76,7 @@ The name of the parameter of the training pipeline used to define each setup is 
 |            **Setup**            |           **Parameter**            |              **Value**             |
 |:-------------------------------:|:----------------------------------:|:----------------------------------:|
 |       Deep neural network       |              --model               |    MinkUNet34C_CONVATROUS_HYBRID   |
-|        Ligand image type        |             --pc_type              |             qRankMask_5            |
+|        Ligand representation type        |             --pc_type              |             qRankMask_5            |
 |            Optimizer            |            --optimizer             |                 SGD                |
 |       Optimizer parameters      | --sgd_momentum and --sgd_dampening | momentum = 0.9 and dampening = 0.1 |
 |          Learning rate          |                --lr                |                 2⁻⁸                |
@@ -80,14 +84,14 @@ The name of the parameter of the training pipeline used to define each setup is 
 |          Rotation rate          |          --rotation_rate           |                 50%                |
 |         Total batch size        |     --batch_size and --num_gpu     |                 16                 |
 | Number of gradient accumulation |            --iter_size             |                  1                 |
-|        Normalization type       |              --model               |                 BN                 |
+|        Normalization type       |              --model (depends on the model)              |                 BN                 |
 
 
 ---------------------------------------------
 
 ## How to train a DL model
 
-The training pipeline was implemented in the 'main.py' script. To see the list of parameters run:
+The training pipeline was implemented in the 'main.py' script. To see the full list of parameters run:
 
 `python main.py --help`
 
@@ -96,11 +100,11 @@ To see the list of mandatory parameters run:
 `python main.py`
 
 The following arguments are required:
-> --ligs_data_filepath : This is the path to a training dataset containing the ligands entries to be used.
+> --ligs_data_filepath : This is the path to a training dataset containing the ligand entries to be used.
 
-> --lig_pcdb_path : This is the path to a Lig-PCDB database.
+> --lig_pcds_path : This is the path to a LigPCDS dataset.
 
-> --vocab_path : This is the path to the vocabulary used to label the provided database. The 'class_mapping_path' parameters must be informed to used a mapped vocabulary.
+> --vocab_path : This is the path to the vocabulary used to label the provided dataset. The 'class_mapping_path' parameters must be informed to used a mapped vocabulary.
 
 The output directory is defined with the following parameter:
 > --log_dir : The output logging directory will be named as: "<log_dir>\_<'train'|'test'>_<pc_type>\_kfold\_\<kfold>\_model-\<model>\_<current_time>" 
@@ -114,7 +118,7 @@ Example training model AtomC347CA56, executed from this repository root folder:
 ```
 conda activate np3_lig
 export OMP_NUM_THREADS=8
-python main.py --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcdb_path Lig-PCDB-SP/ --vocab_path ../np3_Lig-PCDB/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_Lig-PCDB/vocabularies/SP-based/mapping_atomC347CA56.csv --iter_size 1 --batch_size 8 --num_gpu 2 --gpu_index 0,1 --max_epoch 200 --log_dir output/train_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --num_val_workers 4 --val_batch_size 4 --test_batch_size 4 --loss_weights 1,10,5,5,50,5,500,500,500 --kfold 1
+python main.py --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcds_path LigPCDS-SP/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --iter_size 1 --batch_size 8 --num_gpu 2 --gpu_index 0,1 --max_epoch 200 --log_dir output/train_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --num_val_workers 4 --val_batch_size 4 --test_batch_size 4 --loss_weights 1,10,5,5,50,5,500,500,500 --kfold 1
 ```
 
 ------------------------------------------
@@ -126,7 +130,7 @@ And the parameter `--weights` is used to load a previous trained model for testi
 Example of testing the model AtomC347CA56 with k=13:
 ```
 export OMP_NUM_THREADS=8
-python main.py --is_train False --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcdb_path Lig-PCDB-SP/ --vocab_path ../np3_Lig-PCDB/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_Lig-PCDB/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir output/test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --test_batch_size 4 --loss_weights 1 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt
+python main.py --is_train False --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcds_path LigPCDS-SP/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir output/test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --test_batch_size 4 --loss_weights 1 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt
 ```
 
 #### Test and save the predictions
@@ -136,7 +140,7 @@ python main.py --is_train False --ligs_data_filepath training_dataset_valid_liga
 Example of testing a DL model and saving the predictions result.
 
 ```
-python main.py --is_train False --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcdb_path Lig-PCDB-SP/ --vocab_path ../np3_Lig-PCDB/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_Lig-PCDB/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir output/test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --test_batch_size 1 --loss_weights 1 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --save_prediction True --save_pre_dir output/prediction_dir_test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 
+python main.py --is_train False --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcds_path LigPCDS-SP/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir output/test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --test_batch_size 1 --loss_weights 1 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --save_prediction True --save_pre_dir output/prediction_dir_test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 
 ```
  
 
@@ -161,8 +165,8 @@ The visualization of the predictions result, together with an error mask of each
 python src/visualize_predictions.py output/prediction_dir_test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5
 ```
 
-The error mask image have the points with a wrong prediction colored in red and the rest in grey. 
-The points predicted as Background class are removed in another image to ease the visualization of the results.
+The error mask point cloud have the points with a wrong prediction colored in red and the rest in grey. 
+The points predicted as Background class are removed in another representation to ease the visualization of the results.
 
 ----------------------------
 
@@ -173,13 +177,13 @@ The points predicted as Background class are removed in another image to ease th
   - The trained models in .ckpt format
   - A metadata table describing more information about the training setup of the available DL models
 
-#### Lig-PCDB databases record
+#### LigPCDS records
 
-The databases created by Lig-PCDB and the validated models can be retrieved from [Zenodo](https://zenodo.org/), an open dissemination research data repository. The deposit data is located in the record xTODOlinkX, and contains:
+The dataset created by LigPCDS and the validated models can be retrieved from [Zenodo](https://zenodo.org/), an open dissemination research data repository. The deposit data is located in the following ling [LigPCDS-Zenodo](https://zenodo.org/records/15174758), and contains:
 
-- Lig-PCDB-SP_record : The database with the SP-based modeling images, vocabulary, structure labeling result (xyz record) and validated DL models.
-- Lig-PCDB-AtomSymbol_record : The database with the AtomSymbol-based modeling images, vocabulary, structure labeling result (xyz record) and validated DL models.
-- Lig-PCDB-Grids_reso-1.5-2.2_gridspace-0.5 : The database with the ligand grid image of the valid ligands list.
+- LigPCDS-SP_record : The dataset with the SP-based modeling representations in 3D point clouds, vocabulary, structure labeling result (xyz record) and validated DL models.
+- LigPCDS-AtomSymbol_record : The dataset with the AtomSymbol-based modeling representations in 3D point clouds, vocabulary, structure labeling result (xyz record) and validated DL models.
+- LigPCDS-Grids_reso-1.5-2.2_gridspace-0.5 : The dataset with the ligand grid representations in 3D point clouds of the list of valid ligands.
 
 
 ---------------------------------------------------------------
