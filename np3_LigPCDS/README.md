@@ -31,7 +31,7 @@ The viable vocabularies and their labeling approaches are detailed bellow. It pr
 
 To exemplify the LigPCDS 3D point cloud labeling, five different ligand representation types and two ligands are used for illustration: 4ZV (PDB entry 5cc6, resolution 2.1 Å) and FUL (PDB entry 4z4t, resolution 1.8 Å). Their blob image from the Fo-Fc maps are shown in the top of the panel with a contour of 3σ (created with Coot). The LigPCDS visualization script was used to draw the ligands representations in 3D point cloud format.
 
-![ligands_image_lableling](docs/ligands_representation_labeling_example.png)
+![ligands_representation_lableling](docs/ligands_representation_labeling_example.png)
 
 ##### Part B: The general schema used to train and obtain the validated DL models. 
 
@@ -279,7 +279,7 @@ AtomSymbol-based structure labeling.
 
 ----------------------
 
-Ligands' image creation and labeling.
+Ligand representation creation and labeling.
 
 #### 2.1 Refinement
 
@@ -316,9 +316,9 @@ Creates the ligand grid representation in 3D point cloud for all ligand entries 
 
 For each ligand entry, it reads the respective PDB entry Fo-Fc map from the refined MTZ file (parameter refinement_path); 
 and the ligand atomic positions from the ligand's structure label file .xyz (parameter xyz_labels_path). 
-Then, it extracts the ligand grid image from the refined Fo-Fc map of its PDB entry, 
+Then, it extracts the ligand grid representation from the refined Fo-Fc map of its PDB entry, 
 located inside a bounding box around its atomic positions plus a gap and using a grid spacing equal to 0.5 by default (parameter grid_space). 
-And finally, the image will be stored in a point cloud file inside the subfolder of each PDB entry in the output path (parameter output_grid_path).
+And finally, the representation will be stored in a 3D point cloud file inside the subfolder of each PDB entry in the output path (parameter output_grid_path).
 
 *Run:*
 
@@ -326,34 +326,33 @@ And finally, the image will be stored in a point cloud file inside the subfolder
 
 *Parameters:*
 
-1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' where the ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with the valid ligands list and their grid sizing and position. This file must be named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the output of the 'run_vocabulary_encode_ligands.py' script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound'.;
+1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' where the ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with the list of valid ligands and their grid sizing and position. This file must be named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the output of the 'run_vocabulary_encode_ligands.py' script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound'.;
 2. refinement_path: The path to the data folder where the entries refinement are located ('data/refinement').
-3. output_grid_path: The path to the output folder where the point cloud of the ligands' grid image will be stored in .xyzrgb files. It will be organized by the PDB entry ID of the ligands in separated subfolders, each one containing the grid image of all ligands that appear in that entry ('data/ligands_grid_point_clouds');
+3. output_grid_path: The path to the output folder where the 3D point clouds of the ligands grid will be stored in .xyzrgb files. It will be organized by the PDB entry ID of the ligand entries in separated subfolders, each one containing the grid representations of all ligands that appear in that PDB entry ('data/ligands_grid_point_clouds');
 4. overwrite: (optional) A boolean True or False indicating if the already processed ligands should be overwritten. Useful to restart from previous processing. (Default to False).
 5. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (Default to 2).
-6. grid_space: (optional) A numeric defining the grid spacing size in angstroms to be used in the point clouds creation for the ligands' grid image (Default to 0.5 A).
+6. grid_space: (optional) A numeric defining the grid spacing size in angstroms to be used in the 3D point clouds creation for the ligand grid representation (Default to 0.5 A).
 
 *Output*
 
-The output_grid_path folder will be created with one subfolder for each PDB entry of the ligands that had their grid image successfully created:
-- The subfolder of each PDB entry will contain the grid image of all ligands (.xyzrgb files) that appear in the respective entry and that were successful in their grid image creation.
+The output_grid_path folder will be created with one subfolder for each PDB entry of the ligand entries that had their grid representation successfully created:
+- The subfolder of each PDB entry will contain the grid 3D point cloud of each ligand (.xyzrgb files) that appear in the respective PDB entry and that had their grid representation successfully created.
 
 One file will be created inside the xyz_labels_path directory:
-- One CSV file named '\<valid ligand list csv name\>_box_pc.csv' containing the list of valid ligands that had their grid image successfully created. 
+- One CSV file named '\<valid ligand list csv name\>_box_pc.csv' containing the list of valid ligands that had their grid representation successfully created. 
 It will also add columns with the electron density descriptive statistics of the grid of each ligand (mean value, standard deviation and others).
 
 *Example:*
 
-> ``` python src/mtz_to_grid_pointcloud.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/refinement/ data/ligs_point_cloud_grid True 10 0.5```
+> ``` python src/mtz_to_grid_pointcloud.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/refinement/ data/ligs_point_cloud_grid True 4 0.5```
 
-#### 2.3 Ligands Image Creation and Labeling (Step 4)** 
+#### 2.3 Ligands Final Representation Creation and Labeling (Step 4)** 
 
-Create the final images of the ligands in quantile rank scale and also create their labeling files for each image type.
+Create the final representations of the ligands in 3D point cloud and scaled and also create their labeling files for each representation type.
 
-For each ligand entry that had its ligand grid image successfully created, it will extract the ligand mask image and 
-then create the final images of the ligands. The following image types will be created: 
+For each ligand entry that had its ligand grid representation successfully created, it will scale it using the quantile rank scale, extract the ligand mask representation and then create the final representations of the ligands. The following representation types will be created: 
 qRank0.5, qRank0.7, qRank0.75, qRank0.8, qRank0.85, qRank0.9, qRank0.95, qRankMask, and qRankMask_5.
-At the end, the final images will be stored in a point cloud file inside the subfolder of each ligand's PDB entry 
+At the end, the final representations will be stored in a 3D point cloud file inside the subfolder of each PDB entry of the ligand entries
 in the output path (parameter output_LigPCDS_path).
 
 *Run:*
@@ -362,9 +361,9 @@ in the output path (parameter output_LigPCDS_path).
 
 *Parameters:*
 
-1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list csv name>' where the ligands .xyz files with their labels are located. It must also contain the CSV file with the valid ligands list that had the ligand grid image successfully created. This file is named as '<valid ligand list csv name>_box_pc.csv' and is expected to be the output of the mtz_to_grid_pointcloud.py script. Mandatory columns = 'ligID', 'ligCode', 'entry';
-2. output_grid_path: The path to the folder where the ligands grid image in point clouds are stored ('data/lig_point_clouds_grids');
-3. output_ligPCDS_path: The path to the output folder where the point clouds of the final images of the ligands in quantile rank scale will be stored ('data/lig_pcds' or other);
+1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list csv name>' where the ligands .xyz files with their structure labels are located. It must also contain the CSV file with the list of valid ligands that had the ligand grid representation successfully created. This file is named as '<valid ligand list csv name>_box_pc.csv' and is expected to be the output of the mtz_to_grid_pointcloud.py script. Mandatory columns = 'ligID', 'ligCode', 'entry';
+2. output_grid_path: The path to the folder where the ligand grid representations in point clouds are stored ('data/lig_point_clouds_grids');
+3. output_ligPCDS_path: The path to the output folder where the point clouds of the final representations of the ligands in quantile rank scale will be stored ('data/lig_pcds' or other);
 4. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (Default to 2);
 5. overwrite: (optional) A boolean True or False indicating if the already processed ligands should be overwritten (Default to False);
 6. row_start: (optional) The number of the row of the '<valid ligand list csv name>_box_pc.csv' file where the script should start. Skip to the given row or, if missing, start from the beginning;
@@ -372,27 +371,27 @@ in the output path (parameter output_LigPCDS_path).
 
 *Output:*
 
-The output_ligPCDS_path folder will be created with one subfolder for each PDB entry of the ligands that had all their final images successfully created and labeled:
-- The subfolder of each PDB entry will contain the final images of all ligands (.xyzrgb files) that appear in the respective entry and that were successfull in all image types creation.
+The output_ligPCDS_path folder will be created with one subfolder for each PDB entry of the ligand entries that had all their final representations successfully created and labeled:
+- The subfolder of each PDB entry will contain the final representations of all ligands (.xyzrgb files) that appear in the respective entry and that had all of their representations types successfully created.
 
 One file will be created inside the xyz_labels_path directory:
-- One CSV file named '\<valid ligand list csv name\>_box_class_freq_qRank_scale.csv' containing the list of valid ligands that had their final images successufully created. 
-It will also add columns with the size of the final images of the ligands by image type. 
-The size of these images is equal to the number of points in the point cloud image of each image type.
+- One CSV file named '\<valid ligand list csv name\>_box_class_freq_qRank_scale.csv' containing the list of valid ligands that had their final representations successufully created. 
+It will also add columns with the size of the final 3D point clouds of the ligands by representation type. 
+The size of these representations is equal to the number of points in their point clouds for each type.
 
 *Example:*
 
-> ``` python src/grid_pointcloud_to_quantile_rank_scale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_point_cloud_grid data/ligs_pcds_SP 10```
+> ``` python src/grid_pointcloud_to_quantile_rank_scale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_point_cloud_grid data/ligs_pcds_SP 4```
 
-#### 2.4 Ligands Image Labeling Test 
+#### 2.4 Ligand Representation Labeling Test 
 
-Tests the labels of the ligands images against their expected labels from their structure labeling (in .xyz files from their SDF files). 
-It will check for each atom of a ligand if the points around it and inside 1/4 of its atomic sphere have all the same label equals to the expected label from its structure labeling result (.xyz file).
-For each image type, it also computes two metrics: the percentage of points in the background class; 
-and the average percentage of covered points by the atomic sphere of the ligands' atoms (number of points present inside each atom's atomic sphere / expected number of points that fits in each atom's atomic sphere).
-A low percentage of atom coverage may indicate low quality images. The opposite may also be true or noise.
+Tests the labels of the ligands representations against their expected labels from their structure labeling (in .xyz files from their SDF files). 
+It will check for each atom of a ligand if the points around it in its representation and inside 1/4 of its atomic sphere have all the same label and equals to the expected label from its structure labeling result (.xyz file).
+For each representation type, it also computes two metrics: the percentage of points in the background class; 
+and the average percentage of covered points by the atomic sphere of the ligand's atoms (number of points present inside each atom's atomic sphere / expected number of points that fits in each atom's atomic sphere).
+A low percentage of atom coverage may indicate low quality representations (from low quality blobs). The opposite may also be true or noise.
   
-If draw_pc is enabled, it will draw the ligands images being tested and will color the final images using the valid labels.
+If draw_pc is enabled, it will draw the ligands point clouds being tested and will color the final representations using the valid labels.
 
 *Run:*
 
@@ -400,16 +399,16 @@ If draw_pc is enabled, it will draw the ligands images being tested and will col
 
 *Parameters:*
 
- 1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' where the ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with the valid ligands list and their grid sizing and position. This file is named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the output of the 'run_vocabulary_encode_ligands.py' script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound';
- 2. output_ligPCDS_path: The path to the data folder where the point clouds of the final images of the ligands in quantile rank scale are be stored ('data/lig_pcds' or other);
+ 1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' where the ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with the list of valid ligands and their grid sizing and position. This file is named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the output of the 'run_vocabulary_encode_ligands.py' script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound';
+ 2. output_ligPCDS_path: The path to the data folder where the point clouds of the final representations of the ligands in quantile rank scale are be stored ('data/lig_pcds' or other);
  3. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (default to 2);
- 4. draw_pc: (optional) Boolean True or False to draw the images point clouds. If True, enable drawing the final images of the ligands and color them using their labels. If False, do not draw the images (default to False).
+ 4. draw_pc: (optional) Boolean True or False to draw the ligands 3D point clouds. If True, enable drawing the final representations of the ligands and color them using their labels. If False, do not draw them (default to False).
 
 *Output:*
 
 One file is created inside the xyz_labels_path folder:
-- One CSV file named '<valid ligand list csv name>_box_class_freq_qRankTested.csv' containing the **list of valid ligands** that had their final images successfully created and tested.
-This table also signalizes any found error or missing data, and contains the values of the computed metrics by image type;
+- One CSV file named '<valid ligand list csv name>_box_class_freq_qRankTested.csv' containing the **list of valid ligands** that had their final representations successfully created and tested.
+This table also signalizes any found error or missing data, and contains the values of the computed metrics by representation type;
 
 It will print to the screen the inconsistencies found for each valid ligand in the xyz_folder_path folder.
 
@@ -427,9 +426,9 @@ This dataset is intended to be used in the training pipeline of the DL semantic 
 #### 5.1 Undersampling in LigPCDS
 
 Applies an undersampling technique in a list of valid ligands (provided dataset). It will filter the ligands entries using their occurrence by selected class of the given vocabulary and by ligand code (unique structure).
-An anti-clustering algorithm is used in the undersampling approach to keep diversity among the filtered entries related to their occurrence by class, size of the qRank0.95 image, B factor, resolution and occupancy.
+An anti-clustering algorithm is used in the undersampling approach to keep diversity among the filtered entries related to their occurrence by class, size of the qRank0.95 representation, B factor, resolution and occupancy.
 
-This step is intended to remove bias in the list of valid ligands towards frequent ligand codes and frequent classes. It also removes entries with a small number of points of less than 150 in its qRank0.95 image.
+This step is intended to remove bias in the list of valid ligands towards frequent ligand codes and frequent classes. It also removes entries with a small number of points of less than 150 in its qRank0.95 point clound.
 
 *Run:*
 
@@ -454,7 +453,7 @@ The user may analyse this values to accept the result or plan a new undersamplin
 
 *Example:*
 
-Limit the ligands' code frequency to 1000 repetitions and do not limit the classes occurrence:
+Limit the ligand's code frequency to 1000 repetitions and do not limit the classes occurrence:
 > ``` Rscript src/undersampling_by_class_occurence.R valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.csv vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt all 1000 0 1000000```
 
 #### 5.2 Stratified k-fold cross validation
@@ -462,7 +461,7 @@ Limit the ligands' code frequency to 1000 repetitions and do not limit the class
 Applies the k-fold cross validation technique to separate a list of valid ligands in k similar groups for train, test and validation subsets. It is intended to be executed after the undersampling technique.
 Each k group will be separated in other two groups related to test and validation subsets.
 
-It uses an anti-clustering algorithm to perform a stratified separation that keeps a diversity of ligands entries related to their following characteristics: classes occurrence, ligCode, PDB entry, bfactors, resolution and size of the ligand mask image (point_cloud_size_qRankMask).
+It uses an anti-clustering algorithm to perform a stratified separation that keeps a diversity of ligands entries related to their following characteristics: classes occurrence, ligCode, PDB entry, bfactors, resolution and size of the ligand mask representation (point_cloud_size_qRankMask).
 
 *Run:*
 
@@ -494,39 +493,39 @@ Separate the ligands entries in k=13 similar groups:
 ### Visualize LigPCDS
 
 The visualization script will render, for each ligand ID present in the dataset (user provided: list_ligands_path and lig-pcds_path):
-- The 3D point clouds of its images, further colored by the points' feature value and for each image type selected by the user (img_types). 
-  - The image types are separated by columns in the x-axis, with a distance equal to 2 times its x-axis size of the image. 
-- If the vocabulary is informed, the images are rendered in another row colored by the labeled class of each point from the ligands' label files (user provided: vocab_path). 
-  - The rows are translated in the z-axis by 3 times the z-axis size of the image. 
-- If the predictions directory is informed, the images are also rendered in another row colored by the predicted class of each point from the prediction result (user provided: predictions_path).
-  - The rows are translated in the z-axis by 6 times the z-axis size of the image. 
-  - 
+- The 3D point clouds of its representations, further colored by the feature value of each point and for each representation type selected by the user (pc_types). 
+  - The representation types are separated by columns in the x-axis, with a distance equal to 2 times the x-axis size of its point cloud. 
+- If the vocabulary is informed, the representations are rendered in another row colored by the labeled class of each point from the ligand label files (user provided: vocab_path). 
+  - The rows are translated in the z-axis by 3 times the z-axis size of the representation. 
+- If the predictions directory is informed, the representation are also rendered in another row colored by the predicted class of each point from the prediction result (user provided: predictions_path).
+  - The rows are translated in the z-axis by 6 times the z-axis size of the representation. 
+    
 The visualization script opens a new window that contains a 3D display in xyz space of the Open3d Python package. 
-This display allows to zoom, translate and rotate the images and point size scaling. 
+This display allows to zoom, translate and rotate the representations and point size scaling. 
 The user can register the nice poses by taking pictures of the display 
-(more information on this display capabilities in: [link](http://www.open3d.org/docs/latest/tutorial/Basic/visualization.html)).
+(more information on this display capabilities in: [open3D-Visualization](http://www.open3d.org/docs/latest/tutorial/Basic/visualization.html)).
 
 *Run:*
 
-> ``` python src/visualize_ligpcds.py list_ligands_path lig-pcds_path img_types vocab_path class_mapping_path predictions_path```
+> ``` python src/visualize_ligpcds.py list_ligands_path lig-pcds_path pc_types vocab_path class_mapping_path predictions_path```
 
 *Parameters:*
 
 1. list_ligands_path: A table with a list of ligands in CSV format containing the ligID column with the ligands' ID that you want to visualize from the dataset;
-2. lig-pcds_path: The path to the dataset folder where the ligands' images in point clouds are located;
-3. img_types: The images types that you want to visualize, separated by comma and without spaces (e.g. qRankMask_5,qRank0.95,qRank0.5);
-4. vocab_path: (optional) The path to the vocabulary file used to label the dataset. Default to 'none' - won't draw the ligands images colored by the labels;
+2. lig-pcds_path: The path to the dataset folder where the ligand representations in point clouds are located;
+3. pc_types: The representation types that you want to visualize, separated by comma and without spaces (e.g. qRankMask_5,qRank0.95,qRank0.5);
+4. vocab_path: (optional) The path to the vocabulary file used to label the dataset. Default to 'none' - won't draw the ligand representations colored by the labels;
 5. class_mapping_path: (optional) The path to a class mapping file in CSV format or 'none'. Default to 'none';
-6. predictions_path: (optional) The path to a directory with the predictions result coming from the np3_DL_segmentation module and organized in subfolders, one for each PDB entry that appear in the ligands' list table, or 'none'. Default to 'none'.
+6. predictions_path: (optional) The path to a directory with the predictions result coming from the np3_DL_segmentation module and organized in subfolders, one for each PDB entry that appear in the table with the list of ligands, or 'none'. Default to 'none'.
 
 *Example:*
 
-Visualize the images from the valid ligands list present in the LigPCDS-SP and color them with their expected labels from model AtomC347CA56:
+Visualize the representations from the list of valid ligands present in the LigPCDS-SP and color them with their expected labels from model AtomC347CA56:
 > ``` python src/visualize_ligpcds.py PDB_lists/valid_ligands_list/valid_ligands_lists/valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.csv LigPCDS-SP/ qRankMask_5,qRank0.95,qRank0.75,qRank0.5 vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt vocabularies/SP-based/mapping_atomC347CA56.csv```
 
 #### Visualize the Class Distribution of a Vocabulary in a List of Ligands
 
-Plot the class distribution of a vocabulary by labeled atom and by labeled entry in a list of ligands entries from LigPCDS and 
+Plot the class distribution of a vocabulary by labeled atom and by labeled entry in a list of ligand entries from LigPCDS and 
 outputs their statistics to allow computing their imbalance ratio.
 
 *Run:*
@@ -534,11 +533,11 @@ outputs their statistics to allow computing their imbalance ratio.
 > ``` python src/plot_vocab_classes_distribution_and_statistics.py list_ligands_path vocab_path min_entry_occurrence class_mapping_path```
 
 python src/plot_vocab_classes_distribution_and_statistics.py 
-Wrong number of arguments. Four arguments must be supplied in order to plot the classes distribution and statistics of a vocabulary in a list of ligands entries: 
+Wrong number of arguments. Four arguments must be supplied in order to plot the classes distribution and statistics of a vocabulary in a list of ligand entries: 
 1. list_ligands_path: The path to the CSV file containing a list of ligands and their classes frequency by column. This file is expected to be the output of the 'run_vocabulary_encode_ligands.py' script. It should be located in the 'ligands/xyz_<ligand_list_path.name>' folder, named with the suffix '_class_freq.csv' or other table with the indices of the vocabulary classes as column names.
 2. vocab_path: The path to the text file containing the vocabulary classes used to label the list of ligands. It must contain one class per row. 
-3. min_entry_occurrence: The minimum number of ligands entries occurrences that the classes must have to be used in the distributions (do not use the ligands entries that have a label from a classe with an occurrence by entry smaller than this cutoff).
-4. class_mapping_path: (optional) The path to the CSV file containing a mapping between the vocabulary classes and the simplified classes. Mandatory columns: source, target. The last row must be the mapping for the background class, which is not used in these distributions. 
+3. min_entry_occurrence: The minimum number of ligand entries occurrences that the classes must have to be used in the distributions (do not use the ligands entries that have a label from a classe with an occurrence by entry smaller than this cutoff).
+4. class_mapping_path: (optional) The path to the CSV file containing a mapping between the major vocabulary classes and the simplified classes. Mandatory columns: source, target. The last row must be the mapping for the background class, which is not used in these distributions. 
 
 *Output:*
 
@@ -563,20 +562,20 @@ Plot the classes distribution of the modeling AtomC347CA56 in the valid ligands 
 
 For developers debugging. 
 
-An automatic test was implemented to check the quality of the structure labeling procedure with 8 manually labeled ligands' code.
-A total of 8 ligands structure were selected and manually labeled. The ligands were labeled with the SP-based and the AtomSymbol-based modelings.  
+An automatic test was implemented to check the quality of the structure labeling procedure with 8 manually labeled ligands with different ligand codes.
+A total of 8 ligand structures were selected and manually labeled. The ligands were labeled with the SP-based and the AtomSymbol-based approaches.  
 
 The chosen ligands that compose the list of test cases have the following codes in PDB: 0YB, 1EJ, 58T, DJ4, I3C, MB5, MTE and Q0S. 
 
 This test automatically compares the automatic structure labeling result against the manually labeled structures, 
 defined as the truth table of each test case.
 
-The choice of these ligands sought to cover a wide range of classes from the proposed vocabularies in different chemical arrangements. 
-More structures code be manually added to this list of use cases to increase the coverage of this test. 
-To add a new ligand code to the list of use cases, the following steps are necessary (executed from the repository np3_LigPCDS):
-- One must first manually add the respective ligand smiles and code to the table 'test/ligands_label/ligands_code_smiles.csv'. 
+The choice of these ligands sought to cover a wide range of classes from the proposed vocabularies in different chemical arrangements (even if they are not present in LigPCDS). 
+More structures could be manually added to this list of use cases to increase the coverage of this test. 
+To add a new ligand structure to the list of use cases, the following steps are necessary (executed from the repository np3_LigPCDS):
+- One must first manually add the respective ligand SMILES and code to the table 'test/ligands_label/ligands_code_smiles.csv'. 
 - Next, one may use the script `test/draw_smiles_test.py` to draw the structure of the ligands codes present in this table and to enumerate their atoms. 
-  - Their images are saved to PNG files and stored in the folder 'test/ligands_label/ligands_draw/', which is also created by this script.
+  - Their structure 2D images are saved to PNG files and stored in the folder 'test/ligands_label/ligands_draw/', which is also created by this script.
   - The symbol of the atoms concatenated with the smaller or aromatic cyclic structure in which it appears and its number, as present in the created images, is used as the atoms' ID.
 - Then, one must create a CSV table with the labels of the new structure containing one atom by row, referenced by their atom ID and 
 following the format of the files present in 'test/ligands_label' for the already labeled use cases (e.g. 'I3C.csv' for ligand code I3C).
@@ -600,4 +599,4 @@ _Paper in preparation to be published._
 
 ## License
 
-LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud Representations and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
