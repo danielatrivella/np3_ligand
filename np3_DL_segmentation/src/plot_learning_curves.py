@@ -72,7 +72,7 @@ def plot_learning_curves(curves_path, curves_names, curves_colors, curves_steps_
 
 
 #####################################
-# PLOT SYSTEMATIC ANALYSIS - IMAGE TYPE
+# PLOT SYSTEMATIC ANALYSIS - REPRESENTATION TYPE
 ####################################
 output_img_path = "modelAtomC347CA56/img-type/plot_data/run-img_types_mIoU.png"
 curves_path = sorted(list(Path("modelAtomC347CA56/img-type/plot_data/mIoU/").rglob("*.csv")))

@@ -125,15 +125,15 @@ data_arg.add_argument('--ignore_label', type=str2list, default=255)
 data_arg.add_argument('--ligs_data_filepath', type=str, required=True,
                       help='path to a ligands entries table defining the training dataset to be used. '
                            'It must contain the following columns: ligID, entry, kfolds, test_val, grid_space')
-data_arg.add_argument('--lig_pcdb_path', type=str, required=True,
-                      help='path to the folder where the ligands\' labeled image database in point cloud format is located. It is expected to have a subfolder for each PDB entryID present in the ligands entries table. The PDB entries subfolders should contain the ligand\'s images and labels for all ligID present in that table for each respective entryID. These images will be used for training, validating and testing the model.')
+data_arg.add_argument('--lig_pcds_path', type=str, required=True,
+                      help='path to the folder where the LigPCDS with the ligands points clounds is located. It is expected to have a subfolder for each PDB entryID present in the ligand entries table. The PDB entries subfolders should contain the ligand representations and labels for all ligID present in that table for each respective entryID. These point clouds will be used for training, validating and testing the model.')
 data_arg.add_argument('--pc_type', type=str, default='qRankMask_5',
-                      help='the point cloud image type to be used, which correspond to the desired quantile rank contour used to create the image.',
+                      help='the point cloud type to be used, which correspond to the desired quantile rank contour used to create the representation.',
                       choices=['qRankMask', 'qRank0.5', 'qRank0.7', 'qRank0.75', 'qRank0.8',
                                'qRank0.85', 'qRank0.9', 'qRank0.95', 'qRankMask_5'])
                                #'qRankMask_5_75_95', 'qRankMask_5_7_9'])
 data_arg.add_argument('--vocab_path', type=str, required=True,
-                      help='path to the vocabulary used to label the provided ligands\' images dataset.')
+                      help='path to the vocabulary used to label the provided ligand dataset.')
 # data_arg.add_argument('--grid_space', type=float, default=0.5,
 #                       help='the grid space used to create the ligands point clouds.')
 data_arg.add_argument('--kfold', type=int, default=13,

@@ -10,7 +10,7 @@ def visualize_target_prediction(pred_directory, img_dir):
         print("*** Ligand ID "+ entries_ious.loc[i,'ligID']+" ***")
         print("  - Confusion matrix\n"+entries_ious.iloc[i,1:].to_string())
         print("  - Target view x Predicted view x Correct Mask - with and without background")
-        # read the imgs from the lig-pcdb, when informed
+        # read the imgs from the ligPCDS, when informed
         if img_dir is not None:
             entry = entries_ious.loc[i,'ligID'].split("_")[0]
             pcd_img_qrankMask = o3d.io.read_point_cloud(img_dir+'/'+entry+'/'+entries_ious.loc[i,'ligID']+'_lig_point_cloud_fofc_qRankMask_5.xyzrgb')

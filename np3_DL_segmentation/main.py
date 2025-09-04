@@ -88,7 +88,7 @@ def main():
     # use model argument to select the ME UNet model
     net = load_model(config.model)
     # initialize model
-    # removed multiple in channels -> (3 if "qRankMask_" in config.pc_type else 1), all image types now use only one in channel
+    # removed multiple in channels -> (3 if "qRankMask_" in config.pc_type else 1), all representation types now use only one in channel
     model = net(in_channels=1, out_channels=len(class_names), config=config, D=3)
     if config.num_gpu > 1:
         model = ME.MinkowskiSyncBatchNorm.convert_sync_batchnorm(model)

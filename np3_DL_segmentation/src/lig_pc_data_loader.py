@@ -106,7 +106,7 @@ class LigandPointCloudDataset(Dataset):
         # self.indexes = iter(range(iter_start, iter_end))
     # check if the ligands input file exists an if not remove missing entries from the ligands table
     def checkLigandsFiles(self):
-        logging.info('    ==> Checking if the ligands image and label files exists')
+        logging.info('    ==> Checking if the ligand representations and label files exists')
         self.ligs_retrieve['file_check'] = True
         n = self.__len__()
         for i in range(n):
@@ -221,7 +221,7 @@ class LigandPointCloudDataset(Dataset):
         return labels
     def num_feats(self):
         if self.pc_type in ['sigmaMask', 'qRankMask_5_75_95', 'qRankMask_5_7_9']:
-            # return the three channels as features - these images are not used anymore
+            # return the three channels as features - these representations are not used anymore
             return 3
         else:  # only return one of the channels as features
             return 1
@@ -273,7 +273,7 @@ def ligands_dataloader(config, data_type):  #, device_id=0, num_devices=1):
     np.random.seed(config.seed)
     # Dataset, data loader
     if data_type == 'train':
-        lig_dataset = LigandPointCloudDataset(config.ligs_data_filepath, data_type, config.kfold, config.lig_pcdb_path,
+        lig_dataset = LigandPointCloudDataset(config.ligs_data_filepath, data_type, config.kfold, config.lig_pcds_path,
                                               config.pc_type, config.vocab_path,
                                               config.class_mapping_path,
                                               #device_id=device_id,num_devices=num_devices,
@@ -298,7 +298,7 @@ def ligands_dataloader(config, data_type):  #, device_id=0, num_devices=1):
             num_workers=config.num_workers,
             shuffle=True)
     else:
-        lig_dataset = LigandPointCloudDataset(config.ligs_data_filepath, data_type, config.kfold, config.lig_pcdb_path,
+        lig_dataset = LigandPointCloudDataset(config.ligs_data_filepath, data_type, config.kfold, config.lig_pcds_path,
                                               config.pc_type, config.vocab_path,
                                               config.class_mapping_path,
                                               #False,device_id=device_id,num_devices=num_devices,
