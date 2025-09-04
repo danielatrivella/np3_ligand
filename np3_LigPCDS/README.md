@@ -1,4 +1,4 @@
-# NP³ LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models
+# NP³ LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud Representations and Validated Deep Learning Models
 
 This repository contains the code used to create the LigPCDS dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
 The code for the models training pipeline and validation (step 6 from part B and part C of the workflow) is presented in the np3_DL_segmentation repository.
@@ -11,27 +11,27 @@ The workflow used to obtain LigPCDS, the deep learning models, and the validated
 
 ##### Part A: LigPCDS creation schema 
 
-In Step 1, a list of PDB entries from 1.5 to 2.2 Å was retrieved (.pdb and .mtz) and their free and organic ligands were filtered and validated (.sdf). It resulted in the list of valid ligands with 244,226 entries. 
+In Step 1, a list of PDB entries from 1.5 to 2.2 Å was retrieved (.pdb and .mtz) from RCSB PDB (https://www.rcsb.org/) in 2019 and their free and organic ligands were filtered and validated (.sdf). It resulted in the list of valid ligands with 244,226 entries. 
 
-In Step 2, Dimple (https://ccp4.github.io/dimple/) v2.6.1 was used to refine the PDB entries and produced their Fo-Fc maps. Next, for each ligand, it was defined a grid sizing that covers its entire blob. Each ligand grid was interpolated from its Fo-Fc map to a 3D point cloud image and processed to create the final images of the ligands. 
+In Step 2, Dimple (https://ccp4.github.io/dimple/) v2.6.1 was used to refine the PDB entries and produced their Fo-Fc maps. Next, for each ligand, it was defined a grid sizing that covers its entire blob. Each ligand grid was interpolated from its Fo-Fc map to a 3D point cloud and processed to create the final 3D representations of the ligands. 
 
 In Step 3, vocabularies of chemical classes were created and used for labeling atom-wise the structure of the valid ligands. They were based on the chemical atoms themselves and on cyclic substructures of the ligands. 
 
-Then, in Step 4 the labels of the structure of the ligands were extrapolated pointwise using an atomic sphere model for labeling the final images of the ligands. This resulted in LigPCDS with 244,226 entries. 
+Then, in Step 4 the labels of the structure of the ligands were extrapolated pointwise using an atomic sphere model for labeling the final representations of the ligands. This resulted in LigPCDS with 244,226 entries. 
 
-The viable labeling approaches are detailed bellow. It presents all viable vocabularies with their imbalance ratio (dmax) in the list of valid ligands, their classes names and size.
+The viable vocabularies and their labeling approaches are detailed bellow. It presents the vocabularies imbalance ratio (dmax) in the list of valid ligands, their classes names and size.
 
-| Vocabulary                        | dmax   | Classes                                        | Number of Classes |
-|-----------------------------------|--------|------------------------------------------------|-------------------|
-| Ligand Region                     | 1      | Background, Atom                               | 2                 |
-| Generic Atoms and Cycles          | 2.1    | Background, Atom, C (Cycle)                            | 3                 |
-| Generic Atoms and Cycles C347CA56 | 1535.2 | Background, Atom, C5 (Cycle of size 5), CA5, C6, CA6, C3, C4, C7 | 9                 |
-| Atom Symbols with Groups          | 41.4   | Background, C (carbon), O (oxigen), N (nitrogen), PSe, Halo                 | 6                 |
+| Vocabulary                        | Labeling Approach | dmax   | Classes                                 | Number of Classes |
+|-----------------------------------|:------------:|:--------:|------------------------------------------------|:-------------------:|
+| Ligand Region                     | SP         | 1      | Background, Atom                               | 2                 |
+| Generic Atoms and Cycles          | SP         | 2.1    | Background, Atom, C (Cycle)                            | 3                 |
+| Generic Atoms and Cycles C347CA56 | SP         | 1535.2 | Background, Atom, C5 (Cycle of size 5), CA5, C6, CA6, C3, C4, C7 | 9       |
+| Atom Symbols with Groups          | AtomSymbol | 41.4   | Background, C (carbon), O (oxigen), N (nitrogen), PSe, Halo      | 6       |
 
 
-To exemplify the LigPCDS image labeling in 3D point cloud, five different ligand image types and two ligands are used for illustration: 4ZV (PDB entry 5cc6, resolution 2.1 Å) and FUL (PDB entry 4z4t, resolution 1.8 Å). Their Fo-Fc maps are shown in the top of the panel with a contour of 3σ (created with Coot). The LigPCDS visualization script was used to draw the ligands images in 3D point cloud format.
+To exemplify the LigPCDS 3D point cloud labeling, five different ligand representation types and two ligands are used for illustration: 4ZV (PDB entry 5cc6, resolution 2.1 Å) and FUL (PDB entry 4z4t, resolution 1.8 Å). Their blob image from the Fo-Fc maps are shown in the top of the panel with a contour of 3σ (created with Coot). The LigPCDS visualization script was used to draw the ligands representations in 3D point cloud format.
 
-![ligands_image_lableling](docs/best_labelling_ligands_images_example.png)
+![ligands_image_lableling](docs/ligands_representation_labeling_example.png)
 
 ##### Part B: The general schema used to train and obtain the validated DL models. 
 
@@ -39,7 +39,7 @@ In step 5 a stratified training dataset was created from LigPCDS with n=78,902 l
 
 In step 6 the LigPCDS entries of this dataset were used to train DL models in semantic segmentation tasks using Minkowski Engine (https://nvidia.github.io/MinkowskiEngine/) architecture and its modified networks based on the 3D U-Net; cycles of training, evaluation and changes continued until good performance DL models were obtained. 
 
-##### Part C: Validated labeling approaches. 
+##### Part C: Validated Vocabularies. 
 
 Four of the proposed labeling approaches were validated, their models names follow the same order of the vocabulary used from the previous table.
 The average performance in the cross-validation of their best DL model is presented below using the mIoU, mF1, Precision and Recall metrics. The 95% bootstrap confidence interval of the metrics is presented between squared brackets. 
@@ -71,11 +71,11 @@ The average performance in the cross-validation of their best DL model is presen
 
 #### LigPCDS - dataset record
 
-The LigPCDS can be retrieved from Zenodo, an open dissemination research data repository. The deposit data is located in record [10.5281/zenodo.7872577](https://doi.org/10.5281/zenodo.7872577), and contains:
+The LigPCDS v1.0.1 can be retrieved from Zenodo, an open dissemination research data repository. The deposit data is located in record [10.5281/zenodo.7872577](https://doi.org/10.5281/zenodo.7872577), and contains:
 
-- LigPCDS-SP_record : The dataset with the SP-based modeling images, vocabulary, structure labeling result (xyz record) and DL models.
-- LigPCDS-AtomSymbol_record : The dataset with the AtomSymbol-based modeling images, vocabulary, structure labeling result (xyz record) and DL models.
-- LigPCDS-Grids_reso-1.5-2.2_gridspace-0.5 : The dataset with the ligand grid image of the valid ligands list.
+- LigPCDS-SP_record : The dataset with the SP-based modeling representations in 3D point cloud, vocabulary, structure labeling result (xyz record) and DL models.
+- LigPCDS-AtomSymbol_record : The dataset with the AtomSymbol-based modeling representations in 3D point cloud, vocabulary, structure labeling result (xyz record) and DL models.
+- LigPCDS-Grids_reso-1.5-2.2_gridspace-0.5 : The dataset with the ligand grid representation of the list of valid ligands.
 
 ---------------------------
 ---------------------------
@@ -93,12 +93,12 @@ At the end there is also some available visualization scripts and an additional 
 
 #### 1.1 Download PDB List (Manual) 
 
-Manually download two report lists from the PDB website using the following filters:
+Manually download two report lists from the RCSB PDB website using the following filters:
 - Containing free ligands (non-covalent)
 - Containing experimental data (with electron density maps also deposited)
 - From X-ray experiments with proteins
 
-The PDB lists downloaded for LigPCDS were retrieved in July 2019 and are present in the PDB_lists folder, named as:
+The RCSB PDB lists downloaded for LigPCDS were retrieved in July 2019 and are present in the PDB_lists folder, named as:
 - PDB report list: _PDB_entries_hasLigand_structureFactors_xray_protein.csv_
   - List of PDB entries and the ligands codes they have. It must contain the PDB IDs entries, with two mandatory columns: 'PDBID', 'Resolution'
 - Ligand report list: _Ligands_PDB_entries_hasLigand_structureFactors_xray_protein.csv_ 
