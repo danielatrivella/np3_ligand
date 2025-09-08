@@ -93,7 +93,7 @@ def fetch_sdf_ligands(db_path, pdb_ligs_file, n, i_start=0):
             print("Already downloaded all the ligands for this structure. Skipping...")
             continue
 
-        # parse structure to get acces to the residues and ligands
+        # parse structure to get access to the residues and ligands
         file_pdb = (data_folder / 'pdb' / str('pdb' + structure_id + '.ent'))
         try:
             structure = parser.get_structure(structure_id, file_pdb)
