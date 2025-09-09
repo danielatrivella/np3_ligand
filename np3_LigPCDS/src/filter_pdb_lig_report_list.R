@@ -1,53 +1,52 @@
 suppressPackageStartupMessages(library(dplyr))
 library(readr)
 options(warning.length = 2000) # error msg length
-ligand_path <- "PDB_lists/Ligands_PDB_entries_structure_factors_xray_protein.csv"
-pdb_path <- "PDB_lists/PDB_entries_structure_factors_xray_protein.csv"
+ligand_report_path <- "PDB_lists/Ligands_PDB_entries_structure_factors_xray_protein.csv"
+pdb_report_path <- "PDB_lists/PDB_entries_structure_factors_xray_protein.csv"
 
-min_counts <- 10
-min_counts <- max(min_counts, 1)
-min_resolution <- 1.0
-max_resolution <- 1.5
+min_counts <- 1
+min_resolution <- 1.5
+max_resolution <- 2.2
 np_ligands_filter <- TRUE
 all_ligands <- FALSE # if false filter only Free ligands
-date_filter <- ""
+date_filter <- "2008-02-01"
 
 # read input
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) < 6) {
   stop("Wrong number of parameters. Six arguments must be supplied to filter the PDB report list and the ligand report list. ",
        "These reports must follow the table format exported by PDB in july 2019. \nParameters:\n",
-       " 1. pdb_report: Path to the PDB report list - CSV table containing the PDB entries information, ",
-       "mandatory columns (spaces are removed): PDBID, Resolution;\n",
-       " 2. ligand_report: Path to the ligand report list - CSV table containing the ligands entries and their counts by code and by PDB entries in which they appear, ",
-       "with the following mandatory columns (spaces are removed): LigandID, ",
-       "LigandFormula, PDBIDsTotal, PDBIDsFreeLigand, InstancePDBIDsasFreeLigand, InstancePDBIDsAll;\n",
-       " * Only the Free ligands are used (InstancePDBIDsasFreeLigand), the polymeric ligands are ignored;\n",
+       " 1. pdb_report: Path to the PDB report list with free ligands information - CSV table containing the PDB entries information, ",
+       "mandatory columns (spaces are removed): PDBID, RefinementResolution, DepositionDate;\n",
+       " 2. ligands_report: Path to the ligand report list with free ligands information - CSV table containing the ligands entries and their counts by code and by PDB entries in which they appear, ",
+       "with the following mandatory columns (spaces are removed): EntryID, ",
+       "LigandID, LigandFormula, AsymID, AuthAsymID, freeLigand;\n",
        " 3. min_pdbids: Minimum number of PDB entries (IDs) in which a ligand must be present to be included in the resulting list of entries;\n",
        " 4. resolution_min: Minimum resolution of a PDB entry to be included in the resulting list;\n",
        " 5. resolution_max: Maximum resolution of a PDB entry to be included in the resulting list;\n",
        " 6. np_filter: TRUE or FALSE to apply the natural products filter and only ",
        "retain ligands that have the following organic atoms: C,H,O,N,P,S,I,Br,Cl,F,Se;\n",
-       " 7. min_deposit_date: The minimum deposit date that a PDB entry must have to be included in the resulting list (default to no deposit date filter). ",
+       " 7. min_deposit_date: The minimum deposit date that a PDB entry must have to be included in the resulting list or an empty string to no deposit date filter. ",
        "All filtered entries must have been deposited after or in this date. ",
-       "The informed date must follow the format yyyy-mm-dd, as in 2008-01-01, where yyyy is the year, mm is the month and dd is the day.\n",
+       "The informed date must follow the format yyyy-mm-dd, as in 2008-02-01, where yyyy is the year, mm is the month and dd is the day. Default to '2008-02-01'.\n",
+       "8. all_ligands: TRUE or FALSE to indicate to keep all ligands or to filter only the Free ligands (non-covalent). Default to FALSE - filter the free ligand.",
        call. = FALSE)
 } else {
-  pdb_path <- file.path(args[[1]])
-  if (!file.exists(pdb_path))
+  pdb_report_path <- file.path(args[[1]])
+  if (!file.exists(pdb_report_path))
   {
-    stop("The CSV file '", pdb_path,
+    stop("The CSV file '", pdb_report_path,
          "' do not exists. Provide a valid path to where the PDB table is located.")
   }
-  pdb_path <- normalizePath(pdb_path)
+  pdb_report_path <- normalizePath(pdb_report_path)
   
-  ligand_path <- file.path(args[[2]])
-  if (!file.exists(ligand_path))
+  ligand_report_path <- file.path(args[[2]])
+  if (!file.exists(ligand_report_path))
   {
-    stop("The CSV file '", ligand_path,
+    stop("The CSV file '", ligand_report_path,
          "' do not exists. Provide a valid path to where the ligands table is located.")
   }
-  ligand_path <- normalizePath(ligand_path)
+  ligand_report_path <- normalizePath(ligand_report_path)
   
   min_counts <- max(as.numeric(args[[3]]), 1)
   min_resolution <- as.numeric(args[[4]])
@@ -61,122 +60,147 @@ if (length(args) < 6) {
            "It must follow the format yyyy-mm-dd, as in 2008-02-01, where yyyy ",
            "is the year, mm is the month and dd is the day. Retry with correct ",
            "parameters. \nError msg: ", e, call. = FALSE))
+    if (length(args) > 7) {
+      all_ligands <- as.logical(args[[8]])
+    }
   }
-  # all_ligands <- as.logical(args[[7]])
+  
 }
 
 
-cat("** Filtering the ligands list - minimum count cutoff and NP atoms filter\n")
+cat("** Filtering the ligands list - Free ligands, minimum count cutoff and NP atoms filter\n")
 # read ligands counts report from RCSB PDB and remove spaces and parentheses from header
-ligands_counts <- suppressMessages(read_csv(ligand_path))
-cat("Number of ligands in list = ", nrow(ligands_counts),"\n\n")
-names(ligands_counts) <- gsub(" |\\(|\\)", "", names(ligands_counts))
+ligands_report_list <- suppressMessages(read_csv(ligand_report_path,guess_max=50000))
+cat("Number of ligands in list = ", nrow(ligands_report_list),"\n\n")
+names(ligands_report_list) <- gsub(" |\\(|\\)", "", names(ligands_report_list))
 
-# select the PDB IDs to be used; set them to upper case; and filter the ligands by the minimum count
-if (all_ligands) {
-  ligs_selection <- 'InstancePDBIDsAll'
-  ligands_counts <- ligands_counts[ligands_counts$PDBIDsTotal >= min_counts,]
-} else {
-  ligs_selection <- 'InstancePDBIDsasFreeLigand'
-  ligands_counts <- ligands_counts[ligands_counts$PDBIDsFreeLigand >= min_counts,]
+# filter non-covalent - free ligands
+if (!all_ligands) {
+  ligands_report_list <- ligands_report_list[ligands_report_list$freeLigand,]
+  cat("Number of filtered ligands after free ligands selection = ", nrow(ligands_report_list),"\n\n")
 }
-ligands_counts[[ligs_selection]] <- toupper(ligands_counts[[ligs_selection]])
-cat("Number of filtered ligands after minimum count cutoff = ", nrow(ligands_counts),"\n\n")
+
+# filter the ligands by the minimum count
+ligandID_count_value <- table(ligands_report_list$LigandID)
+valid_ligandID <- names(ligandID_count_value)[ligandID_count_value >= min_counts]
+ligands_report_list <- ligands_report_list[ligands_report_list$LigandID %in% valid_ligandID,]
+cat("Number of filtered ligands after minimum count cutoff filter = ", nrow(ligands_report_list),"\n\n")
 
 # filter ligands that contain only atoms in CHONPS,I,Br,Cl,F,Se
 if (np_ligands_filter) {
   np_atoms <- c('C','H','O','N','P','S','I','Br','Cl','F','Se')
-  np_ligands_filter <- sapply(ligands_counts$LigandFormula, 
+  np_ligands_filter_test <- sapply(ligands_report_list$LigandFormula, 
     function(mf)
     {
       mf_atoms <-  strsplit(gsub("[0-9]*", "", perl = TRUE, mf), " ")[[1]]
       all(mf_atoms %in% np_atoms)
     })
-  ligands_counts <- ligands_counts[np_ligands_filter,]
-  np_ligands_filter <- TRUE
+  ligands_report_list <- ligands_report_list[np_ligands_filter_test,]
 }
-cat("Number of filtered ligands after NP filter = ", nrow(ligands_counts),"\n\n")
+cat("Number of filtered ligands after NP filter = ", nrow(ligands_report_list),"\n\n")
 
 # read the available pdb entries and remove spaces and parentheses from header
-pdb_entries <- suppressMessages(read_csv(pdb_path))
-names(pdb_entries) <- gsub(" |\\(|\\)|\\.", "", names(pdb_entries))
-pdb_entries$PDBID <- toupper(pdb_entries$PDBID)
+pdb_report_list <- suppressMessages(read_csv(pdb_report_path))
+names(pdb_report_list) <- gsub(" |\\(|\\)|\\.", "", names(pdb_report_list))
+pdb_report_list$PDBID <- toupper(pdb_report_list$PDBID)
+
+cat("Number of PDB entries in list = ", nrow(pdb_report_list),"\n\n")
+
+cat("** Filtering the PDB list - by the entries kept in the Ligands list\n")
+#  now, filter the kept pdb ids from the ligands report list
+pdb_report_list <- pdb_report_list[pdb_report_list$PDBID %in% ligands_report_list$EntryID,]
+cat("Number of filtered PDB entries after ligands list filter = ", nrow(pdb_report_list),"\n\n")
 
 cat("** Filtering the PDB list - by resolution range and deposit date\n")
 
-cat("Number of PDB entries in list = ", nrow(pdb_entries),"\n\n")
-
 # filter the pdb entries by the provided resolution range
-pdb_entries <- pdb_entries[pdb_entries$Resolution >= min_resolution &
-                           pdb_entries$Resolution <= max_resolution,]
+pdb_report_list <- pdb_report_list[pdb_report_list$RefinementResolution >= min_resolution &
+                           pdb_report_list$RefinementResolution <= max_resolution,]
 
-cat("Number of filtered PDB entries after resolution limit = ", nrow(pdb_entries),"\n\n")
+cat("Number of filtered PDB entries after resolution limit = ", 
+    nrow(pdb_report_list),"\n\n")
 # filter by deposit date
 if (class(date_filter) == "Date") {
-  pdb_entries <- pdb_entries[pdb_entries$DepDate >= date_filter,]
+  pdb_report_list <- pdb_report_list[pdb_report_list$DepositionDate >= date_filter,]
 } else {
-  date_filter <- min(pdb_entries$DepDate)
+  # if no date was informed, then retrieve the minimum date in the list
+  date_filter <- min(pdb_report_list$DepositionDate)
 }
 date_filter <- as.character(date_filter)
 
-cat("Number of filtered PDB entries after deposit date limit = ", nrow(pdb_entries),"\n\n")
+cat("Number of filtered PDB entries after deposit date (", date_filter,
+    ") limit = ", nrow(pdb_report_list),"\n\n",sep="")
 
-cat("** Filtering the ligands that are present in the filtered PDB entries,",
-    "counting the remaining number of PDB entries where each ligand appears and",
-    "applying the minimum count cutoff\n")
- 
-# for each ligand filter the pdb codes that are in the given resolution range
-# and return their ids and count
-# if the count is greater then the min count, attribute to each pdb entry
-# the ligand appearence and compute its count
-pdb_entries$ligandsID <- ""
-pdb_entries$ligands_count <- 0
-ligands_counts[,c("PDB_IDs", "count")] <- bind_rows(
-  lapply(seq_len(nrow(ligands_counts)), 
-         function(i, valid_codes = pdb_entries$PDBID, min_count = min_counts) {
-           x <- ligands_counts[[ligs_selection]][i]
-           codes <- strsplit(x, split = ",")[[1]]
-           codes_resolution_idx <- match(codes, valid_codes)
-           codes_resolution <- which(!is.na(codes_resolution_idx))
-           n <- length(codes_resolution)
-           # codes_resolution <- which(codes %in% valid_codes)
-           
-           if (n > 0) {
-             # if the ligand is going to be included in the list count its occurence 
-             # in the corresponding pdb entries where it appears
-             if (n >= min_count) {
-               codes_resolution_idx <- codes_resolution_idx[codes_resolution]
-               pdb_entries$ligands_count[codes_resolution_idx] <<- 
-                 pdb_entries$ligands_count[codes_resolution_idx] + 1
-               pdb_entries$ligandsID[codes_resolution_idx] <<- 
-                 paste(pdb_entries$ligandsID[codes_resolution_idx], 
-                       ligands_counts$LigandID[[i]])
-             } 
-             
-             list(PDB_IDs = paste(codes[codes_resolution], collapse = ","), 
-                  count = n)
-           } else {
-             list(PDB_IDs = NA, count = 0)
-           }
-         }))
+cat("** Filtering the ligands that are present in the filtered PDB entries by resolution and deposity date **")
 
-# filter ligands with at least one count and greater than min_counts
-ligands_counts <- ligands_counts[ligands_counts$count >= min_counts,]
-# filter PDB entries with at least one ligand count and trim white space
-pdb_entries <- pdb_entries[pdb_entries$ligands_count > 0,]
-pdb_entries$ligandsID <- trimws(pdb_entries$ligandsID)
+ligands_report_list <- ligands_report_list[ligands_report_list$EntryID %in% pdb_report_list$PDBID,]
+cat("Number of filtered ligands after resolution and deposit date filter = ", nrow(ligands_report_list),"\n\n")
 
-cat("Final number of PDB entries = ", nrow(pdb_entries))
-cat("\nFinal Number of ligands = ", nrow(ligands_counts),"\n\n")
+# filter the ligands by the minimum count again
+ligandID_count_value <- table(ligands_report_list$LigandID)
+valid_ligandID <- names(ligandID_count_value)[ligandID_count_value >= min_counts]
+ligands_report_list <- ligands_report_list[ligands_report_list$LigandID %in% valid_ligandID,]
+cat("Number of filtered ligands after second minimum count cutoff filter = ", nrow(ligands_report_list),"\n\n")
+cat("** Filtering the PDB list again - by the entries kept in the Ligands list\n")
+#  now, filter the kept pdb ids from the ligands report list again
+pdb_report_list <- pdb_report_list[pdb_report_list$PDBID %in% ligands_report_list$EntryID,]
+cat("Number of filtered PDB entries after ligands list filter = ", nrow(pdb_report_list),"\n\n")
+
+cat("** Counting the number of ligands in Asym and AuthAsym chains and computing this count by PDB ID **\n")
+# count in the ligands report list the number of occurrences of each 
+## ligand in each PDB ID by asymID and authAsymID
+# then count in the pdb report list, the total number of ligands for each PDB ID
+ligands_report_list$numAsymID <- sapply(ligands_report_list$AsymID, function(x) {
+  if (!is.na(x))
+    length(strsplit(x,", ")[[1]])
+  else
+    0
+  }, USE.NAMES = FALSE)
+ligands_report_list$numAuthAsymID <- sapply(ligands_report_list$AuthAsymID, function(x) {
+  if (!is.na(x))
+    length(strsplit(x,", ")[[1]])
+  else
+    0
+}, USE.NAMES = FALSE)
+ligands_report_list$numTotalCount <- ligands_report_list$numAsymID + ligands_report_list$numAuthAsymID
+
+for (i in seq_len(nrow(pdb_report_list))) {
+  pdbid <- pdb_report_list[i,"PDBID"][[1]]
+  ligs_pdbid <- ligands_report_list[ligands_report_list$EntryID == pdbid,]
+  num_distinctLigands <- nrow(ligs_pdbid)
+  num_totalLigands <- sum(ligs_pdbid$numTotalCount)
+  num_distinctFreeLigands <- nrow(ligs_pdbid[ligs_pdbid$freeLigand,])
+  if (num_distinctFreeLigands > 0)
+    num_totalFreeLigands <- sum(ligs_pdbid[ligs_pdbid$freeLigand,"numTotalCount"])
+  else
+    num_totalFreeLigands <- 0
+  pdb_report_list[i,"NumberofDistinctLigands"] <- num_distinctLigands
+  pdb_report_list[i,"TotalNumberofLigands"] <- num_totalLigands
+  pdb_report_list[i,"NumberofDistinctFreeLigands"] <- num_distinctFreeLigands
+  pdb_report_list[i,"TotalNumberofFreeLigands"] <- num_totalFreeLigands
+}
+
+cat("** Reports list summary\n\n")
+
+cat("Final number of PDB entries = ", nrow(pdb_report_list))
+cat("\nFinal Number of ligands (",ifelse(all_ligands, "all", "free"),") = ", 
+    nrow(ligands_report_list),"\n\n")
+cat("\nFinal Number of *unique* ligands (",ifelse(all_ligands, "all", "free"),") = ", 
+    length(unique(ligands_report_list$LigandID)),"\n\n")
+
 cat("** PDB list summary\n\n")
 
-cat("Sum of the ligands counts in the PDB entries in which they appear = ", sum(ligands_counts$count),
-    "\n  - This is the minimum number of ligands entries, each ligand can ",
-    "appear more than once in a single PDB entry\n")
-cat("\nSummary of the Count of PDB entries in which the ligands appear= \n")
-print(c(summary(ligands_counts$count), Sd. = sd(ligands_counts$count)))
+cat("Sum of the total number of ligands in Asym and AuthAsym units that appear in the list of filtered PDB IDs= ", 
+    sum(pdb_report_list$TotalNumberofLigands),
+    "\n  - This is the minimum number of ligand entries, each ligand can ",
+    "appear more than once in a unit of a PDB entry\n")
+cat("Sum of the total number of distinct (unique) ligands that appear in the list of filtered PDB IDs= ", 
+    sum(pdb_report_list$NumberofDistinctLigands),
+    "\n  - This is the sum of distinct ligands by PDB entry\n")
+cat("\nSummary of the Total Number of Ligands by PDB entry = \n")
+print(c(summary(pdb_report_list$TotalNumberofLigands), Sd. = sd(pdb_report_list$TotalNumberofLigands)))
 
-write.csv(pdb_entries, file = paste("PDB",min_resolution,max_resolution,
+write_csv(pdb_report_list, file = paste("PDB",min_resolution,max_resolution,
                                     ifelse(np_ligands_filter, 
                                            "NP",
                                            #paste0(np_atoms, collapse = ""), 
@@ -187,7 +211,7 @@ write.csv(pdb_entries, file = paste("PDB",min_resolution,max_resolution,
                                            ".csv",
                                            paste0(date_filter,"_depDate.csv")), 
                                     sep = "_"))
-write.csv(ligands_counts, file = paste("ligands", ifelse(all_ligands, "all", "free"),
+write_csv(ligands_report_list, file = paste("ligands", ifelse(all_ligands, "all", "free"),
                                        "PDB", min_resolution,max_resolution,
                                        ifelse(np_ligands_filter, 
                                               "NP",
