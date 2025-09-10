@@ -1,6 +1,6 @@
 # NP³ LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud Representations and Validated Deep Learning Models
 
-This repository contains the code used to create the LigPCDS dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
+This repository contains the code used to create the **LigPCDS v1.0.1** dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
 The code for the models training pipeline and validation (step 6 from part B and part C of the workflow) is presented in the np3_DL_segmentation repository.
 
 The workflow used to obtain LigPCDS, the deep learning models, and the validated labeling approaches is presented in the figure below.
