@@ -1,6 +1,6 @@
-# NP³ LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud Representations and Validated Deep Learning Models
+# NP³ LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud and Validated Deep Learning Models
 
-This repository contains the code used to create the LigPCDS dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
+This repository contains the code used to create the **LigPCDS v1.0.1** dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
 The code for the models training pipeline and validation (step 6 from part B and part C of the workflow) is presented in the np3_DL_segmentation repository.
 
 The workflow used to obtain LigPCDS, the deep learning models, and the validated labeling approaches is presented in the figure below.
@@ -11,7 +11,7 @@ The workflow used to obtain LigPCDS, the deep learning models, and the validated
 
 ##### Part A: LigPCDS creation schema 
 
-In Step 1, a list of PDB entries from 1.5 to 2.2 Å was retrieved (.pdb and .mtz) from RCSB PDB (https://www.rcsb.org/) in 2019 and their free and organic ligands were filtered and validated (.sdf). It resulted in the list of valid ligands with 244,226 entries. 
+In Step 1, a list of PDB entries from 1.5 to 2.2 Å was retrieved (.pdb and .mtz) from RCSB PDB (https://www.rcsb.org/) in the end of 2019 and their free and organic ligands were filtered and validated (.sdf). It resulted in the list of valid ligands with 244,226 entries. 
 
 In Step 2, Dimple (https://ccp4.github.io/dimple/) v2.6.1 was used to refine the PDB entries and produced their Fo-Fc maps. Next, for each ligand, it was defined a grid sizing that covers its entire blob. Each ligand grid was interpolated from its Fo-Fc map to a 3D point cloud and processed to create the final 3D representations of the ligands. 
 
@@ -56,7 +56,7 @@ The average performance in the cross-validation of their best DL model is presen
 ## Available data
 
 
-- Two PDB report tables downloaded in July 2019, located inside the PDB_lists folder:
+- Two PDB report tables downloaded in December 2019, located inside the PDB_lists folder:
   - _PDB_entries_hasLigand_structureFactors_xray_protein.csv_ : list of PDB entries and the ligands codes they have 
   - _Ligands_PDB_entries_hasLigand_structureFactors_xray_protein.csv_ : list of ligands codes, types and PDB entry in which it appears
 - List of valid ligands: located inside the 'PDB_lists/valid_ligands_list' folder in zip format:
@@ -98,7 +98,7 @@ Manually download two report lists from the RCSB PDB website using the following
 - Containing experimental data (with electron density maps also deposited)
 - From X-ray experiments with proteins
 
-The RCSB PDB lists downloaded for LigPCDS were retrieved in July 2019 and are present in the PDB_lists folder, named as:
+The RCSB PDB lists downloaded for LigPCDS were retrieved in December 2019 and are present in the PDB_lists folder, named as:
 - PDB report list: _PDB_entries_hasLigand_structureFactors_xray_protein.csv_
   - List of PDB entries and the ligands codes they have. It must contain the PDB IDs entries, with two mandatory columns: 'PDBID', 'Resolution'
 - Ligand report list: _Ligands_PDB_entries_hasLigand_structureFactors_xray_protein.csv_ 
@@ -107,7 +107,7 @@ The RCSB PDB lists downloaded for LigPCDS were retrieved in July 2019 and are pr
 #### 1.2 Filter PDB List   
 
 Filter the RCSB PDB report lists using as criteria the PDB entries resolution, a list of organic atoms (natural products filter), the deposit date of the PDB entries and the ligand's counts by PDB entry.
-These report files must follow the table format exported by RCSB PDB in july 2019. 
+These report files must follow the table format exported by RCSB PDB in december 2019. 
 
 *Run:*
 
@@ -140,7 +140,7 @@ Two CSV files with the filtered lists and with the ligands aggregated by PDBID. 
 Retrieve the data from the PDB IDs and the ligands present in the provided filtered PDB list.
 This data will enable the refinement of the entries with and without the ligands structure.
 
-This code was intended to work with RCSB PDB APIs from July 2019. Any updates in RCSB PDB API must be updated in the code.
+This code was intended to work with RCSB PDB APIs from december 2019. Any updates in RCSB PDB API must be updated in the code.
   
 *Run:*
 
@@ -599,4 +599,4 @@ _Paper in preparation to be published._
 
 ## License
 
-LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud Representations and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
