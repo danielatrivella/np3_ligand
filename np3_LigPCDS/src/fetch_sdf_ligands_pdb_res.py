@@ -39,10 +39,12 @@ class ResSelect(Select):
 def retrieve_sdf(file_sdf, entry, chain, seq):
     if not file_sdf.exists():
         try:
-            urllib.request.urlretrieve('https://models.rcsb.org/v1/'+entry+'/ligand?auth_asym_id='+chain+'&auth_seq_id='+seq+'&encoding=sdf',
+            urllib.request.urlretrieve('https://models.rcsb.org/v1/'+entry+'/ligand?auth_asym_id='+chain+
+                                       '&auth_seq_id='+seq+'&encoding=sdf',
                                        file_sdf)
-        except:
-            print("ERROR retrieving SDF " + file_sdf.name)
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            print(f"ERROR retrieving SDF {file_sdf.name}. An unexpected error occurred: {e}")
             return False
         if not file_sdf.exists():
             print("ERROR retrieving SDF " + file_sdf.name)
@@ -122,7 +124,7 @@ def fetch_sdf_ligands(db_path, ligs_report_file, n, i_start=0):
 
         # iterate over the structure residues in all chains (in AuthAsymID) to locate the desired ligands
         print("** Start parsing ligands and retrieving their SDF data **")
-        for residue in tqdm(models[0].get_residues()):
+        for residue in models[0].get_residues():
             if residue.get_id()[0] in ligs_pdbid_list.LigandIDRes.values or residue.get_id()[0] == 'W':
                 id = list(residue.get_id())
                 id[1] = str(id[1])
@@ -148,15 +150,16 @@ def fetch_sdf_ligands(db_path, ligs_report_file, n, i_start=0):
                         elif mol_res[0].GetNumAtoms() == 0:
                             print('ERROR no atoms in sdf ' + file_sdf.name + "\n")
                             file_sdf.unlink(missing_ok=True)
-                        # if sdf is present
-                        # save the ligand in .pdb and the entry pdb without the current ligand
-                        if not (data_folder / 'ligands' / str(structure_id + "_" + id_name + "_lig.pdb")).exists():
-                            # save a pdb without the ligand residue
-                            io.save((data_folder / 'pdb_no_lig' / str(structure_id + "_" + id_name + ".pdb")).as_posix(),
-                                    ResSkip(residue.get_id(), id[2]))
-                            # save a pdb of the ligand residue, the ligand coordinates
-                            io.save((data_folder / 'ligands' / str(structure_id + "_" + id_name + "_lig.pdb")).as_posix(),
-                                    ResSelect(residue.get_id(), id[2]))
+                        else:
+                            # if sdf is present
+                            # save the ligand in .pdb and the entry pdb without the current ligand
+                            if not (data_folder / 'ligands' / str(structure_id + "_" + id_name + "_lig.pdb")).exists():
+                                # save a pdb without the ligand residue
+                                io.save((data_folder / 'pdb_no_lig' / str(structure_id + "_" + id_name + ".pdb")).as_posix(),
+                                        ResSkip(residue.get_id(), id[2]))
+                                # save a pdb of the ligand residue, the ligand coordinates
+                                io.save((data_folder / 'ligands' / str(structure_id + "_" + id_name + "_lig.pdb")).as_posix(),
+                                        ResSelect(residue.get_id(), id[2]))
 
 
 if __name__ == "__main__":
