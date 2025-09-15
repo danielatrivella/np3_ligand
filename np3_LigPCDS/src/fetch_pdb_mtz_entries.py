@@ -36,13 +36,14 @@ def convert_sf_cif_to_mtz(input_sf_cif_file, output_mtz_file):
 def convert_cif_to_pdb(input_cif_file, output_pdb_file):
     """
     Converts a structure from a CIF file to a PDB file using gemmi convert.
+    Uses the shorten argument to try to shorten an invalid chain name to 1 or 2 chars
 
     Args:
         input_cif_file (str): Path to the input CIF file.
         output_pdb_file (str): Path for the output PDB file.
     """
     try:
-        command = ["gemmi", "convert", input_cif_file, output_pdb_file]
+        command = ["gemmi", "convert", input_cif_file, output_pdb_file, "--shorten"]
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         #print(f"Conversion successful: {input_cif_file} -> {output_mtz_file}")
         #if result.stdout:
