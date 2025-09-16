@@ -244,7 +244,7 @@ to .pdb and .mtz data. Parse the .pdb data to check it's viability, if any error
 
 *Run:*
 
-> ``` python src/fetch_pdb_mtz_entries.py db_path pdb_report_entries row_entry_start row_entry_stop ```
+> ``` python src/fetch_pdb_mtz_cif_entries.py db_path pdb_report_entries row_entry_start row_entry_stop ```
 
 *Parameters:*
 
@@ -257,24 +257,24 @@ to .pdb and .mtz data. Parse the .pdb data to check it's viability, if any error
 
 The db_path folder is created and inside it four subfolders are created: 
 
-    - 'sf_cif': to store the structure factors in .cif
+    - 'sf_cif': to store the structure factors in .cif (default format now)
     - 'pdb_cif': to store the PDB structures in .cif (default format now)
     - 'pdb': to store the converted .pdb files
     - 'coefficients': to store the converted .mtz files;
 
 *Example:*
 
-> ``` python src/fetch_pdb_mtz_entries.py data/ PDB_lists/PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv```
+> ``` python src/fetch_pdb_mtz_cif_entries.py data/ PDB_lists/PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv```
 
 
 ###### 1.3.2 Download Ligand report data 
 
 For each Ligand ID present the given ligand report list, retrieve the ligands .sdf data, parse it and, if valid, 
-extract the ligands .pdb from the PDB ID structure data in .pdb.
+extract the ligands .cif from the PDB ID structure data in .cif.
 
 *Run:*
 
-> ``` python src/fetch_sdf_ligands_pdb_res.py db_path ligand_report_entries row_entry_start row_entry_stop ```
+> ``` python src/fetch_sdf_ligands_pdb_cif_res.py db_path ligand_report_entries row_entry_start row_entry_stop ```
 
 *Parameters:*
 
@@ -287,11 +287,11 @@ extract the ligands .pdb from the PDB ID structure data in .pdb.
 
 The db_path folder is created, if not present yet, and inside it one subfolder is created: 
 
-    - 'ligands': to store the .sdf and the .pdb files of the ligands;
+    - 'ligands': to store the .sdf and the .cif files of the ligands;
 
 *Example:*
 
-> ``` python src/fetch_sdf_ligands_pdb_res.py data/ PDB_lists/ligands_free_PDB_1.5_2.2_NP_atoms_1_counts_2008-02-01_depDate.csv```
+> ``` python src/fetch_sdf_ligands_pdb_cif_res.py data/ PDB_lists/ligands_free_PDB_1.5_2.2_NP_atoms_1_counts_2008-02-01_depDate.csv```
 
 
 #### 1.4 List of Available Ligands
