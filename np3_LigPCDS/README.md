@@ -56,9 +56,9 @@ The average performance in the cross-validation of their best DL model is presen
 ## Available data
 
 
-- Two PDB report tables downloaded in December 2019, located inside the PDB_lists folder:
-  - _PDB_entries_hasLigand_structureFactors_xray_protein.csv_ : list of PDB entries and the ligands codes they have 
-  - _Ligands_PDB_entries_hasLigand_structureFactors_xray_protein.csv_ : list of ligands codes, types and PDB entry in which it appears
+- Two PDB report tables downloaded in September 2025 and pre-filtered to included free ligands (non-covalent) information and counts, located inside the PDB_lists folder:
+  - _report_PDB_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigandFree_hasExpData.csv_ : list of PDB entries, their characteristics and total count of ligands 
+  - _report_Ligands_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigandFree_hasExpData.csv_ : list of ligands IDs by PDB entry, their information, asymmetric ID (chain ID by author and validated) and free ligand tag
 - List of valid ligands: located inside the 'PDB_lists/valid_ligands_list' folder in zip format:
   - _valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_AtomSymbol.zip_ : the valid ligands list labeled with the AtomSymbol-based approach
   - _valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.zip_ : the valid ligands list labeled with the SP-base approach
@@ -82,89 +82,217 @@ The LigPCDS v1.0.1 can be retrieved from Zenodo, an open dissemination research 
 
 ## How to use
 
-The scripts used in each step from 1 to 5 are detailed below in separated subsections. Here Step 3 is presented before Step 2 to easy the use of the available scripts, this does not affect the order of Figure 1 because Steps 2 and 3 are parallel procedures.
-These steps correspond to parts A and B from the workflow to create the LigPCDS dataset and the stratified training dataset. 
- 
+The following steps correspond to parts A and B from the workflow to create the LigPCDS dataset and the stratified training dataset. 
+The scripts used in each step from 1 to 5 are detailed below in separated subsections. Here Step 3 is presented before 
+Step 2 to easy the use of the available scripts, this does not affect the order of Figure 1 because Steps 2 and 3 are parallel procedures.
+
 At the end, there is also some available visualization scripts and an additional testing script.
 
 ### Step 1
 
 --------------------
 
-#### 1.1 Download PDB List (Manual) 
+#### 1.1 Download PDB Report Lists (Manual) 
 
-Manually download two report lists from the RCSB PDB website using the following filters:
-- Containing free ligands (non-covalent)
-- Containing experimental data (with electron density maps also deposited)
-- From X-ray experiments with proteins
+To retrieve the PDB report lists, manually access the advanced search tool from [RCSB PDB](https://www.rcsb.org/search/advanced) 
+and apply the following filters (used in September 2025 for LigPCDS):
+- Experimental Method is X-ray Diffraction (this will also filter experiments with multiple methods): Experimental Method | is | X-RAY DIFFRACTION 
+- Experiments with proteins only: Entry Polymer Types | is | Protein (only)
+- Containing free ligands (non-covalent): Component Identifier - Has No Covalent Linkage | is not empty 
+- Containing experimental data (with electron density maps also deposited): Has Experimental Data | is | Y
+- Experiments deposited after february 2008:  Deposit Date | >= | 2008-02-01
 
-The RCSB PDB lists downloaded for LigPCDS were retrieved in December 2019 and are present in the PDB_lists folder, named as:
-- PDB report list: _PDB_entries_hasLigand_structureFactors_xray_protein.csv_
-  - List of PDB entries and the ligands codes they have. It must contain the PDB IDs entries, with two mandatory columns: 'PDBID', 'Resolution'
-- Ligand report list: _Ligands_PDB_entries_hasLigand_structureFactors_xray_protein.csv_ 
-  - List of ligands codes, type (free or covalent) and PDB entry in which it appears. It must contain the ligand's entries information (e.g. ligand code, molecular formula) and the PDB IDs in which each ligand entry appears (counts). With the following mandatory columns (spaces are removed): LigandID, LigandFormula, PDBIDsTotal, PDBIDsFreeLigand, InstancePDBIDsasFreeLigand, InstancePDBIDsAll.
+Then generate two custom report list, one for structures (PDB entries) and another for ligands (ligand entries). 
+And directly download the reports as CSV tables, the RCSB website return them by chunks of 2500 rows. 
+All the chunks must be retrieved and further concatenated using the script presented in the next subsection 1.1.1 (continuation of this step).
+Finally, in the final subsection 1.1.2 the report lists are pre-filtered to maintain only X-ray experiments 
+(remove experiments with multiple methods), to retrieve the free ligands information and to count the number of ligands by entry.
 
-#### 1.2 Filter PDB List   
+The RCSB PDB report lists downloaded for LigPCDS were retrieved in September 2025, pre-filtered and are present in the PDB_lists folder, 
+their names and information are described below:
+- PDB report list: _report_PDB_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigandFree_hasExpData.csv_
+  - List of PDB entries, their characteristics and number of ligands. It must contain the PDB ID, deposition date, total number of non-polymers (ligands), all Cell Dimensions and Space Group and all Methods and X-ray Method Details.
+- Ligand report list: _report_Ligands_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigandFree_hasExpData.csv_ 
+  - List of ligands ID by PDB ID, their features and chains where they appear (asymmetric ID by author or validated). It must contain the Entry ID (PDB ID), the ligand entries chains (asym ID and auth asym ID) and feature information (e.g. ligand ID, molecular formula, SMILES).
 
-Filter the RCSB PDB report lists using as criteria the PDB entries resolution, a list of organic atoms (natural products filter), the deposit date of the PDB entries and the ligand's counts by PDB entry.
-These report files must follow the table format exported by RCSB PDB in december 2019. 
+
+###### 1.1.1 Concatenate the Chunks of PDB Report List 
+
+Concatenate the chunks of the report tables downloaded from RCSB PDB into a single file. The user must store all the 
+chunks in a single folder and observe the pattern of the file names. 
+The following script will automatically concatenate the all the files inside the given folder that matches the naming pattern and 
+will store the result inside this directory.
 
 *Run:*
 
-> ``` Rscript src/filter_pdb_lig_report_list.R pdb_report ligand_report min_pdbids resolution_min resolution_max np_filter deposit_date_min```
+> ``` python src/concatenate_rcsb_report_tables_csv.py dir_path output_report_name files_pattern n_skip_rows```
 
 *Parameters:*
 
-   1. pdb_report: Path to the PDB report list - CSV table containing the PDB entries information, mandatory columns (spaces are removed): PDBID, Resolution;
-   2. ligand_report: Path to the Ligand report list - CSV table containing the ligands entries and their counts by code and PDB entry, with the following mandatory columns (spaces are removed): LigandID, LigandFormula, PDBIDsTotal, PDBIDsFreeLigand, InstancePDBIDsasFreeLigand, InstancePDBIDsAll;
-      * Only the Free ligands are used (InstancePDBIDsasFreeLigand), the polymeric ligands are ignored;
-   3. min_pdbids: Minimum number of PDB entries (IDs) in which a ligand must be present to be included in the resulting list of entries;
-   4. resolution_min: Minimum resolution of a PDB entry to be included in the resulting list;
-   5. resolution_max: Maximum resolution of a PDB entry to be included in the resulting list;
-   6. np_filter: TRUE or FALSE to apply the natural products filter and only retain ligands that have the following organic atoms: C,H,O,N,P,S,I,Br,Cl,F,Se;
-   7. deposit_date_min: The minimum deposit date that a PDB entry must have to be included in the resulting list (default to no deposit date filter). All filtered entries must have been deposited after or in this date. The informed date must follow the format yyyy-mm-dd, as in 2008-02-01 (used in LigPCDS), where yyyy is the year, mm is the month and dd is the day.
+     1. dir_path: The path to the diretory containing the report tables in chunks and where the output concatenated report table will be stored;
+     2. output_report_name: (default to 'rcsb_pdb_custom_report_all.csv') concatenated PDB report output name;
+     3. files_pattern: (default to 'rcsb_pdb_custom_report_*.csv') PDB report file pattern;
+     4. n_skip_rows: (default to 1) number of initial rows to skip from the reports.
 
 *Return:*
 
-Two CSV files with the filtered lists and with the ligands aggregated by PDBID. The files will be saved to the current directory and will be named as follow:
+The concatenated report table is created inside dir_path and named with the output_report_name, 
+by default it is called 'dir_path/rcsb_pdb_custom_report_all.csv'. 
 
-    - PDB_<min_resolution>_<max_resolution>_<all|CHONPSIBrClF>_atoms_free_ligands_<min_count>_counts_<deposit_data_fitler>_depDate.csv
-    - ligands_free_PDB_<min_resolution>_<max_resolution>_<all|CHONPSIBrClFSe>_atoms_<min_count>_counts_<deposit_data_fitler>_depDate.csv
+*Example:*
 
-*Example used to create LigPCDS v1.0.1:*
+> ``` python src/concatenate_rcsb_report_tables_csv.py /path/to/dir/containing/chunks/of/PDB/structure/report/table/ rcsb_pdb_custom_structure_report_all.csv```
 
-> ``` Rscript src/filter_pdb_ligs_entries.R PDB_lists/PDB_entries_structure_factors_xray_protein.csv PDB_lists/Ligands_PDB_entries_structure_factors_xray_protein.csv 1 1.5 2.2 TRUE 2008-02-01```
+> ``` python src/concatenate_rcsb_report_tables_csv.py /path/to/dir/containing/chunks/of/PDB/ligands/report/table/ rcsb_pdb_custom_ligand_report_all.csv```
 
-#### **1.3 Download PDB Entries + Ligands Data** 
 
-Retrieve the data from the PDB IDs and the ligands present in the provided filtered PDB list.
-This data will enable the refinement of the entries with and without the ligands structure.
+###### 1.1.2 Pre-filter the PDB report tables, format the column names and retrieve free ligand information 
 
-This code was intended to work with RCSB PDB APIs from december 2019. Any updates in RCSB PDB API must be updated in the code.
-  
+This final process of step 1 will pre-filter the concatenated PDB report tables to only keep data from pure X-ray diffraction experiments
+(remove PDB entries collected with another method coupled to X-ray), to rename the column names removing spaces and removing
+special characters between parenthesis, to forward fill the EntryID column in the ligands report table (fill missing values), and finally, 
+to retrieve from the RCSB API the free ligand information (long process) to enrich the reports.
+
+This step depends on the RCSB API (the end point used is from September 2025) and may face server out of service errors.
+In case the process stop due to a server error when accessing this API, a partial result is always saved in the output_path after 1000 
+iterations together with the last processed iteration and the process may be resumed using the extra parameter 'skip' 
+and informing the partial results in the report tables - the job will continue from this iteration. The partial results 
+are removed in case the job finishes.
+
+The free ligand information process will search, for each ligand ID present in the report_Ligands_path, the respective 
+PDB entries (PDB IDs) in which it appears as a free ligand (non-covalent). This information will be stored in a flag column 
+to signalize with True or False the PDB IDs where the ligand ID is a free ligand or not.
+
 *Run:*
 
-> ``` python src/run_fetch_entries.py db_path pdb_report_entries_filtered row_entry_start row_entry_stop ```
+> ``` python src/prefilter_rcsb_report_tables_renameCols_xrayOnly_freeLigands_valid_PDB.py report_PDB_path report_Ligands_path output_path skip```
 
 *Parameters:*
 
-    1. db_path: The path to the data folder where the data will be stored. If missing it will be recursively created.
-    2. pdb_report_entries_filtered: The path to the CSV file outputed by the filter_pdb_ligs_entries script containing the PDB IDs of the entries and the ligands of each entry to be retrieved. Mandatory columns = 'PDBID' and 'ligandsID'. The column 'ligandsID' must have the names separated by a space of all the desired ligands present in the structure with code equals 'PDBID'.
-    3. row_entry_start: (default to 0) The number of the row of the entries CSV file where the script should start. Skip to the given row or, if missing, start from the beginning.
-    4. row_entry_stop: (default to number of rows in the pdb_report_entries_filtered) The number of the row of the ligands CSV file where the script should stop. Stop in the given row or, if missing, stop in the last row.
+        1. report_PDB_path: The path to the PDB structure report table downloaded from RCSB PDB and concatenated in previous step (CSV format). It must contain structure data. In case of resuming from a previous run, this should be the result table with xRayOnly;
+        2. report_Ligands_path: The path to the Ligands report table downloaded from RCSB PDB and concatenated in previous step (CSV format). It must contain ligand (non-polymer entity) data. In case of resuming from a previous run, this should be the partial result table;
+        3. output_path: The path to the output directory where the resulting pre-filtered and enriched tables will be stored;
+        4. skip: (Default to 0 - start from the beggining) The iteration where a partial result ended, in case the process had an error in the server communication and need to restore from a partial result - this must be the last iteration saved in a txt file together with the partial result (after first 1000 iterations).
+
+*Return:*
+
+Four tables will be created in the output_path as a result of filtering and enriching the PDB and the Ligands reports from RCSB PDB:
+  - report_PDB_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigand_hasExpData.csv : The PDB structure report table with only X-Ray experimental method entries filtered and columns formatted 
+  - report_Ligands_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigand_hasExpData.csv : The Ligands report table with only X-Ray experimental method entries filtered and columns formatted
+  - report_Ligands_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigandFree_hasExpData.csv : The Ligands report table pre-filtered with only X-Ray exp and Free ligands information retrieved and signalized in a new column 'freeLigand' with True or False values 
+  - report_PDB_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigandFree_hasExpData.csv: The PDB structure report table pre-filtered with only X-Ray exp and Free ligands counts in new columns 'NumberofDistinctFreeLigands' and 'TotalNumberofFreeLigands'
+
+*Example:*
+
+> ``` python src/prefilter_rcsb_report_tables_renameCols_xrayOnly_freeLigands_valid_PDB.py rcsb_pdb_custom_structure_report_all.csv rcsb_pdb_custom_ligand_report_all.csv /path/to/output/dir/to/store/preprocessed_reports/ 0```
+
+
+#### 1.2 Filter PDB List  
+
+Filter the RCSB PDB pre-filtered report lists using as criteria the PDB entries resolution, a list of organic atoms 
+(natural products filter), the minimum deposit date of the PDB entries and the ligand's counts by PDB entry.
+These report list must be the result of step 1.1.2, and follow the table format exported by RCSB PDB in September 2025 and pre-filtered. 
+
+*Run:*
+
+> ``` ```Rscript src/filter_pdb_lig_report_list.R ```pdb_report ligand_report min_pdbids resolution_min resolution_max np_filter deposit_date_min all_ligands```
+
+*Parameters:*
+
+       1. pdb_report: Path to the pre-filtered PDB structure report list (with free ligand information) - CSV table containing the PDB entries information, mandatory columns (spaces are removed): PDBID, RefinementResolution, DepositionDate;
+       2. ligand_report: Path to the pre-filtered Ligand report list - CSV table containing the ligands entries by ligand ID and PDB entries in which they appear, with the following mandatory columns (spaces are removed): EntryID, LigandID, LigandFormula, AsymID, AuthAsymID, freeLigand;
+       3. min_pdbids: Minimum number of PDB entries (IDs) in which a ligand must be present to be included in the resulting list of entries;
+       4. resolution_min: Minimum resolution of a PDB entry to be included in the resulting list;
+       5. resolution_max: Maximum resolution of a PDB entry to be included in the resulting list;
+       6. np_filter: TRUE or FALSE to apply the natural products filter and only retain ligands that have the following organic atoms: C,H,O,N,P,S,I,Br,Cl,F,Se;
+       7. deposit_date_min: The minimum deposit date that a PDB entry must have to be included in the resulting list (default to no deposit date filter). All filtered entries must have been deposited after or in this date. The informed date must follow the format yyyy-mm-dd, as in 2008-02-01 (used in LigPCDS), where yyyy is the year, mm is the month and dd is the day.
+       8. all_ligands: (Default to FALSE - filter the free ligand) TRUE or FALSE to indicate to keep all ligands or to filter only the Free ligands (non-covalent).
+
+*Return:*
+
+Two CSV files with the filtered lists and with the ligands aggregated by PDBID. The files will be saved to the current directory and will be named as follows:
+
+    - PDB_<min_resolution>_<max_resolution>_<NP|all>_atoms_<all|free>_ligands_<min_count>_counts<_<deposit_data_fitler>_depDate|>.csv
+    - ligands_<all|free>_PDB_<min_resolution>_<max_resolution>_<NP|all>_atoms_<min_count>_counts<_<deposit_data_fitler>_depDate|>.csv
+
+*Example (used to create LigPCDS v1.0.1):*
+
+> ``` Rscript src/filter_pdb_lig_report_list.R PDB_lists/pre-filtered_reports/report_PDB_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigandFree_hasExpData.csv PDB_lists/pre-filtered_reports/report_Ligands_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigandFree_hasExpData.csv 1 1.5 2.2 TRUE 2008-02-01 FALSE```
+
+
+#### **1.3 Download PDB Entries Data + Ligands Data** 
+
+Retrieve the data present in the provided filtered report lists 
+from the PDB IDs (structure factors and protein structure) in .cif and convert them using gemmi to .pdb and .mtz files (subsection 1.3.1); 
+and also, retrieve the data of the ligands (.sdf) and extract their .pdb from the respective Entry ID (subsection 1.3.2).
+The downloaded .pdb and .sdf are parsed to check their viability, 
+any error when reading this files will result in their deletion (together with their related files) due to invalid data.
+
+The data from subsection 1.3.1 will enable the refinement of the entries with and without the ligands structure, and the data from
+subsection 1.3.2 will be used to further extract the molecular structure of the ligands for labeling the dataset. 
+
+These subsections are parallel process that may be executed together to accelerate the downloads. This step is a long 
+process and may face server errors, and will need to be restarted and rerun to guarantee that all existing and 
+valid data was successfully downloaded.  
+
+The code was intended to work with RCSB PDB APIs from september 2025. Any updates in RCSB PDB API must be updated in the code.
+  
+###### 1.3.1 Download PDB structure report data 
+
+For each PDB ID present the given structure report list, retrieve the pdb .cif and sf.cif data and convert them 
+to .pdb and .mtz data. Parse the .pdb data to check it's viability, if any error occurs the related data is removed. 
+
+*Run:*
+
+> ``` python src/fetch_pdb_mtz_entries.py db_path pdb_report_entries row_entry_start row_entry_stop ```
+
+*Parameters:*
+
+    1. db_path: The path to the data folder where the data will be stored. Four folders will be created inside it (see Return).
+    2. pdb_report_entries: The path to the CSV file containing the PDB ids to be retrieved. This is expected to be the output of the step 1.2. Mandatory column = 'PDBID';
+    3. row_entry_start: (default to 0) The number of the row where the script should start. Skip to the given row or start from the beginning;
+    4. row_entry_stop: (default to 0 - last row of the provided table) The number of the row of the ligands CSV file where the script should stop. Stop in the given row or, if missing, stop in the last row.
   
 *Return:*
 
 The db_path folder is created and inside it four subfolders are created: 
 
-    - 'pdb' to store the entries .pdb files; 
-    - 'coefficients' to store the entries .mtz files; 
-    - 'ligands' to store the ligands .sdf and the .pdb files;  
-    - 'pdb_no_lig' to store the entries .pdb files without each ligand coordinate.
+    - 'sf_cif': to store the structure factors in .cif
+    - 'pdb_cif': to store the PDB structures in .cif (default format now)
+    - 'pdb': to store the converted .pdb files
+    - 'coefficients': to store the converted .mtz files;
 
 *Example:*
 
-> ``` python src/run_fetch_entries.py data/ PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv```
+> ``` python src/fetch_pdb_mtz_entries.py data/ PDB_lists/PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv```
+
+
+###### 1.3.2 Download Ligand report data 
+
+For each Ligand ID present the given ligand report list, retrieve the ligands .sdf data, parse it and, if valid, 
+extract the ligands .pdb from the PDB ID structure data in .pdb.
+
+*Run:*
+
+> ``` python src/fetch_sdf_ligands_pdb_res.py db_path ligand_report_entries row_entry_start row_entry_stop ```
+
+*Parameters:*
+
+    1. db_path: The path to the data folder where the data will be stored. One folder will be created inside it.
+    2. ligand_report_entries: The path to the CSV file containing the ligands report list to be retrieved and the PDB ids in which they appear. Mandatory columns = 'EntryID', 'LigandID', and 'AuthAsymID'. The last column must contain the chains where the respective LigandID is located in the respective EntryID of the author submission;
+    3. row_entry_start: (default to 0) The number of the row of the ligands CSV file where the script should start. Skip to the given row or, if missing, start from the beginning;
+    4. row_entry_stop: (default to 0 - last row) The number of the row of the ligands CSV file where the script should stop. Stop in the given row or, if missing, stop in the last row.
+  
+*Return:*
+
+The db_path folder is created, if not present yet, and inside it one subfolder is created: 
+
+    - 'ligands': to store the .sdf and the .pdb files of the ligands;
+
+*Example:*
+
+> ``` python src/fetch_sdf_ligands_pdb_res.py data/ PDB_lists/ligands_free_PDB_1.5_2.2_NP_atoms_1_counts_2008-02-01_depDate.csv```
+
 
 #### 1.4 List of Available Ligands
 
