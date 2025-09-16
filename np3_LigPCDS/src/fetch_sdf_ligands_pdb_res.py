@@ -63,7 +63,7 @@ def fetch_sdf_ligands(db_path, ligs_report_file, n, i_start=0):
         sys.exit("The provided data folder do not exists.")
     # create the directories ligands and pdb_no_lig if they do not exists yet
     Path(data_folder / 'ligands').mkdir(parents=True, exist_ok=True)
-    Path(data_folder / 'pdb_no_lig').mkdir(parents=True, exist_ok=True)
+    #Path(data_folder / 'pdb_no_lig').mkdir(parents=True, exist_ok=True)
     # create the PDB parser, QUIET set to True to suppress warnings
     parser = PDBParser(PERMISSIVE=1, QUIET=True)
     # read csv with ligands list to retrieve
@@ -123,7 +123,7 @@ def fetch_sdf_ligands(db_path, ligs_report_file, n, i_start=0):
             continue
 
         # iterate over the structure residues in all chains (in AuthAsymID) to locate the desired ligands
-        print("** Start parsing ligands and retrieving their SDF data **")
+        print("** Start downloading ligands SDF data, extracting .pdb and parsing the data **")
         for residue in models[0].get_residues():
             if residue.get_id()[0] in ligs_pdbid_list.LigandIDRes.values or residue.get_id()[0] == 'W':
                 id = list(residue.get_id())
@@ -155,8 +155,8 @@ def fetch_sdf_ligands(db_path, ligs_report_file, n, i_start=0):
                             # save the ligand in .pdb and the entry pdb without the current ligand
                             if not (data_folder / 'ligands' / str(structure_id + "_" + id_name + "_lig.pdb")).exists():
                                 # save a pdb without the ligand residue
-                                io.save((data_folder / 'pdb_no_lig' / str(structure_id + "_" + id_name + ".pdb")).as_posix(),
-                                        ResSkip(residue.get_id(), id[2]))
+                                #io.save((data_folder / 'pdb_no_lig' / str(structure_id + "_" + id_name + ".pdb")).as_posix(),
+                                #        ResSkip(residue.get_id(), id[2]))
                                 # save a pdb of the ligand residue, the ligand coordinates
                                 io.save((data_folder / 'ligands' / str(structure_id + "_" + id_name + "_lig.pdb")).as_posix(),
                                         ResSelect(residue.get_id(), id[2]))
@@ -175,8 +175,8 @@ if __name__ == "__main__":
     else:
         sys.exit("Wrong number of arguments. At least two arguments must be supplied in order to retrieve the ligands "
                  ".sdf data, extract the ligands .pdb and to create the structures .pdb without each ligand coordinates: \n"
-                 "  1. The path to the data folder where the data will be stored. Two folders will be created: 'ligands' to store "
-                 "te .sdf and the .pdb files of the ligands and 'pdb_no_lig' to store the .pdb files without the ligand coordinates;\n"
+                 "  1. The path to the data folder where the data will be stored. One folder will be created: 'ligands' to store "
+                 "te .sdf and the .pdb files of the ligands;\n"
                  "  2. The path to the CSV file containing the ligands report list to be retrieved and the PDB ids in "
                  "which they appear. Mandatory columns = 'EntryID', 'LigandID', and 'AuthAsymID'. The last "
                  "column must contain the chains where the respective LigandID is located in the respective EntryID;\n"
