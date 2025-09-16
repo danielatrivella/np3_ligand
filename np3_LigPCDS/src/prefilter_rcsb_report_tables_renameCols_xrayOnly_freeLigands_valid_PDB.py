@@ -35,15 +35,18 @@ def filter_xrayOnly_renameCols(report_PDB_path, report_Ligands_path, output_path
     report_Ligands_list = pd.read_csv(report_Ligands_path)
     # first remove spaces from the column names
     report_Ligands_list.columns = report_Ligands_list.columns.str.replace(" ", "")
-    print("  - Ligand entries: ", report_Ligands_list.shape[0])
+    print("  - Number of Ligand entries: ", report_Ligands_list.shape[0])
+    # Remove columns where ALL values are NaN
+    report_Ligands_list = report_Ligands_list.dropna(axis=1, how='all')
+    # then, forward fill the missing EntryIDs
+    report_Ligands_list.EntryID.ffill(inplace=True)
     print("** Filtering the PDB IDs and respective ligands with experimental methods equals only X-Ray Diffraction **")
     # then filter the valid PDBs
     report_Ligands_list = report_Ligands_list.loc[report_Ligands_list.EntryID.isin(report_PDB_list.EntryID),
                           :].reset_index(drop=True)
     # next remove the ligands IDs with NaN values
     report_Ligands_list = report_Ligands_list.loc[~report_Ligands_list.LigandID.isna(),:]
-    # Remove columns where ALL values are NaN
-    report_Ligands_list = report_Ligands_list.dropna(axis=1, how='all')
+
     # save the new Ligands table
     output_Ligands_list_path = output_path/"report_Ligands_rcsb_pdb_2008-02-01_protein_xrayOnly_hasLigand_hasExpData.csv"
     report_Ligands_list.to_csv(output_Ligands_list_path, index=False)
