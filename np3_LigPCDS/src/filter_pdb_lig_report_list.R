@@ -16,9 +16,9 @@ args <- commandArgs(trailingOnly=TRUE)
 if (length(args) < 6) {
   stop("Wrong number of parameters. Six arguments must be supplied to filter the PDB report list and the ligand report list. ",
        "These reports must follow the table format exported by PDB in july 2019. \nParameters:\n",
-       " 1. pdb_report: Path to the PDB report list with free ligands information - CSV table containing the PDB entries information, ",
+       " 1. pdb_report: Path to the pre-filtered PDB structure report list with free ligands information - CSV table containing the PDB entries information, ",
        "mandatory columns (spaces are removed): PDBID, RefinementResolution, DepositionDate;\n",
-       " 2. ligands_report: Path to the ligand report list with free ligands information - CSV table containing the ligands entries and their counts by code and by PDB entries in which they appear, ",
+       " 2. ligands_report: Path to the pre-filtered ligand report list with free ligands information - CSV table containing the ligands entries by ligand ID and PDB entries in which they appear, ",
        "with the following mandatory columns (spaces are removed): EntryID, ",
        "LigandID, LigandFormula, AsymID, AuthAsymID, freeLigand;\n",
        " 3. min_pdbids: Minimum number of PDB entries (IDs) in which a ligand must be present to be included in the resulting list of entries;\n",
