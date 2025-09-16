@@ -65,11 +65,11 @@ def retrieve_sf_cif_to_mtz(file_sf_cif, file_mtz, structure_id):
         try:
             urllib.request.urlretrieve('https://files.rcsb.org/download/' + structure_id + '-sf.cif',
                                        file_sf_cif)
-        except:
-            print("ERROR retrieving SF CIF " + structure_id)
+        except Exception as e:
+            print(f"ERROR retrieving SF CIF {structure_id}. An unexpected error occurred: {e}")
             return False
         if not file_sf_cif.exists():
-            print("ERROR retrieving SF CIF " + structure_id)
+            print("ERROR saving SF CIF " + structure_id)
             return False
         # convert sf cif to mtz
         return convert_sf_cif_to_mtz(file_sf_cif, file_mtz)
@@ -80,11 +80,11 @@ def retrieve_cif_to_pdb(file_cif, file_pdb, structure_id):
         try:
             urllib.request.urlretrieve('https://files.rcsb.org/download/' + structure_id + '.cif',
                                        file_cif)
-        except:
-            print("ERROR retrieving PDB CIF " + structure_id)
+        except Exception as e:
+            print(f"ERROR retrieving PDB CIF {structure_id}. An unexpected error occurred: {e}")
             return False
         if not file_cif.exists():
-            print("ERROR retrieving PDB CIF " + structure_id)
+            print("ERROR saving PDB CIF " + structure_id)
             return False
         # convert  cif to pdb
         return convert_cif_to_pdb(file_cif, file_pdb)
@@ -143,8 +143,8 @@ def fetch_cif_pdb_mtz(db_path, pdb_ligs_file, n, i_start=0):
         # parse structure to check if its possible to get access to the residues
         try:
             structure = parser.get_structure(structure_id, file_pdb)
-        except:
-            print("ERROR PDB parser")
+        except Exception as e:
+            print(f"ERROR parsing the PDB {structure_id}. An unexpected error occurred: {e}")
             file_mtz.unlink(missing_ok=True)
             file_pdb.unlink(missing_ok=True)
             file_sf_cif.unlink(missing_ok=True)
