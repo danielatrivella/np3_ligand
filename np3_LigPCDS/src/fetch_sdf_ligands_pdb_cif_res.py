@@ -6,6 +6,7 @@ from rdkit.Chem import SDMolSupplier
 from tqdm import tqdm
 from rdkit import RDLogger
 from Bio.PDB import MMCIFParser, MMCIFIO, Select
+import time
 
 # Disable the warning message - prevent warning molecule is tagged as 2D, here its always 3D
 RDLogger.DisableLog('rdApp.*')
@@ -42,6 +43,9 @@ def retrieve_sdf(file_sdf, entry, chain, seq):
             urllib.request.urlretrieve('https://models.rcsb.org/v1/'+entry+'/ligand?auth_asym_id='+chain+
                                        '&auth_seq_id='+seq+'&encoding=sdf',
                                        file_sdf)
+            # due to a limit of 5 requests per 10 seconds in RCSB, this sleep was introduced to prevent getting an
+            # # HTTP Error 429: Too Many Requests
+            time.sleep(2)  # Pause execution for 2 seconds
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
             print(f"ERROR retrieving SDF {file_sdf.name}. An unexpected error occurred: {e}")
