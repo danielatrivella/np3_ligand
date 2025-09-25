@@ -99,7 +99,8 @@ def refine_pdb_entries(db_path, pdb_list_path, num_processors = 2, overwrite_ref
 		refinement_path.mkdir()
 
 	# read the input entries to be refined, only select the PDBID column
-	pdb_list = read_csv(pdb_list_path, usecols=['PDBID'], skiprows=skip_row)
+	pdb_list = read_csv(pdb_list_path, usecols=['PDBID'])
+	pdb_list = pdb_list.iloc[skip_row:, :]
 	n = pdb_list.shape[0]
 	pdb_list.PDBID = pdb_list.PDBID.str.lower()
 
@@ -159,7 +160,7 @@ if __name__ == "__main__":
 				 "(default to 2);\n"
 				 "  4. overwrite: (optional) A boolean True or False indicating if the already refined entries should "
 				 "be overwritten (True) or skipped (False). Default to False;\n"
-				 "  5. (optional) The number of the row of the pdb_list_path file where the script should start. "
+				 "  5. skip_row: (optional) The number of the row of the pdb_list_path file where the script should start. "
 				 "Skip to the refinement of the PDB ID of the given row or, if missing, start from the beginning.\n"
 				 )
 	refine_pdb_entries(db_path, pdb_list_path, num_processors, overwrite_refinement, skip_row)
