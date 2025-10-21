@@ -15,7 +15,7 @@ date_filter <- "2008-02-01"
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) < 6) {
   stop("Wrong number of parameters. Six arguments must be supplied to filter the PDB report list and the ligand report list. ",
-       "These reports must follow the table format exported by PDB in july 2019. \nParameters:\n",
+       "These reports must follow the table format exported by PDB in September 2025. \nParameters:\n",
        " 1. pdb_report: Path to the pre-filtered PDB structure report list with free ligands information - CSV table containing the PDB entries information, ",
        "mandatory columns (spaces are removed): PDBID, RefinementResolution, DepositionDate;\n",
        " 2. ligands_report: Path to the pre-filtered ligand report list with free ligands information - CSV table containing the ligands entries by ligand ID and PDB entries in which they appear, ",

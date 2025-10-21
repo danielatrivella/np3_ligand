@@ -195,7 +195,7 @@ These report list must be the result of step 1.1.2, and follow the table format 
 
 *Run:*
 
-> ``` ```Rscript src/filter_pdb_lig_report_list.R ```pdb_report ligand_report min_pdbids resolution_min resolution_max np_filter deposit_date_min all_ligands```
+> ``` Rscript src/filter_pdb_lig_report_list.R pdb_report ligand_report min_pdbids resolution_min resolution_max np_filter deposit_date_min all_ligands```
 
 *Parameters:*
 
