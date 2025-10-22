@@ -513,7 +513,12 @@ And finally, the representation will be stored in a 3D point cloud file inside t
 
 *Parameters:*
 
-1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' where the ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with the list of valid ligands and their grid sizing and position. This file must be named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the output of the 'run_vocabulary_encode_ligands.py' script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound'.;
+1. xyz_labels_path: The path to the data folder called 'xyz_\<valid ligand list file name\>\_<SP|AtomSymbol>' where the 
+ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with 
+the list of valid ligands and their grid sizing and position. This file must be named as
+'\<valid ligand list file name\>_<SP|AtomSymbol>_box_class_freq.csv' and is expected to be the output of the 
+'run_vocabulary_encode_ligands.py' or the 'encode_ligs_xyz.py' scripts. 
+Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound', 'RefinementResolution'.;
 2. refinement_path: The path to the data folder where the entries refinement are located ('data/refinement').
 3. output_grid_path: The path to the output folder where the 3D point clouds of the ligands grid will be stored in .xyzrgb files. It will be organized by the PDB entry ID of the ligand entries in separated subfolders, each one containing the grid representations of all ligands that appear in that PDB entry ('data/ligands_grid_point_clouds');
 4. overwrite: (optional) A boolean True or False indicating if the already processed ligands should be overwritten. Useful to restart from previous processing. (Default to False).
@@ -526,7 +531,7 @@ The output_grid_path folder will be created with one subfolder for each PDB entr
 - The subfolder of each PDB entry will contain the grid 3D point cloud of each ligand (.xyzrgb files) that appear in the respective PDB entry and that had their grid representation successfully created.
 
 One file will be created inside the xyz_labels_path directory:
-- One CSV file named '\<valid ligand list csv name\>_box_pc.csv' containing the list of valid ligands that had their grid representation successfully created. 
+- One CSV file named '\<valid ligand list file name\>_<SP|AtomSymbol>_box_pc.csv' containing the list of valid ligands that had their grid representation successfully created. 
 It will also add columns with the electron density descriptive statistics of the grid of each ligand (mean value, standard deviation and others).
 
 *Example:*
@@ -548,7 +553,10 @@ in the output path (parameter output_LigPCDS_path).
 
 *Parameters:*
 
-1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list csv name>' where the ligands .xyz files with their structure labels are located. It must also contain the CSV file with the list of valid ligands that had the ligand grid representation successfully created. This file is named as '<valid ligand list csv name>_box_pc.csv' and is expected to be the output of the mtz_to_grid_pointcloud.py script. Mandatory columns = 'ligID', 'ligCode', 'entry';
+1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list csv name>' where the ligands .xyz files 
+with their structure labels are located. It must also contain the CSV file with the list of valid ligands that had the 
+ligand grid representation successfully created. This file is named as '<valid ligand list csv name>_box_pc.csv' and is 
+expected to be the output of the mtz_to_grid_pointcloud.py script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'RefinementResolution';
 2. output_grid_path: The path to the folder where the ligand grid representations in point clouds are stored ('data/lig_point_clouds_grids');
 3. output_ligPCDS_path: The path to the output folder where the point clouds of the final representations of the ligands in quantile rank scale will be stored ('data/lig_pcds' or other);
 4. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (Default to 2);
