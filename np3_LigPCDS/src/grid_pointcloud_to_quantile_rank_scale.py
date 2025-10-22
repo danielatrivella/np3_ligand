@@ -315,7 +315,7 @@ def create_ligand_point_cloud_quantile_rank_scaled(lig_data_row, ligs_grid_path,
     #if not lig_output_path.exists() or not lig_output_path.is_dir():
     lig_output_path.mkdir(parents=True, exist_ok=True)
     # round the ligand pdb entry resolution
-    reso = str(round(float(lig_data['Resolution']),1))
+    reso = str(round(float(lig_data['RefinementResolution']),1))
     # print("\n* Start processing ligand entry", lig_name, "-", i + 1, "/", n, "*")
     t1 = time.time()
     # get the ligand label file path
@@ -540,7 +540,7 @@ def create_ligands_dataset_point_cloud_quantile_rank_scaled(db_ligxyz_path, ligs
 
     # read csv with the valid ligands list to encode
     ligs_retrieve = pd.read_csv(valid_ligs_file, na_values = ['null', 'N/A'], keep_default_na = False,
-                                usecols = ['ligID', 'ligCode', 'entry', 'Resolution', 'filter_quality', 'x', 'y', 'z',
+                                usecols = ['ligID', 'ligCode', 'entry', 'RefinementResolution', 'filter_quality', 'x', 'y', 'z',
                                            'x_bound', 'y_bound', 'z_bound']) # do not interpret sodium NA as nan
     ligs_retrieve_grid_space = pd.read_csv(valid_ligs_pc_file, na_values=['null', 'N/A'], keep_default_na=False,
                                 usecols=['ligID', 'grid_space'])
@@ -627,7 +627,7 @@ if __name__ == "__main__":
                  "their labels are located. It must also contain the CSV file with the valid ligands list that had the "
                  "ligand grid image successfully created. This file is named as '<valid ligand list csv name>_box_pc.csv' and is "
                  "expected to be the output of the mtz_to_grid_pointcloud.py script. "
-                 "Mandatory columns = 'ligID', 'ligCode', 'entry';\n"
+                 "Mandatory columns = 'ligID', 'ligCode', 'entry', 'RefinementResolution';\n"
                  "  2. output_grid_path: The path to the folder where the ligands grid image in point clouds are stored ('data/lig_point_clouds_grids');\n"
                  "  3. output_ligPCDB_path: The path to the output folder where the point clouds of the final images of "
                  "the ligands in quantile rank scale will be stored ('data/lig_pcdb' or other);\n"
