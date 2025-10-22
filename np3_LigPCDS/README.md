@@ -360,39 +360,51 @@ Do not apply the quality filters related to bfactor, occupancy and disorder (as 
 
 #### 3.1 Vocabulary Creation and Ligand Structure Labeling 
 
-Create a vocabulary from the list of valid ligands that passed the quality filter and label the structure of the ligands. 
+Create a vocabulary from the list of valid ligands that passed the quality filter and use it to label the structure of the ligands. 
 
-The SMILES of each ligand will be used to extract all the classes necessary to label the list of valid ligands. The unique list of classes will compose the new vocabulary.
-Then, it will get each ligand SDF file and use the new vocabulary to label the ligand's atoms. Finally, for each ligand its structure labeling result will be exported to a .xyz file, containing the class of each atom by row and their 3D coordinates. 
-Also computes the sizing of the ligand grid, a minimum bounding box around the ligand atomic positions (minimum and maximum position in xyz) plus a gap in all axis equal to 4.2 Angstrons and centered in the atomic positions center value. 
+The SMILES of each ligand will be used to extract all the classes necessary to label the provided list of valid ligands filtered. 
+The unique list of classes will compose the new vocabulary.
+Then, it will get each ligand SDF file and use the new vocabulary to label the atoms of the ligands. 
+Finally, for each ligand its structure labeling result will be exported to a .xyz file, 
+containing the class of each atom by row and their 3D coordinates and label by column. 
+Also computes the sizing of the ligand grid, a minimum bounding box around the ligand atomic positions 
+(minimum and maximum position in xyz) plus a gap in all axis equal to 4.2 Angstrons and 
+centered in its atomic positions center value. 
 
-The vocabulary can be based on: the atom's SP hybridization concatenated with cyclic information (SP-based) or the atom's symbols concatenated with cyclic information (AtomSymbol-based). The user must choose one of these major labeling approaches using the parameter 'label_SP'.
+The vocabulary can be based on: the atom's SP hybridization concatenated with cyclic information (SP-based) or 
+the atom's symbols concatenated with cyclic information (AtomSymbol-based). 
+The user must choose one of these major labeling approaches using the parameter 'label_SP'.
 
-During the labeling of the ligand's SDF file, a reverse engineering testing is applied. It matches the labels of the ligand's atoms from their SDF files against their predicted labels using the ligand's SMILES. If a ligand have missing atoms in its SDF file, then try to match only the present substructure. 
-Ligands with mismatching labels in this test are removed. Ligands with bad defined SDF files, that raises an error when reading them are also removed here.
+During the labeling of the ligand's SDF file, a reverse engineering testing is applied. 
+It matches the labels of the ligand's atoms from their SDF files against their predicted labels using the ligand's SMILES. 
+If a ligand have missing atoms in its SDF file, then try to match only the present substructure. 
+Ligands with mismatching labels in this test are removed. 
+Ligands with bad defined SDF files, that raises an error when reading them are also removed here.
 
 *Run:*
 
-> ``` python src/run_vocabulary_encode_ligands.py data_folder_path ligands_list_path label_SP row_start row_end ```
+> ``` python src/run_vocabulary_encode_ligands.py data_folder_path valid_ligands_filtered_list_path label_SP row_start row_end ```
 
 *Parameters:*
 
 1. data_folder_path: The path to the data folder where the vocabulary output will be stored and where the 'ligands' folder with the ligands in .sdf format is located.
-2. ligands_list_path: The path to the CSV file containing the list of valid ligands and their SMILES. This file is expected to be the output of the quality filter script (step 1.5). Mandatory columns = 'ligID','smiles'.
-The name of this file will be used to label the output vocabulary file, the ligand's SMILES dataset file and the xyz folder, which will store the labeled ligands .xyz files;
+2. valid_ligands_filtered_list_path: The path to the CSV file containing the valid ligands list and their smiles with the quality filters applied. This file is expected to be the output of the quality filter script (step 1.5 result).
+   Mandatory columns = 'ligID','smiles','ligCode','missingHeavyAtoms'. The name of this file will be used to label the output vocabulary file, the ligand's SMILES dataset file and the xyz folder, which will store the labeled ligands .xyz files;
 3. label_SP: (optional) Set to 'True' to use the SP-based approach to create the vocabulary (default), otherwise it will use the AtomSymbol-based labeling approach. Both labeling approaches contains the atoms' cyclic information.
-4. row_start: (optional) The number of the row in the ligands_list_path file where the script should start. Skip to the given row or, if missing, start from the beginning;
-5. row_end: (optional) The number of the row in the ligands_list_path file where the script should stop. Stop in the given row or, if missing, stop in the last row.
+4. row_start: (optional) The number of the row in the valid_ligands_filtered_list_path file where the script should start. Skip to the given row or, if missing, start from the beginning;
+5. row_end: (optional) The number of the row in the valid_ligands_filtered_list_path file where the script should stop. Stop in the given row or, if missing, stop in the last row.
 
 *Return:*
 
 Two files will be created inside the data_folder_path directory:
-   - 'ligs_smiles_<ligands_list_path.name>.txt' containing all the SMILES used in the vocabulary creation (the SMILES dataset file) and;
-   - 'vocabulary_<ligands_list_path.name>.txt' containing all the classes that resulted from the SMILES labeling, with one class by row (the vocabulary itself). The rows order indicate the index of the vocabulary classes, starting in 0.
+   - 'ligs_smiles_<valid_ligands_filtered_list_path.name>.txt' containing all the SMILES used in the vocabulary creation (the SMILES dataset file) and;
+   - 'vocabulary_<valid_ligands_filtered_list_path.name>.txt' containing all the classes that resulted from the SMILES labeling, with one class by row (the vocabulary itself). The rows order indicate the index of the vocabulary classes, starting in 0.
 
-And one folder called 'xyz_<ligands_list_path>' will be created inside the "<data_folder_path>/ligands" folder to store the labeled structure of the ligands, it will contain:
-   - One .xyz file for each successfully labeled ligand structure present in the ligands_list_path file, containing the ligands' atoms by row with their information and label;
-   - One CSV file named '<ligands_list_path>_box_class_freq.csv' containing the list of valid ligands that had their structure successfully labeled, plus their bounding box sizing and vocabulary classes frequency (number of labeled atoms by class);
+And one folder called 'xyz_<valid_ligands_filtered_list_path>_<SP|AtomSymbol>' will be created inside the 
+<data_folder_path> folder to store the labeled structure of the ligands (its suffix depends on the label_SP value), 
+it will contain:
+   - One .xyz file for each successfully labeled ligand structure present in the valid_ligands_filtered_list_path file, containing the ligands' atoms by row with their information and label;
+   - One CSV file named '<valid_ligands_filtered_list_path>_box_class_freq.csv' containing the list of valid ligands that had their structure successfully labeled, plus their bounding box sizing and vocabulary classes frequency (number of labeled atoms by class);
         - The column 'filter_quality' equals to TRUE indicate the successfully labeled entries; and when it is equal to FALSE, indicate ligands entries that raised an error in this step. This column may be used to filter the list of successfully labeled entries.
 
 *Example:*
@@ -403,12 +415,58 @@ SP-based structure labeling.
 AtomSymbol-based structure labeling.
 > ``` python src/run_vocabulary_encode_ligands.py data/ ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv False```
 
+###### 3.1.1 Ligand Structure Labeling with other vocabulary
+
+To label the structure of the ligands using another vocabulary previous created, in order to maintain its classes order, 
+the script to encode the ligands structure may be directly called. 
+
+The provided vocabulary must cover all the classes that will 
+appear in the provided list of valid ligands, otherwise an error will be trigged. This should only be done to keep a 
+pre-defined order of the vocabulary classes. 
+
+During the labeling of the ligand's SDF file, a reverse engineering testing is applied. It matches the labels of the ligand's atoms from their SDF files against their predicted labels using the ligand's SMILES. If a ligand have missing atoms in its SDF file, then try to match only the present substructure. 
+Ligands with mismatching labels in this test are removed. Ligands with bad defined SDF files, that raises an error when reading them are also removed here.
+
+*Run:*
+
+> ``` python src/encode_ligs_xyz.py ligands_data_folder valid_ligands_filtered_list_path vocab_path label_SP row_start row_end ```
+
+*Parameters:*
+
+1. ligands_data_folder: The path to the ligand data folder called 'ligands' where the ligands sdf files are located. Its parent folder is expected to the data_folder_path.
+2. valid_ligands_filtered_list_path: The path to the CSV file containing the list of valid ligands and their SMILES. 
+This file is expected to be the output of the quality filter script (step 1.5). Mandatory columns = 'ligID','ligCode','missingHeavyAtoms','smiles'.
+The name of this file will be used to label the output xyz folder, which will store the labeled ligands .xyz files;
+3. vocab_path: The path to the text file containing the desired vocabulary to be used to label the ligands structure. 
+It must contain one class per line. The ligands SDF will be fragmented and its atoms classes will be matched against this
+list to be labeled using the vocabulary index order
+4. label_SP: (optional) Set to 'True' to use the SP-based approach to create the vocabulary (default), otherwise it will use the AtomSymbol-based labeling approach. Both labeling approaches contains the atoms' cyclic information.
+5. row_start: (optional) The number of the row in the valid_ligands_filtered_list_path file where the script should start. Skip to the given row or, if missing, start from the beginning;
+6. row_end: (optional) The number of the row in the valid_ligands_filtered_list_path file where the script should stop. Stop in the given row or, if missing, stop in the last row.
+
+*Return:*
+
+One folder will be created inside the parent folder of the ligands_data_folder, named: 
+- 'xyz\_\<ligand csv name\>\_<SP|AtomSymbol>': to store the labeled structure of the ligands in xyz coordinate file. 
+Its suffix is determined by the label_SP value. It will contain:
+  - One .xyz file for each successfully labeled ligand structure present in the valid_ligands_filtered_list_path file, containing the ligands' atoms by row with their information and label;
+  - One CSV file named '<valid_ligands_filtered_list_path>_box_class_freq.csv' containing the list of valid ligands that had their structure successfully labeled, plus their bounding box sizing and vocabulary classes frequency (number of labeled atoms by class);
+    - The column 'filter_quality' equals to TRUE indicate the successfully labeled entries; and when it is equal to FALSE, indicate ligands entries that raised an error in this step. This column may be used to filter the list of successfully labeled entries.
+
+*Example:*
+
+SP-based structure labeling.
+> ``` python src/encode_ligs_xyz.py data/ ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv vocabulary_valid_ligands_PDB_1.5_2.2_SP-based_newClasses.txt True```
+
+AtomSymbol-based structure labeling.
+> ``` python src/encode_ligs_xyz.py data/ ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv vocabulary_valid_ligands_PDB_1.5_2.2_SP-based_newClasses.txt False```
+
 
 ### Steps 2 and 4
 
 ----------------------
 
-Ligand representation creation and labeling.
+Ligand representation in 3D point cloud creation and labeling.
 
 #### 2.1 Refinement
 
