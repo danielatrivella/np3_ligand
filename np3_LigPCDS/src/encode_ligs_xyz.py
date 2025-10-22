@@ -1,11 +1,13 @@
 import rdkit.Chem as chem
 from pathlib import Path
 import sys
-from shutil import rmtree
 from chemutils import label_mol_atoms, restore_aromatics, get_mol, get_smiles, get_clique_mol
 import pandas as pd
 from statistics import mean
-from Bio.PDB import PDBParser
+from Bio.PDB import MMCIFParser
+from list_valid_sdf_ligands_and_info import lig_cif_name
+from rdkit import RDLogger
+from tqdm import tqdm
 
 # convert the smiles class list to a frequency vector
 def smiles_SP_class_frequencies(SP_class_list, vocab):
@@ -58,39 +60,38 @@ def match_substructure(mol_ref, mol):
             map_atoms = [map_atoms.index(i) for i in range(len(map_atoms))]
     return map_atoms
 
-def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN, n, i_start):
+def major_labeling_approach_name(label_SP):
+    if label_SP:
+        return "_SP"
+    else:
+        return "_AtomSymbol"
+
+def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SP, n, i_start):
     if n <= i_start and n > 0:
         sys.exit("The provided stop row is not greater than the start row. Wrong range.")
 
     # check inputs
     db_lig_path = Path(db_lig_path)
+    valid_ligs_file = Path(valid_ligs_file)
+    vocab_path = Path(vocab_path)
     if not db_lig_path.exists() or not db_lig_path.is_dir():
         sys.exit("The provided data folder do not exists.")
-    if not Path(valid_ligs_file).is_file():
+    if not valid_ligs_file.exists() or not valid_ligs_file.is_file():
         sys.exit("The provided valid Ligands list CSV file do not exists.")
-    if not Path(vocab_path).is_file():
+    if not vocab_path.exists() or not vocab_path.is_file():
         sys.exit("The provided vocabulary text file do not exists.")
 
+    # prevent undesired warning msgs that are frequent with the sdf data, such as
+    # # Warning: molecule is tagged as 2D, but at least one Z coordinate is not zero. Marking the mol as 3D.
+    RDLogger.DisableLog('rdApp.warning')
     # create the directory xyz if it does not exists yet
-    xyz_dir_name = str('xyz_'+Path(valid_ligs_file).name.replace('.csv', ''))
-    try:
-        Path(db_lig_path / xyz_dir_name).mkdir(parents=True, exist_ok=False)
-    except FileExistsError as e:
-        while True:
-            print("The output directory "+Path(db_lig_path / xyz_dir_name).as_posix()+" already exists. \n "
-                  "Do you want to remove it? (y - yes|n - no|o - overwrite)")
-            rm_dir = input()
-            if rm_dir in ["y", "yes", "n", "no", "o", "overwrite"]:
-                break
-        if rm_dir in ["y", "yes"]:
-            rmtree(Path(db_lig_path / xyz_dir_name))
-            Path(db_lig_path / xyz_dir_name).mkdir(parents=True, exist_ok=False)
-        elif rm_dir in ["o", "overwrite"]:
-            print("The directory content will be overwritten.")
-        else:
-            print("Change the existing directory name and retry.")
-            sys.exit(1)
-
+    xyz_dir_name = str('xyz_'+valid_ligs_file.name.replace('.csv', major_labeling_approach_name(label_SP)))
+    xyz_dir_path = Path(db_lig_path.parent / xyz_dir_name)
+    if xyz_dir_path.exists():
+        sys.exit("The output directory " + xyz_dir_path.as_posix() + " already exists. \n " +
+                 "Remove it or change the existing directory name and try again. Not overwriting it.")
+    xyz_dir_path.mkdir(parents=True, exist_ok=False)
+    
     # read csv with the valid ligands list to encode
     ligs_retrieve = pd.read_csv(valid_ligs_file, na_values = ['null', 'N/A'], keep_default_na = False) # do not interpret sodium NA as nan
     if n == 0 or n > ligs_retrieve.shape[0]:
@@ -103,7 +104,8 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
     ligand_label = [] #pd.DataFrame([], columns=['entryID', 'x', 'y', 'z','x_bound','y_bound','z_bound', 'occupancy', 'bfactor','MissingHeavyAtoms', 'class_freq'])
 
     # PDB parser to retrieve the ligands occupancy and bfactor by atom
-    parser = PDBParser(PERMISSIVE=1)
+    parser = MMCIFParser(QUIET=True)
+    #parser = PDBParser(PERMISSIVE=1)
     #
     # for each structure select all sdf's from the available ligands and
     # encode each ligand using the provided vocabulary
@@ -114,10 +116,8 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
     lig_smiles_SP_class = [] # store the last SP classes of the corresponding smiles
     ligs_retrieve["match_structure"] = True
     ligs_retrieve["filter_quality"] = True
-    for i in range(i_start,n):
+    for i in tqdm(range(i_start,n)):
         # print(i)
-        if i%100 == 0:
-            print("\n** Processing ligand entry "+str(i)+ "/"+str(n)+" **\n")
         sdf = db_lig_path / str(ligs_retrieve.ligID[i]+"_NO_H.sdf")
         #
         # try to process the sdf to check if the ligand have valid definition
@@ -141,7 +141,7 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
         try:
             mol = chem.AddHs(mol_res)
             # retrieve the SP class of each atom, remove the hydrogens (last labels)
-            atoms_sp_class = label_mol_atoms(mol, steric_number=label_SN)
+            atoms_sp_class = label_mol_atoms(mol, steric_number=label_SP)
             #
             # test if the sp classes match the corresponding smiles sp classes
             # retrieve the sp classes of the corresponding smiles
@@ -154,7 +154,7 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
                           " from the sdf " + sdf.as_posix() + " the smiles is not correctly parsed into a mol: " +
                           ligs_retrieve.smiles[i]+"\n***\n")
                     mol_ref = get_mol(get_smiles(mol_res), addHs=True)
-                lig_smiles_SP_class = label_mol_atoms(mol_ref, steric_number=label_SN, notH=False)
+                lig_smiles_SP_class = label_mol_atoms(mol_ref, steric_number=label_SP, notH=False)
                 # restore mol ref to compare with the sdf mol
                 mol_ref = chem.RemoveHs(mol_ref)
                 chem.Kekulize(mol_ref)
@@ -173,7 +173,7 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
                         restore_aromatics(mol_ref)
                         restore_aromatics(mol_ref_sub)
                         map_atoms = match_substructure(mol_ref_sub, mol)
-                        lig_sub_smiles_SP_class = label_mol_atoms(chem.AddHs(mol_ref_sub), steric_number=label_SN,
+                        lig_sub_smiles_SP_class = label_mol_atoms(chem.AddHs(mol_ref_sub), steric_number=label_SP,
                                                                      notH=False)
                         if not atoms_sp_class == [lig_sub_smiles_SP_class[j] for j in map_atoms]:
                             ligs_retrieve.loc[i, "filter_quality"] = False
@@ -204,7 +204,7 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
                             # match mol_ref substructure with the sdf mol
                             map_atoms = match_substructure(mol_ref_sub, mol)
                             # relabel the mol_ref substructure and check labels equality to the sdf mol
-                            lig_sub_smiles_SP_class = label_mol_atoms(chem.AddHs(mol_ref_sub), steric_number=label_SN,
+                            lig_sub_smiles_SP_class = label_mol_atoms(chem.AddHs(mol_ref_sub), steric_number=label_SP,
                                                                          notH=False)
                             # if the classes are still not equal, than remove lig entry
                             if not atoms_sp_class == [lig_sub_smiles_SP_class[j] for j in map_atoms]:
@@ -220,10 +220,10 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
         if ligs_retrieve.loc[i, "filter_quality"]:
             atoms_sp_class_idx, atoms_sp_class_freq = smiles_SP_class_frequencies(atoms_sp_class, vocab)
             #
-            # read the ligand .pdb file and retrieve the atoms occupancy and bfactor
+            # read the ligand .cif file and retrieve the atoms occupancy and bfactor
             # in a dictionary: keys are atom.element+format_coord(atoms.coords)
-            if (db_lig_path/pdb_name(sdf.name)).exists():
-                structure = parser.get_structure(sdf.name[0:-9], db_lig_path/pdb_name(sdf.name))
+            if (db_lig_path/lig_cif_name(sdf.name)).exists() and (db_lig_path/lig_cif_name(sdf.name)).is_file():
+                structure = parser.get_structure(sdf.name[0:-9], db_lig_path/lig_cif_name(sdf.name))
                 atoms_info = {atom_info_key(atom): atom_info_value(atom) for atom in structure.get_atoms()}
             else:
                 atoms_info = None
@@ -232,8 +232,8 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
             x, y, z = [], [], []
             occ, bf = [], []
             # write the ligand xyz file with the atoms classes in this vocab
-            # print("Writting "+ str(db_lig_path / xyz_dir_name / sdf.name.replace('NO_H.sdf', 'class.xyz')))
-            with open(db_lig_path / xyz_dir_name / sdf.name.replace('NO_H.sdf', 'class.xyz'), 'w') as fo:
+            # print("Writting "+ str(xyz_dir_path / sdf.name.replace('NO_H.sdf', 'class.xyz')))
+            with open(xyz_dir_path / sdf.name.replace('NO_H.sdf', 'class.xyz'), 'w') as fo:
                 fo.write('index, symbol, x, y, z, occupancy, bfactor, numDisordered, labels\n') #occupancy, bfactor, numDisordered, implicitValence, labels\n')
                 for j, atom in enumerate(mol_res.GetAtoms()):
                     # print(i, atom.GetSymbol().upper())
@@ -282,7 +282,7 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
                                 columns=['ligID', 'x', 'y', 'z', 'x_bound', 'y_bound', 'z_bound']+list(range(len(vocab))))
     # filter only the encoded ligands
     ligs_retrieve = ligs_retrieve.merge(ligand_label, on='ligID')
-    ligs_retrieve.to_csv(db_lig_path / xyz_dir_name / Path(valid_ligs_file).name.replace('.csv','_box_class_freq.csv'),
+    ligs_retrieve.to_csv(xyz_dir_path / valid_ligs_file.name.replace('.csv','_box_class_freq.csv'),
                         index=False)
     #
     if len(sdf_errors) > 0:
@@ -298,27 +298,28 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN
 if __name__ == "__main__":
     # read the ligands csv with respective pdb entries
     i_start = n = 0
-    label_SN = True
+    label_SP = True
     if len(sys.argv) >= 4:
         db_lig_path = sys.argv[1]
         valid_ligs_file = sys.argv[2]
         vocab_path = sys.argv[3]
         if len(sys.argv) > 4:
-             label_SN = (sys.argv[4].lower() == "true")
+             label_SP = (sys.argv[4].lower() == "true")
         if len(sys.argv) > 5:
             i_start = int(sys.argv[5])
         if len(sys.argv) > 6:
             n = int(sys.argv[6])
     else:
-        sys.exit("Wrong number of arguments. Three argument must be supplied in order to read the ligands "
-                 ".sdf data and a vocabulary text file, and then label the ligands atoms using it: \n"
-                 "  1. The path to the data folder called 'ligands' where the ligands sdf files are located. "
-                 "One folder will be created inside it: 'xyz_<ligand csv name>' to store the coordinates files of the "
+        sys.exit("Wrong number of arguments. Four arguments must be supplied in order to read the ligands "
+                 ".sdf data and a vocabulary text file, and then label the ligands atoms using this information and "
+                 "store the results in the xyz directory inside the parent folder of the provided ligands data folder: \n"
+                 "  1. ligands_data_folder: The path to the data folder called 'ligands' where the ligands sdf files are located. "
+                 "One folder will be created inside its parent folder: 'xyz_<ligand csv name>_<SP|AtomSymbol>' to store the coordinates files of the "
                  "ligand's atoms labeled with the given vocabulary;\n"
-                 "  2. The path to the CSV file containing the valid ligands list and their IDs. "
+                 "  2. valid_ligands_filtered_list_file: The path to the CSV file containing the valid ligands list and their IDs. "
                  "This file is expected to be the output of the quality filter script."
-                 "Mandatory column = 'ligID'.;\n"
-                 "  3. The path to the text file containing the desired vocabulary to be used to label the ligands. "
+                 "Mandatory column = 'ligID','ligCode','missingHeavyAtoms','smiles'.;\n"
+                 "  3. vocab_path: The path to the text file containing the desired vocabulary to be used to label the ligands. "
                  "It must contain one class per line. The ligands SDF will be fragmented and matched against this "
                  "list to be labeled using the vocabulary index order;\n"
                  "  4. label_SP: (optional) True to use the SP classes in the vocabulary creation (default), otherwise use the atom symbol. "
@@ -327,4 +328,4 @@ if __name__ == "__main__":
                  "Skip to the given row or, if missing, start from the beginning;\n"
                  "  6. (optional) The number of the row of the ligands CSV file where the script should stop. "
                  "Stop in the given row or, if missing, stop in the last row.")
-    encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SN, n, i_start)
+    encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SP, n, i_start)
