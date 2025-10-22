@@ -252,7 +252,7 @@ def create_ligands_grid_point_cloud(db_ligxyz_path, refinement_data_path, output
 
     # read csv with the valid ligands list to encode
     ligs_retrieve = pd.read_csv(valid_ligs_file, na_values = ['null', 'N/A'], keep_default_na = False,
-                                usecols = ['ligID', 'ligCode', 'entry', 'Resolution', 'filter_quality', 'x', 'y', 'z',
+                                usecols = ['ligID', 'ligCode', 'entry', 'RefinementResolution', 'filter_quality', 'x', 'y', 'z',
                                            'x_bound', 'y_bound', 'z_bound']) # do not interpret sodium NA as nan
     # filter out the low quality ligands
     ligs_retrieve = ligs_retrieve[ligs_retrieve.filter_quality]
@@ -355,10 +355,10 @@ if __name__ == "__main__":
                  "It will extract the ligand grid image from the refined Fo-Fc map of its PDB entry, using a grid spacing "
                  "equal to 0.5 by default (parameter grid_space). Then, the image will be stored in a point cloud file "
                  "inside each ligand's PDB entry subfolder in the output path (parameter output_grid_path).\nList of parameters: \n"
-                 "  1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' where the ligands .xyz files with "
+                 "  1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list file name>_<SP|AtomSymbol>' where the ligands .xyz files with "
                  "their atomic positions and labels are located. It must also contain the CSV file with the valid ligands list and their grid sizing and "
-                 "position. This file must be named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the output "
-                 "of the 'run_vocabulary_encode_ligands.py' script. "
+                 "position. This file must be named as '<valid ligand list file name>_<SP|AtomSymbol>_box_class_freq.csv' and is expected to be the output "
+                 "of the 'run_vocabulary_encode_ligands.py' or the 'encode_ligs_xyz.py' scripts. "
                  "Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound',"
                  "'z_bound';\n"
                  "  2. refinement_path: The path to the data folder where the PDB entries refinement are located ('data/refinement');\n"
