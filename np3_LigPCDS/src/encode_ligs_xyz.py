@@ -282,7 +282,8 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SP
                                 columns=['ligID', 'x', 'y', 'z', 'x_bound', 'y_bound', 'z_bound']+list(range(len(vocab))))
     # filter only the encoded ligands
     ligs_retrieve = ligs_retrieve.merge(ligand_label, on='ligID')
-    ligs_retrieve.to_csv(xyz_dir_path / valid_ligs_file.name.replace('.csv','_box_class_freq.csv'),
+    ligs_retrieve.to_csv(xyz_dir_path / valid_ligs_file.name.replace('.csv',
+                                                                     major_labeling_approach_name(label_SP)+'_box_class_freq.csv'),
                         index=False)
     #
     if len(sdf_errors) > 0:
