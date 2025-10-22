@@ -4,7 +4,7 @@ import pandas as pd
 import rdkit.Chem as chem
 from rdkit import RDLogger
 from chemutils import get_smiles, add_CNOFH_charges
-from Bio.PDB import PDBParser, MMCIFParser
+from Bio.PDB import MMCIFParser
 from statistics import mean
 import numpy as np
 from tqdm import tqdm
