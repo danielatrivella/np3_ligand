@@ -322,36 +322,37 @@ One table will be created in the current directory named:
 
 #### 1.5 Quality filters in the PDB and in the Available Ligands lists 
 
-Filter the free ligands and apply global quality filters (parameters) to all PDB entries and available ligand entries present in the provided lists.
+Filter the free ligands, compute some parameters and apply global quality filters (parameters) to all filtered PDB entries and available ligand entries present in the provided lists.
 
 *Run:*
 
 ``` 
-python src/quality_filter_pdb_ligands_lists.py pdb_list_file db_path ligands_list_file bfactor_ratio bfactor_std occupancy_cutoff allow_missingHeavyAtoms num_disordered_cutoff 
+python src/quality_filter_pdb_ligands_lists.py pdb_list_file ligands_list_file db_path valid_ligands_list_file bfactor_ratio_max bfactor_std_max min_occupancy_cutoff allow_missingHeavyAtoms max_num_disordered 
 ```
 
 *Parameters:*
 
-    1. pdb_list_file: The path to the CSV file containing the list of filtered PDB entries. Mandatory columns = 'PDBID', 'Resolution', 'SpaceGroup', 'AverageBFactor', 'ligandsID';
-    2. db_path: The path to the data folder where the directories 'pdb' and 'coefficients' are located;
-    3. ligands_list_file: The path to the CSV file containing the list of available ligands with a valid sdf file and their info (result of step 1.4). Mandatory columns: ligID, entry, ligCode, bfactor, min_occupancy, missingHeavyAtoms, numDisordered;
-    4. bfactor_ratio: The maximum allowed bfactor ratio between a ligand bfactor and its PDB entry bfactor;
-    5. bfactor_std: The maximum allowed bfactor standard deviation between the ligand atom's bfactor;
-    6. occupancy_cutoff: The minimum occupancy cutoff to keep a ligand;
-    7. allow_missingHeavyAtoms: The missingHeavyAtoms boolean TRUE (1) or FALSE (0) to allow missing heavy atoms in the ligands. If FALSE, no ligands entries with missing heavy atoms will be allowed;
-    8. num_disordered_cutoff: The maximum numDisordered that a ligand entry is allowed to have. 
+    1. pdb_list_file: The path to the CSV file containing the list of filtered PDB entries (result of step 1.2). Mandatory columns = 'PDBID', 'RefinementResolution', 'SpaceGroup', 'AverageBFactor';
+    2. ligands_list_file: The path to the CSV file containing the list of filtered ligands entries present in the filtered PDB entries (result of step 1.2). Mandatory columns = 'EntryID', 'LigandID', 'freeLigand',  'LigandFormula', 'LigandMW', 'numTotalCount';
+    3. db_path: The path to the data folder where the directories 'pdb' and 'coefficients' are located;
+    4. valid_ligands_list_file: The path to the CSV file containing the list of available ligands with a valid sdf file and their info (result of step 1.4). Mandatory columns: ligID, entry, ligCode, bfactor, min_occupancy, missingHeavyAtoms, numDisordered;
+    5. bfactor_ratio_max: The maximum allowed bfactor ratio between a ligand bfactor and its PDB entry bfactor;
+    6. bfactor_std_max: The maximum allowed bfactor standard deviation between the ligand atom's bfactor;
+    7. min_occupancy_cutoff: The minimum occupancy cutoff to keep a ligand;
+    8. allow_missingHeavyAtoms: The missingHeavyAtoms boolean TRUE (1) or FALSE (0) to allow missing heavy atoms in the ligands. If FALSE, no ligands entries with missing heavy atoms will be allowed;
+    9. max_num_disordered: The maximum numDisordered that a ligand entry is allowed to have. 
 
 *Return:*
 
 Two tables will be created in the current directory:
    
-    - '<pdb_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the filtered pdb entries that passed the quality criteria;
-    - '<ligands_list_file.name>_filter_bfactor_<bfactor_ratio>_occ_<occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<num_disordered_cutoff>.csv' : containing the ligands that passed the quality criteria. This is the list of available ligands with filters.
+    - '<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<max_num_disordered>.csv' : containing the filtered pdb entries that passed the quality criteria;
+    - '<valid_ligands_list_file.name>_<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<max_num_disordered>.csv' : containing the ligands that passed the quality criteria. This is the list of available ligands with quality filters and additional parameters.
 
 *Example:*
 
-Do not apply the quality filters related to bfactor, occupancy and disorder (used in LigPCDS v1.0.1 creation).
-> ``` python src/quality_filter_pdb_ligands_lists.py PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv data/ ligands_valid_sdf_info.csv 10000 10000 0 TRUE 10000```
+Do not apply the quality filters related to bfactor, occupancy and disorder (as used in LigPCDS v1.0.1 creation).
+> ``` python src/quality_filter_pdb_ligands_lists.py PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv ligands_free_PDB_1.5_2.2_NP_atoms_1_counts_2008-02-01_depDate.csv data/ ligands_valid_sdf_info.csv 10000 10000 0 TRUE 10000```
 
 ### Step 3
 
