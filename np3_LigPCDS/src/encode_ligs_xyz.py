@@ -310,7 +310,7 @@ if __name__ == "__main__":
         if len(sys.argv) > 6:
             n = int(sys.argv[6])
     else:
-        sys.exit("Wrong number of arguments. Four arguments must be supplied in order to read the ligands "
+        sys.exit("Wrong number of arguments. Three arguments must be supplied in order to read the ligands "
                  ".sdf data and a vocabulary text file, and then label the ligands atoms using this information and "
                  "store the results in the xyz directory inside the parent folder of the provided ligands data folder: \n"
                  "  1. ligands_data_folder: The path to the data folder called 'ligands' where the ligands sdf files are located. "
