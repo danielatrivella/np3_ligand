@@ -1,7 +1,6 @@
 from create_vocabulary_valid_ligands_smiles import create_vocabulary_ligand_smiles
 from encode_ligs_xyz import encode_ligands_vocabulary
 from pathlib import Path
-import subprocess,shlex
 
 if __name__ == "__main__":
     import sys
@@ -27,10 +26,10 @@ if __name__ == "__main__":
                  "with the ligands in .sdf format is located. Two files will be created inside it: \n"
                  "- 'ligs_smiles_<ligands_list_path.name>.txt' containing all the smiles used in the vocabulary creation (the smiles database) and;\n"        
                  "- 'vocabulary_<ligands_list_path.name>.txt' containing all the classes that resulted from the smiles labeling, with one class by row (the vocabulary itself).\n"
-                 "And one folder called 'xyz_<ligands_list_path>' will be created inside the <data_folder_path>/ligands/ folder to store the labeled ligands, it will contain:\n"
-                 "- One .xyz file for each ligand entry ID (ligand + pdb entry) present in the ligands_list_path file;\n"
-                 "- One CSV file named '<ligands_list_path>_box_class_freq.csv' containing the list of valid ligands sucessufully labeled, plus their bounding box sizing and vocabulary classes frequency (number of labeled atoms by class);\n"
-                 "  2. ligands_list_path: The path to the CSV file containing the valid ligands list and their smiles. This file is expected to be the output of the quality filter script."
+                 "And also one folder called 'xyz_<ligands_list_path>' will be created inside the data_folder_path to store the labeled ligands, it will contain:\n"
+                 "- One .xyz file for each ligand entry ID (ligand + PDB entry) present in the ligands_list_path file;\n"
+                 "- One CSV file named '<ligands_list_path>_box_class_freq.csv' containing the list of valid ligands successfully labeled, plus their bounding box sizing and vocabulary classes frequency (number of labeled atoms by class);\n"
+                 "  2. valid_ligands_filtered_list_path: The path to the CSV file containing the valid ligands list and their smiles with the quality filters applied. This file is expected to be the output of the quality filter script (step 1.5 result)."
                  " Mandatory columns = 'ligID','smiles'.\n"
                  "The name of this file will be used to label the output vocabulary file, the ligands SMILES database file "
                  "and the xyz folder that will store the labeled ligands .xyz files;\n"
