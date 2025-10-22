@@ -2,6 +2,8 @@ import sys
 from pathlib import Path
 import pandas as pd
 from chemutils import label_mol_atoms, get_mol
+from rdkit import RDLogger
+from tqdm import tqdm
 
 # def unique_smiles(smiles_list):
 #     if len(smiles_list) == 1:
@@ -22,6 +24,9 @@ def create_vocabulary_ligand_smiles(output_path, valid_ligs_file, label_SN):
     if not Path(valid_ligs_file).is_file():
         sys.exit("The provided Ligands list CSV file do not exists.")
 
+    # prevent undesired warning msgs that are frequent with the sdf data, such as
+    # # Warning: molecule is tagged as 2D, but at least one Z coordinate is not zero. Marking the mol as 3D.
+    RDLogger.DisableLog('rdApp.warning')
     # read csv with the ligands smiles to use to create a vocab
     valid_ligs = pd.read_csv(valid_ligs_file, na_values=['null', 'N/A'],
                                keep_default_na=False)  # do not interpret sodium NA as nan
@@ -37,7 +42,7 @@ def create_vocabulary_ligand_smiles(output_path, valid_ligs_file, label_SN):
 
     # create a vocabulary from each unique smile and save it
     cset = set()
-    for smiles in ligands_smiles:
+    for smiles in tqdm(ligands_smiles):
         mol = get_mol(smiles, addHs=True)
         if not mol:
             continue
@@ -56,7 +61,7 @@ def create_vocabulary_ligand_smiles(output_path, valid_ligs_file, label_SN):
     print("\nVocabulary = "+str(len(cset)) + " " + ("SP classes" if label_SN else "Atom Symbol classes") +
           " \nLigand's unique SMILES = " + str(n_entries) + "\n")
 
-
+# creating from the smiles now, not using the sdf for this
 # def create_vocabulary_ligand_sdf(db_path, pdb_ligs_file, n, i_start=0):
 #     if n <= i_start and n > 0:
 #         sys.exit("The provided stop row is not greater than the start row. Wrong range.")
