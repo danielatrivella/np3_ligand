@@ -228,10 +228,10 @@ if __name__ == "__main__":
                  "heavy atoms in the ligands. If FALSE, no ligands entries with missing heavy atoms will be allowed;\n"
                  "  9. max_num_disordered: The maximum numDisordered that a ligand entry is allowed to have. "
                  "\n\nResults: Two tables will be created in the current directory: \n"
-                 "  - '<pdb_list_file.name>_filter_bfactor_<bfactor_ratio_max>_occ_<min_occupancy_cutoff>_missHAtoms_"
+                 "  - '<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_missHAtoms_"
                  "<allow_missingHeavyAtoms>_numDisorder_<max_num_disordered>.csv' : containing the "
                  "filtered pdb entries that passed the quality criteria;\n"
-                 "  - '<valid_ligands_list_file.name>_<pdb_list_file.name>_filter_bfactor_<bfactor_ratio_max>_occ_<min_occupancy_cutoff>_missHAtoms_"
+                 "  - '<valid_ligands_list_file.name>_<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_missHAtoms_"
                  "<allow_missingHeavyAtoms>_numDisorder_<max_num_disordered>.csv' : containing the "
                  "valid ligands that passed the quality criteria.\n"
                  )
