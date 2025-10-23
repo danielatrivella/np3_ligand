@@ -497,7 +497,7 @@ If overwrite is False, it will skip the already refined entries and continue fro
 > ``` python src/refinement_dimple.py data/ PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000.csv 10```
 
 
-#### 2.2 Ligand Grid Representation Creation 
+#### 2.2 Ligand Grid 3D Point Cloud Creation 
 
 Creates the ligand grid representation in 3D point cloud for all ligand entries that had their structure successfully labeled and refined.
 
@@ -514,7 +514,7 @@ And finally, the representation will be stored in a 3D point cloud file inside t
 *Parameters:*
 
 1. xyz_labels_path: The path to the data folder called 'xyz_\<valid ligand list file name\>\_<SP|AtomSymbol>' where the 
-ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with 
+ligands .xyz files with their atomic positions and structure labels are located (result of step 3.1.1). It must also contain the CSV file with 
 the list of valid ligands and their grid sizing and position. This file must be named as
 '\<valid ligand list file name\>_<SP|AtomSymbol>_box_class_freq.csv' and is expected to be the output of the 
 'run_vocabulary_encode_ligands.py' or the 'encode_ligs_xyz.py' scripts. 
@@ -538,14 +538,17 @@ It will also add columns with the electron density descriptive statistics of the
 
 > ``` python src/mtz_to_grid_pointcloud.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/refinement/ data/ligs_point_cloud_grid True 4 0.5```
 
-#### 2.3 Ligands Final Representation Creation and Labeling (Step 4)** 
+#### 2.3 Ligands Final 3D Point Clouds Creation and Step 4 - Labeling** 
 
-Create the final representations of the ligands in 3D point cloud and scaled and also create their labeling files for each representation type.
+Create the final representations of the ligands in 3D point cloud and also create their labeling files for each representation type.
+The output folder will be a LigPCDS dataset
 
-For each ligand entry that had its ligand grid representation successfully created, it will scale it using the quantile rank scale, extract the ligand mask representation and then create the final representations of the ligands. The following representation types will be created: 
+For each ligand entry that had its ligand grid representation successfully created, this script will scale it using 
+the quantile rank scale, extract the ligand mask representation and then create the final representations of the ligands. 
+The following representation types will be created: 
 qRank0.5, qRank0.7, qRank0.75, qRank0.8, qRank0.85, qRank0.9, qRank0.95, qRankMask, and qRankMask_5.
-At the end, the final representations will be stored in a 3D point cloud file inside the subfolder of each PDB entry of the ligand entries
-in the output path (parameter output_LigPCDS_path).
+At the end, the final representations will be stored in a 3D point cloud file inside the subfolder of each PDB entry of 
+the ligand entries in the provided output path (parameter output_LigPCDS_path).
 
 *Run:*
 
@@ -553,12 +556,13 @@ in the output path (parameter output_LigPCDS_path).
 
 *Parameters:*
 
-1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list csv name>' where the ligands .xyz files 
-with their structure labels are located. It must also contain the CSV file with the list of valid ligands that had the 
-ligand grid representation successfully created. This file is named as '<valid ligand list csv name>_box_pc.csv' and is 
+1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list file name>_<SP|AtomSymbol>' where the ligands .xyz files 
+with their structure labels are located (result of step 3.1.1). It must also contain the CSV file with the list of valid ligands that had the 
+ligand grid representation successfully created. This file is named as '<valid ligand list file name>_<SP|AtomSymbol>_box_pc.csv' and is 
 expected to be the output of the mtz_to_grid_pointcloud.py script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'RefinementResolution';
-2. output_grid_path: The path to the folder where the ligand grid representations in point clouds are stored ('data/lig_point_clouds_grids');
-3. output_ligPCDS_path: The path to the output folder where the point clouds of the final representations of the ligands in quantile rank scale will be stored ('data/lig_pcds' or other);
+2. output_grid_path: The path to the folder where the ligand grid representations in 3D point clouds are stored (i.e. 'data/lig_point_clouds_grids');
+3. output_ligPCDS_path: The path to the output folder where the 3D point clouds of the final representations of the 
+ligands in quantile rank scale will be stored (i.e. 'data/lig_pcds');
 4. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (Default to 2);
 5. overwrite: (optional) A boolean True or False indicating if the already processed ligands should be overwritten (Default to False);
 6. row_start: (optional) The number of the row of the '<valid ligand list csv name>_box_pc.csv' file where the script should start. Skip to the given row or, if missing, start from the beginning;
@@ -566,11 +570,15 @@ expected to be the output of the mtz_to_grid_pointcloud.py script. Mandatory col
 
 *Output:*
 
-The output_ligPCDS_path folder will be created with one subfolder for each PDB entry of the ligand entries that had all their final representations successfully created and labeled:
-- The subfolder of each PDB entry will contain the final representations of all ligands (.xyzrgb files) that appear in the respective entry and that had all of their representations types successfully created.
+The output_ligPCDS_path folder will be created with one subfolder for each PDB entry of the ligand entries that had all 
+their final representations successfully created and labeled:
+- The subfolder of each PDB entry will contain the final representations of all ligands (.xyzrgb files) that appear in 
+the respective entry and that had all of their representations types successfully created. It will also contain a file
+with the labels of the points for each final point cloud.
 
 One file will be created inside the xyz_labels_path directory:
-- One CSV file named '\<valid ligand list csv name\>_box_class_freq_qRank_scale.csv' containing the list of valid ligands that had their final representations successufully created. 
+- One CSV file named '<valid ligand list file name>_<SP|AtomSymbol>_box_class_freq_qRank_scale.csv' containing the list 
+of valid ligands that had their final representations successfully created. 
 It will also add columns with the size of the final 3D point clouds of the ligands by representation type. 
 The size of these representations is equal to the number of points in their point clouds for each type.
 
@@ -578,7 +586,7 @@ The size of these representations is equal to the number of points in their poin
 
 > ``` python src/grid_pointcloud_to_quantile_rank_scale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_point_cloud_grid data/ligs_pcds_SP 4```
 
-#### 2.4 Ligand Representation Labeling Test 
+#### 4.1 Ligand Representation Labeling Test 
 
 Tests the labels of the ligands representations against their expected labels from their structure labeling (in .xyz files from their SDF files). 
 It will check for each atom of a ligand if the points around it in its representation and inside 1/4 of its atomic sphere have all the same label and equals to the expected label from its structure labeling result (.xyz file).
