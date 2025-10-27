@@ -98,7 +98,7 @@ def check_ligand_point_cloud(lig_data_row, db_ligxyz_path, pc_data_path, element
     ligand_out["point_cloud_pBackground_qRank0.95"] = -1
     #
     # round the ligand pdb entry resolution
-    reso = str(round(float(lig_data_row['Resolution']), 1))
+    reso = str(round(float(lig_data_row['RefinementResolution']), 1))
     # create the grid and point cloud of the ligand
     entry_name = lig_data_row["entry"]
     # get the ligand label file path    
@@ -319,19 +319,19 @@ if __name__ == "__main__":
         if len(sys.argv) >= 5:
             draw_pc = (sys.argv[4].lower() == "true")
     else:
-        sys.exit("Wrong number of arguments. Two parameters must be supplied in order to test the image labeling of the "
-                 "valid ligands and to compute two metrics for them: background class percentage e atoms coverage rate.\nParameters: \n"
-                 "  1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' "
+        sys.exit("Wrong number of arguments. Two parameters must be supplied in order to test the labeling of the representations"
+                 " of the valid ligands and to compute two metrics for them: background class percentage e atoms coverage rate.\nParameters: \n"
+                 "  1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list csv name>_<SP|AtomSymbol>' "
                  "where the ligands .xyz files with their atomic positions and structure labels are located. "
                  "It must also contain the CSV file with the valid ligands list and their grid sizing and position. "
-                 "This file is named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the "
+                 "This file is named as '<valid ligand list csv name>_<SP|AtomSymbol>_box_class_freq.csv' and is expected to be the "
                  "output of the 'run_vocabulary_encode_ligands.py' script. "
-                 "Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound';\n"
-                 "  2. output_ligPCDB_path: The path to the data folder where the point clouds of the final images of the ligands in "
-                 "quantile rank scale are stored ('data/lig_pcdb' or other);\n"
+                 "Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound', 'RefinementResolution';\n"
+                 "  2. output_ligPCDS_path: The path to the data folder where the final 3D point clouds of the ligands in "
+                 "quantile rank scale are stored ('data/lig_pcds' or other);\n"
                  "  3. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (default to 2);\n"
-                 "  4. draw_pc: (optional) Boolean True or False to draw the images point clouds. "
-                 "If True, enable drawing the final images of the ligands and color them using their labels. "
-                 "If False, do not draw the images (default to False).\n"
+                 "  4. draw_pc: (optional) Boolean True or False to draw the 3D point clouds. "
+                 "If True, enable drawing the final representations of the ligands and color them using their labels. "
+                 "If False, do not draw the point clouds (default to False).\n"
                  )
     check_ligands_point_clouds(db_ligxyz_path, pc_data_path, num_processors, draw_pc)
