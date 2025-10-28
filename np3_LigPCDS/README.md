@@ -589,12 +589,13 @@ The size of these representations is equal to the number of points in their poin
 #### 4.1 Ligand Representation Labeling Test 
 
 Tests the labels of the ligands representations against their expected labels from their structure labeling (in .xyz files from their SDF files). 
-It will check for each atom of a ligand if the points around it in its representation and inside 1/4 of its atomic sphere have all the same label and equals to the expected label from its structure labeling result (.xyz file).
+It will check for each atom of a ligand in each representation type, if the surrounding points to its center
+and inside 1/4 of its atomic sphere have all the same label and equals to the expected label from its structure labeling result (.xyz file).
 For each representation type, it also computes two metrics: the percentage of points in the background class; 
 and the average percentage of covered points by the atomic sphere of the ligand's atoms (number of points present inside each atom's atomic sphere / expected number of points that fits in each atom's atomic sphere).
 A low percentage of atom coverage may indicate low quality representations (from low quality blobs). The opposite may also be true or noise.
   
-If draw_pc is enabled, it will draw the ligands point clouds being tested and will color the final representations using the valid labels.
+If draw_pc is enabled, it will draw the ligands 3D point clouds being tested and will color the final representations using the valid labels.
 
 *Run:*
 
@@ -602,28 +603,33 @@ If draw_pc is enabled, it will draw the ligands point clouds being tested and wi
 
 *Parameters:*
 
- 1. xyz_labels_path: The path to the data folder called 'ligands/xyz_<valid ligand list csv name>' where the ligands .xyz files with their atomic positions and structure labels are located. It must also contain the CSV file with the list of valid ligands and their grid sizing and position. This file is named as '<valid ligand list csv name>_box_class_freq.csv' and is expected to be the output of the 'run_vocabulary_encode_ligands.py' script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound';
- 2. output_ligPCDS_path: The path to the data folder where the point clouds of the final representations of the ligands in quantile rank scale are be stored ('data/lig_pcds' or other);
- 3. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (default to 2);
+ 1. xyz_labels_path: The path to the data folder called 'xyz_<valid ligand list csv name>_<SP|AtomSymbol>' 
+where the ligands .xyz files with their atomic positions and structure labels are located. 
+It must also contain the CSV file with the valid ligands list and their grid sizing and position. 
+This file is named as '<valid ligand list csv name>_<SP|AtomSymbol>_box_class_freq.csv' and is expected to be the 
+output of the 'run_vocabulary_encode_ligands.py' script. Mandatory columns = 'ligID', 'ligCode', 'entry', 'filter_quality', 'x', 'y', 'z', 'x_bound', 'y_bound','z_bound', 'RefinementResolution';
+ 2. output_ligPCDS_path: The path to the data folder where the 3D point clouds of the final representations of the ligands in quantile rank scale are stored ('data/lig_pcds' or other);
+ 3. num_parallel: (optional) The number of processors to use for multiprocessing parallelization (default to 2). 
+If num_parallel equals to 1, additional verbosity will be printed about each ligand entry and its values' description;
  4. draw_pc: (optional) Boolean True or False to draw the ligands 3D point clouds. If True, enable drawing the final representations of the ligands and color them using their labels. If False, do not draw them (default to False).
 
 *Output:*
 
 One file is created inside the xyz_labels_path folder:
-- One CSV file named '<valid ligand list csv name>_box_class_freq_qRankTested.csv' containing the **list of valid ligands** that had their final representations successfully created and tested.
+- One CSV file named '<valid ligand list csv name>_<SP|AtomSymbol>_box_class_freq_qRankTested.csv' containing the **list of valid ligands** that had their final representations successfully created and tested.
 This table also signalizes any found error or missing data, and contains the values of the computed metrics by representation type;
 
 It will print to the screen the inconsistencies found for each valid ligand in the xyz_folder_path folder.
 
 *Example:*
 
-> ``` python test/test_ligands_pointcloud_label_qRankScale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_pcds_SP 4 False```
+> ``` python test/test_ligands_pointcloud_label_qRankScale.py data/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_pcds_SP 4 False```
 
 ### Step 5
 
 -------------------------------
 
-Creation of a stratified training dataset from a list of valid ligands. 
+Creation of a stratified training dataset from a list of valid ligands of LigPCDS. 
 This dataset is intended to be used in the training pipeline of the DL semantic segmentation task (np3_DL_segmentation repository).
 
 #### 5.1 Undersampling in LigPCDS
