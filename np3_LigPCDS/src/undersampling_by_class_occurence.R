@@ -1,9 +1,6 @@
 library(anticlust)
 library(readr)
 
-# ligs_data_path <- "/home/crisfbazz/Documents/Unicamp/Mestrado/Projeto/np3_ligand/np3_pointcloud_DB/PDB_lists/ligands_valid_info_all_PDB_1.5_1.8_CHONPSIBrClFSe_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfRatio_2.0_bfStd_10.0_occ_0.9_missHAtoms_True_numDisorder_0.0_box_class_freq_tested_pc.csv"
-# ligs_data_path <- "data/ligands/xyz_test_ligands_valid_info_all_PDB_1.5_1.8_CHONPSIBrClFSe_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfRatio_2.0_bfStd_10.0_occ_0.9_missHAtoms_True_numDisorder_0.0_box_class_freq/test_ligands_valid_info_all_PDB_1.5_1.8_CHONPSIBrClFSe_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfRatio_2.0_bfStd_10.0_occ_0.9_missHAtoms_True_numDisorder_0.0_box_class_freq_box_class_freq_tested_pc.csv"
-# vocab_path <- "/home/crisfbazz/Documents/Unicamp/Mestrado/Projeto/np3_ligand/np3_pointcloud_DB/PDB_lists/vocabulary_ligands_valid_info_all_PDB_1.5_1.8_CHONPSIBrClFSe_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfRatio_2.0_bfStd_10.0_occ_0.9_missHAtoms_True_numDisorder_0.0.txt"
 # keep_labels <- "all" # "sp2CA6,sp2,sp3"
 # max_num_ligCode <- 500
 # min_class_occ <- 5000
@@ -13,11 +10,12 @@ library(readr)
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) < 6) {
   cat("Six parameters must be supplied to undersample the given list of valid ligands (dataset) using the ligands",
-       "entries occurrence by class (within the selected ones) and by ligand code (unique structure).\nParameters:\n",
-       " 1. valid_ligands_list_path: Path to the CSV table with the list of valid ligands. ",
+       "entries occurrence by class (within the selected ones) and by ligand code (unique structure). ",
+       "Outputs the undersampled list to the current directory.\nParameters:\n",
+       " 1. valid_ligands_list_path: Path to the CSV table with the list of valid ligands. This is expected to be inside the xyz directory as a result of the labeling testing of the ligands representations. ",
        "The undersampling technique will be applied in this list to filter the ligands entries (rows), ",
        "it will remove bias towards frequent ligand codes and frequent classes. ",
-       "Mandatory columns: ligCode, entry, bfactor, AverageBFactor, Resolution, point_cloud_size_qRank0.95, and '0' to the number of classes in the vocabulary minus one;\n",
+       "Mandatory columns: ligCode, entry, bfactor, AverageBFactor, RefinementResolution, point_cloud_size_qRank0.95, and '0' to the number of classes in the vocabulary minus one;\n",
        " 2. vocab_path: Path to the vocabulary file used to label the ligands entries present in the ",
        "valid_ligands_list_path table. It must contain one label by row, defining their order (the Background class is not used);\n",
        " 3. classes_list: The list of classes of the vocabulary that will be used in the undersampling of the ",
@@ -89,11 +87,13 @@ keep_labels <- match(keep_labels, vocab)-1
 
 ligs_data <- read_csv(ligs_data_path)
 # check if the vocab labels to keep and the mandatory columns names are present in the ligand data
-if (!all(c("bfactor", "AverageBFactor", "Resolution", "ligCode", "entry", keep_labels) %in% 
-         names(ligs_data)))
+entries_mandatory_columns <- c("bfactor", "AverageBFactor", "RefinementResolution", "ligCode", "entry", keep_labels)
+if (!all(entries_mandatory_columns %in% names(ligs_data)))
 {
-  stop("The ligand data file '", basename(ligs_data_path),
-       "' do not have the mandatory columns. Provide a valid path to where the csv file with the ligands ",
+  stop("The ligand data file '", ligs_data_path,
+       "' do not have all the mandatory columns. The following are missing: ",
+       paste0(entries_mandatory_columns[!(entries_mandatory_columns %in% names(ligs_data))], collapse=","),
+       "Provide a valid path to where the csv file with the ligands ",
        "variables and entries is located.")
 }
 
@@ -194,7 +194,7 @@ ligs_data$bfactor_ratio <- ligs_data$bfactor / ligs_data$AverageBFactor
 # sort the ligs data using the lig code and the bfactor to equally distribute the ligands entries using this two variables
 ligs_data <- ligs_data[order(ligs_data$ligCode, ligs_data$bfactor_ratio),]
 # set the features to be used in the anticlustering job
-numeric_features <- c("bfactor_ratio", "Resolution", "min_occupancy", pc_type)
+numeric_features <- c("bfactor_ratio", "RefinementResolution", "min_occupancy", pc_type)
 categorical_features <- c("ligCode", "entry")
 
 cat("\n\n* Variables being used by the anticlustering algorithm:")
@@ -342,11 +342,11 @@ if (length(keep_labels) != num_classes) {
 min_class_occ <- min(class_by_entry_ratio)
 max_class_occ <- max(class_by_entry_ratio)
 
-write_csv(ligs_data, path=sub(x=ligs_data_path, pattern = ".csv", 
+write_csv(ligs_data, file=sub(x=basename(ligs_data_path), pattern = "\\_filter.*\\.csv", 
                               replacement = paste0("_undersampling_", keep_labels,
                                                    "_maxLigCode_",max_num_ligCode,
                                                    "_classOcc_",min_class_occ,
                                                    "_", max_class_occ,
-                                                   ".csv")))
+                                                   ".csv"), perl=TRUE))
 t2 <- Sys.time()
 cat("\nFinish in",round(t2-t0, 2), units(t2-t0), "!\n\n")
