@@ -1,9 +1,6 @@
 library(anticlust)
 library(readr)
 
-# ligs_data_path <- "/home/crisfbazz/Documents/Unicamp/Mestrado/Projeto/np3_ligand/np3_pointcloud_DB/PDB_lists/ligands_valid_info_all_PDB_1.5_1.8_CHONPSIBrClFSe_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfRatio_2.0_bfStd_10.0_occ_0.9_missHAtoms_True_numDisorder_0.0_box_class_freq_tested_pc.csv"
-# ligs_data_path <- "data/ligands/xyz_test_ligands_valid_info_all_PDB_1.5_1.8_CHONPSIBrClFSe_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfRatio_2.0_bfStd_10.0_occ_0.9_missHAtoms_True_numDisorder_0.0_box_class_freq/test_ligands_valid_info_all_PDB_1.5_1.8_CHONPSIBrClFSe_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfRatio_2.0_bfStd_10.0_occ_0.9_missHAtoms_True_numDisorder_0.0_box_class_freq_box_class_freq_tested_pc.csv"
-# vocab_path <- "/home/crisfbazz/Documents/Unicamp/Mestrado/Projeto/np3_ligand/np3_pointcloud_DB/PDB_lists/vocabulary_ligands_valid_info_all_PDB_1.5_1.8_CHONPSIBrClFSe_atoms_free_ligands_1_counts_2008-02-01_depDate_filter_bfRatio_2.0_bfStd_10.0_occ_0.9_missHAtoms_True_numDisorder_0.0.txt"
 # kfolds <- 5
 keep_labels <- "all"
 
@@ -12,9 +9,10 @@ args <- commandArgs(trailingOnly=TRUE)
 if (length(args) < 3) {
   cat("Three parameters must be supplied to perform a stratified k-fold cross validation in the list of valid ligands. ",
       "It separates the entries in k similar groups of equal size and diverse characteristics. ",
-      "Each k group is also separated in another two similar groups for test and validation subsets.\nParameters:\n",
+      "Each k group is also separated in another two similar groups for test and validation subsets. ",
+      "The stratified list is stored in the current directory.\nParameters:\n",
       " 1. valid_ligands_list_path: Path to the CSV table with the list of valid ligands to be stratified with a ",
-      "k-fold cross validation approach. Mandatory columns: ligCode, entry, bfactor, AverageBFactor, Resolution, ",
+      "k-fold cross validation approach. Mandatory columns: ligCode, entry, bfactor, AverageBFactor, RefinementResolution, ",
       "point_cloud_size_qRankMask, 0 to the number of classes - 1;\n",
       " 2. vocab_path: Path to the vocabulary file used to label the ligands entries present in the ",
       "valid_ligands_list_path table. It must contain one label by row, defining their order (the Background class is not used);\n",
@@ -74,7 +72,7 @@ keep_labels <- match(keep_labels, vocab)-1
 
 ligs_data <- read_csv(ligs_data_path)
 # check if the vocab labels to keep and the mandatory columns names are present in the ligand data
-if (!all(c("bfactor", "AverageBFactor", "Resolution", "ligCode", "entry",
+if (!all(c("bfactor", "AverageBFactor", "RefinementResolution", "ligCode", "entry",
            keep_labels) %in% 
          names(ligs_data)))
 {
@@ -113,7 +111,7 @@ keep_labels <- format(keep_labels, trim = TRUE)
 # compute the bfactor ratio between the ligand bfactor and the protein bfactor
 ligs_data$bfactor_ratio <- ligs_data$bfactor / ligs_data$AverageBFactor
 # set the features to be used in the anticlustering job
-numeric_features <- c("bfactor_ratio", "Resolution", "min_occupancy", pc_type)
+numeric_features <- c("bfactor_ratio", "RefinementResolution", "min_occupancy", pc_type)
 categorical_features <- c("ligCode", "entry")
 
 cat("\n\n* Variables being used by the anticlustering algorithm:")
@@ -164,11 +162,9 @@ if (length(keep_labels) != num_classes) {
   keep_labels <- "all"
 }
 
-write_csv(ligs_data, path=sub(x=ligs_data_path, pattern = ".csv", 
+write_csv(ligs_data, file=sub(x=basename(ligs_data_path), pattern = ".csv", 
                               replacement = paste0("_split_",keep_labels,
                                                    "_kfolds_",kfolds,
                                                    ".csv")))
 t2 <- Sys.time()
 cat("\nFinish in",round(t2-t0, 2), units(t2-t0), "!\n\n")
-# ligs_data[order(ligs_data$kfolds),
-#           c("kfolds","ligCode", "entry", "bfactor_ratio", "Resolution")]
