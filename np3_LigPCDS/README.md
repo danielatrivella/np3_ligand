@@ -645,7 +645,7 @@ This step is intended to remove bias in the list of valid ligands towards freque
 
 *Run:*
 
-> ``` Rscript src/undersampling_by_diversity_occurence.R valid_ligands_list_path vocab_path classes_list max_ligCode_occ min_class_occ max_class_occ```
+> ``` Rscript src/undersampling_ligs_by_diversity_occurence.R valid_ligands_list_path vocab_path classes_list max_ligCode_occ min_class_occ max_class_occ```
 
 *Parameters:*
 
@@ -669,7 +669,7 @@ The user may analyse this values to accept the result or plan a new undersamplin
 *Example:*
 
 Limit the ligand's code frequency to 1000 repetitions and do not limit the classes occurrence:
-> ``` Rscript src/undersampling_by_diversity_occurence.R valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.csv vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt all 1000 0 1000000```
+> ``` Rscript src/undersampling_ligs_by_diversity_occurence.R valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.csv vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt all 1000 0 1000000```
 
 #### 5.2 Stratified k-fold cross validation
 
@@ -684,23 +684,23 @@ It uses an anti-clustering algorithm to perform a stratified separation that kee
 
 *Parameters:*
 
-1. valid_ligands_list_path: Path to the CSV table with the list of valid ligands to be stratified with a k-fold cross validation approach. Mandatory columns: ligCode, entry, bfactor, AverageBFactor, Resolution, point_cloud_size_qRankMask, 0 to the number of classes - 1;
+1. valid_ligands_list_path: Path to the CSV table with the list of valid ligands to be stratified with a k-fold cross validation approach. This is expected to be the output of the undersampling step 5.1. Mandatory columns: ligCode, entry, bfactor, AverageBFactor, RefinementResolution, point_cloud_size_qRankMask, 0 to the number of classes - 1;
 2. vocab_path: Path to the vocabulary file used to label the ligands entries present in the valid_ligands_list_path table. It must contain one label by row, defining their order (the Background class is not used);
-3. k: The number of anti-clusters (groups with high diversity) to be created. This is the number of k-folds. Each k group will be separated in another two similar groups;
+3. k: The number of anti-clusters (groups with high diversity) to be created. This is the number of k-folds. Each k group will be separated in another two similar groups for test and validation;
 4. classes_list: (optional) The list of classes of the vocabulary that will be used in the separation of the entries by the anti-clustering algorithm (stratified approach). The names of the selected classes separated by comma or the word 'all' to use the entire vocabulary (all the classes). Default to 'all'.
 
 *Output:*
 
-One file is created in the same directory of the valid_ligands_list_path:
-- One CSV file named '<valid_ligands_list_path.name>_split_<classes_list>_kfolds_<k>.csv' containing the list of valid ligands separated in k similar groups.
+One file is created in the current directory containing the list of valid ligands separated in k similar groups:
+- One CSV file named '<valid_ligands_list_path.name>_split_<classes_list>_kfolds_<k>.csv'.
   - The groups are defined by the column 'kfolds' which contains values from 1 to k; and by the column 'test_val' which contains values equal to 'test' or 'val'.
 
-It will print to the screen the average value of the selected numeric characteristics by k group. Similar values should be present within the k groups.
+It will print to the screen the average value of the selected numeric characteristics by each k group. Similar values should be present within the k groups.
 
 *Example:*
 
-Separate the ligands entries in k=13 similar groups:
-> ``` Rscript src/undersampling_by_class_occurence.R valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP_undersampling_maxLigCode_1000.csv vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt 13```
+Separate the ligands entries in k=13 similar groups using all classes:
+> ``` Rscript src/split_ligs_dataset_kfold.R valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_undersampling_21classes_maxLigCode_1000_classOcc_0_34230.csv vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt 13 all```
 
 -------------------------------
 -------------------------------
