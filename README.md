@@ -10,7 +10,7 @@ This repository stores the NP³ projects for ligand interpretation in X-ray prot
 
 The NP³ is a project from the Drug Discovery Division ([DDD](https://lnbio.cnpem.br/en/divisoes-cientificas/nucleos-avancados-saude/descoberta-de-farmacos/)) of the Brazilian Biosciences National Laboratory (LNBio) from the Brazilian Center for Research in Energy and Materials (CNPEM) to empower natural products research with automation for biochemistry data processing and analysis. 
 
--------------------------------------------------------------
+
 -------------------------------------------------------------
 
 ## Requirements
@@ -19,26 +19,30 @@ The NP³ is a project from the Drug Discovery Division ([DDD](https://lnbio.cnpe
 
 The dependencies of all repositories are unified here in a single conda environment. Separated installation instructions may be found in the respective repository, if present.
 
-- Ubuntu >= 14.04 (may also work with other Unix operating systems, but was not tested)
+- Ubuntu >= 20.04 (may also work with other Unix operating systems, but was not tested)
 - Anaconda (https://www.anaconda.com/download/)
 - CCP4 (with [Dimple](https://ccp4.github.io/dimple/))
-- [Coot](https://www2.mrc-lmb.cam.ac.uk/personal/pemsley/coot/) - Crystallographic Object-Oriented Toolkit
-- GCC >= 7.4.0
-- Python >= 3.8 and packages
+- [Coot](https://www2.mrc-lmb.cam.ac.uk/personal/pemsley/coot/) - Crystallographic Object-Oriented Toolkit (comes with ccp4)
+- GCC >= 7.4.0 and GCC <= 11
+- Python >= 3.9 and packages
 - Ubuntu packages:
   - build-essentials
   - libopenblas-dev
-- For GPU compatibility: 
-  - CUDA >= 10.1.243 and compatible with the CUDA version used for pytorch (e.g. if you use conda cudatoolkit=11.1, use CUDA=11.1 for MinkowskiEngine compilation)
+- For GPU use enabled: 
+  - CUDA >= 10.1.243 and compatible with the CUDA version used for pytorch (e.g. if you use conda cudatoolkit=11.8, use CUDA=11.8 for MinkowskiEngine compilation)
+
+---------------------------------
 
 ## Installation
 
 ----------------------
 
-Let's start with the installation of the Ubuntu packages and GCC 7:
+Tested in a Linux with Ubuntu 22.04.
+
+Let's start with the installation of the Ubuntu packages and GCC 9:
 
 ```
-sudo apt install build-essential libopenblas-dev g++-7
+sudo apt install build-essential libopenblas-dev g++-9
 ```
 
 The required python and R packages will be installed with **anaconda + pip**. If you have any issues installing the packages, please report it on the github issue page.
@@ -52,18 +56,46 @@ Two pip requirements files are provided to help in the installation. One have GP
 First, we recommend setting the anaconda channel priority to flexible mode before creating the environment:
 `conda config --set channel_priority true`
 
-Create a conda environment with python 3.8 to encapsulate the installation and activate the environment:
+---------------------------------
+#### Auto installation
+
+Two scripts are provided for the CPU and the GPU installation. 
+The Minkowski Engine python package, for DL training and validation, is installed by clonning its github source code in
+the current folder and running the setup with corresponding parameters (preferred than the installation with pip).
+
+For **CPU** only installation, run the script:
 
 ```
-conda create -n np3_lig python=3.8
+./install_conda_env_requirements_cpu.sh
+```
+
+For **GPU** enabled installation, there are additional requirement:
+- CUDA >= 11.x and compatible with the CUDA version used for pytorch
+
+The provided installation script uses a pytorch compatible with CUDA=11.8 and cuda-toolkit=11.8. 
+For other CUDA versions please modify the corresponding script and requirements files with correct CUDA version. 
+The pytorch CUDA version must match the cudtoolkit version.
+
+For **GPU** enabled installation, run the script:
+```
+./install_conda_env_requirements_cuda11.8.sh
+```
+
+---------------------------------
+#### Manual Installation
+
+Create a conda environment with python 3.9 to encapsulate the installation and activate the environment:
+
+```
+conda create -n np3_lig python=3.9 -y
 conda activate np3_lig
 ```
 
-Then, install the openblas package and the R base and packages:
+Then, install the openblas-devel package and the R base and packages:
 
 ```
-conda install openblas-devel -c anaconda
-conda install r-base=3.6.3 r-readr r-dplyr r-matrix -c conda-forge
+conda install openblas-devel -c anaconda -y 
+conda install r-base=4.4.0 r-readr r-dplyr -c conda-forge -y
 ```
 
 And the anticlust R python package that is not present in conda.
@@ -72,7 +104,7 @@ And the anticlust R python package that is not present in conda.
 Rscript -e 'install.packages("anticlust",repos = "http://cran.us.r-project.org")'
 ```
 
-#### CPU only
+###### CPU only
 
 Next, install the rest of the python packages requirements with pip:
 
@@ -80,42 +112,62 @@ Next, install the rest of the python packages requirements with pip:
 pip install -r requirements_np3_ligand_cpu.txt
 ```
 
-And finally install que Minkowski Engine package with pip:
+And finally install que Minkowski Engine package by cloning its github source code and running the setup for cpu only:
 
 ```
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--cpu_only"
+git clone https://github.com/NVIDIA/MinkowskiEngine.git
+cd MinkowskiEngine
+export MAX_JOBS=2; # parallel compilation - prevent to much CPU assignment and process killed
+python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include:/usr/include/ --blas=openblas --cpu_only
 ```
 
-#### GPU compatibility
+###### GPU enabled
 
 Additional requirement:
-- CUDA >= 11.1 and compatible with the CUDA version used for pytorch
+- CUDA >= 11.x and compatible with the CUDA version used for pytorch
 
-The provided pip requirements files uses a pytorch compatible with CUDA>=11.1 and cuda-toolkit=11.1. For other CUDA versions please modify the corresponding requirements .txt file and the following cudatoolkit version. The pytorch CUDA version must match the cudtoolkit version.
+The provided pip requirements files uses a pytorch compatible with CUDA=11.8 and cuda-toolkit=11.8. 
+For other CUDA versions please modify the corresponding requirements .txt file and the following cudatoolkit version. 
+The pytorch CUDA version must match the cudtoolkit version.
 
-Install the cudatoolkit=11.1 with conda:
-
+Check installed CUDA driver compatibility:
 ```
-conda install cudatoolkit=11.1 -c pytorch -c conda-forge 
-```
-
-Next, install the rest of the python packages requirements with pip, here [pytorch](https://pytorch.org/get-started/previous-versions/) compatible with CUDA=11.1 is being used:
-
-```
-pip install -r requirements_np3_ligand_cuda11.1.txt -f https://download.pytorch.org/whl/torch_stable.html
+nvidia-smi
+nvcc --version
 ```
 
-And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine with pip and the force_cuda parameter:
+Install the cuda=11.8 and cudatoolkit=11.8 with conda:
 
 ```
-export CXX=g++-7;  # set this if you want to use a different C++ compiler
+conda install nvidia/label/cuda-11.8.0::cuda
+conda install nvidia/label/cuda-11.8.0::cuda-toolkit -y 
+```
+
+Next, install the rest of the python packages requirements with pip, here [pytorch](https://pytorch.org/get-started/previous-versions/) compatible with CUDA=11.8 is being used:
+
+```
+pip install -r requirements_np3_ligand_cuda11.8.txt --index-url https://download.pytorch.org/whl/cu118
+```
+
+Check the installed versions of pytorch, the corresponding CUDA used with it and GCC used, run:
+```
+python -c "import sys; import torch; print('Python version:', sys.version); print('Torch version:', torch.__version__); print('Torch CUDA version:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available());" && gcc --version | head -n 1 | cut -d' ' -f3
+```
+
+And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine by cloning its github source code and using the force_cuda parameter:
+
+```
+export CXX=g++-9;  # set this if you want to use a different C++ compiler
 export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--force_cuda"
+export LD_LIBRARY_PATH=$CUDA_HOME/lib:$LD_LIBRARY_PATH
+export PATH=$CUDA_HOME/bin:$PATH  
+git clone https://github.com/NVIDIA/MinkowskiEngine.git
+cd MinkowskiEngine
+export MAX_JOBS=2; # parallel compilation - prevent to much CPU assignment and process killed
+python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include --blas=openblas --force_cuda
 ```
 
 ---------------------------------
-----------------------------------
-
 # How to use
 
 -------------------------------
@@ -133,6 +185,8 @@ More instructions are present in each repository documentation.
 
 This research was funded by the [Serrapilheira](https://serrapilheira.org/en/) Institute, grant number Serra-1709-19681 (to Daniela B. B. Trivella).
 It was part of the [Master's thesis](https://repositorio.unicamp.br/acervo/detalhe/1371294) of Cristina Freitas Bazzano, developed within an interdisciplinary project from the DDP-LNBio-CNPEM and the Institute of Computing from the University of Campinas (UNICAMP). 
+
+--------------------------------------
 
 ### License
 LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud Representations and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under CC BY 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by/4.0/
