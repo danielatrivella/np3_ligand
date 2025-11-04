@@ -5,12 +5,13 @@ library(readr)
 # max_num_ligCode <- 500
 # min_class_occ <- 5000
 # max_class_occ <- 10000
+# min_qRank095_size = 100
 
 # read input
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) < 6) {
-  cat("Six parameters must be supplied to undersample the given list of valid ligands (dataset) using the ligands",
-       "entries occurrence by class (within the selected ones) and by ligand code (unique structure). ",
+  cat("Seven parameters must be supplied to undersample the given list of valid ligands (dataset) using the ligands",
+       "entries occurrence by class (within the selected ones) and by ligand code (unique structure) and their thinner representation qRank0.95 size. ",
        "Outputs the undersampled list to the current directory.\nParameters:\n",
        " 1. valid_ligands_list_path: Path to the CSV table with the list of valid ligands. This is expected to be inside the xyz directory as a result of the labeling testing of the ligands representations. ",
        "The undersampling technique will be applied in this list to filter the ligands entries (rows), ",
@@ -22,10 +23,11 @@ if (length(args) < 6) {
        "entries by the anti-clustering algorithm (stratified approach). ",
        "The names of the selected classes separated by comma or the word 'all' to use the entire vocabulary (all the classes). ",
        "Only the ligands that were labeled with this list of classes will be kept, the rest will be filtered out;\n",
-       " 4. max_ligCode_occ: The maximum number of ligand entries occurrences by ligCode - ",
+       " 4. min_qRank095_size: The minimum size of the qRank0.95 point cloud representation that a ligand must have. Ligand entries with the qRank0.95 representation with fewer points than this will be removed. (recommended to 100 points - which is equivalent to the volume of 5 atoms when only 65% of its atomic sphere is considered);\n",
+       " 5. max_ligCode_occ: The maximum number of ligand entries occurrences by ligCode - ",
        "balance the occurrence of different ligands structures in the dataset;\n",
-       " 5. min_class_occ: The minimum number of classes occurrences by ligand entry (minimum number of entries in which the class appear);\n",
-       " 6. max_class_occ: The maximum number of classes occurrences by ligand entry (maximum number of entries in which the class appear).\n\n",
+       " 6. min_class_occ: The minimum number of classes occurrences by ligand entry (minimum number of entries in which the class appear);\n",
+       " 7. max_class_occ: The maximum number of classes occurrences by ligand entry (maximum number of entries in which the class appear).\n\n",
        sep="")
   stop("Wrong number of arguments.", call.=FALSE)
 } else {
@@ -47,19 +49,21 @@ if (length(args) < 6) {
   
   keep_labels <- args[[3]]
   
-  max_num_ligCode  <- as.integer(args[[4]])
+  min_qRank095_size  <- as.integer(args[[4]])
+  
+  max_num_ligCode  <- as.integer(args[[5]])
   if (is.na(max_num_ligCode))
   {
     stop("The provided maximum number of ligand occurrences by ligCode must be an integer. Wrong value provided.")
   }
   
-  min_class_occ  <- as.integer(args[[5]])
+  min_class_occ  <- as.integer(args[[6]])
   if (is.na(min_class_occ))
   {
     stop("The provided minimum number of classes occurrences by ligand entry. Wrong value provided.")
   }
   
-  max_class_occ  <- as.integer(args[[6]])
+  max_class_occ  <- as.integer(args[[7]])
   if (is.na(max_class_occ))
   {
     stop("The provided maximum number of lclasses occurrences by ligand entry. Wrong value provided.")
@@ -87,7 +91,8 @@ keep_labels <- match(keep_labels, vocab)-1
 
 ligs_data <- read_csv(ligs_data_path)
 # check if the vocab labels to keep and the mandatory columns names are present in the ligand data
-entries_mandatory_columns <- c("bfactor", "AverageBFactor", "RefinementResolution", "ligCode", "entry", keep_labels)
+pc_type <- "point_cloud_size_qRank0.95"
+entries_mandatory_columns <- c("bfactor", "AverageBFactor", "RefinementResolution", "ligCode", "entry", pc_type, keep_labels)
 if (!all(entries_mandatory_columns %in% names(ligs_data)))
 {
   stop("The ligand data file '", ligs_data_path,
@@ -97,20 +102,9 @@ if (!all(entries_mandatory_columns %in% names(ligs_data)))
        "variables and entries is located.")
 }
 
-pc_type <- c("point_cloud_size_qRank0.95", "point_cloud_size_3sigma")
-if (pc_type[1] %in% names(ligs_data)) {
-  pc_type <- pc_type[1]
-} else if (pc_type[2] %in% names(ligs_data)) {
-  pc_type <- pc_type[2]
-} else {
-  stop("The ligand data file '", basename(ligs_data_path),
-       "' do not have the mandatory point cloud size column. Provide a valid path to where the csv file with the ligands ",
-       "variables and entries is located.")
-}
-
 cat("\n** Start undersampling the ligands data set with", nrow(ligs_data), 
     "entries  **\n")
-cat("- keep_labels: ",keep_labels, "\n- max_num_ligCode: ",max_num_ligCode,
+cat("- keep_labels: ",keep_labels, "\n- min_qRank095_size: ",min_qRank095_size, "\n- max_num_ligCode: ",max_num_ligCode,
     "\n- min_class_occ: ",min_class_occ, "\n- max_class_occ: ",max_class_occ,"\n\n")
 
 # filter the ligands that only have the labels present in the keep_labels list
@@ -141,13 +135,14 @@ if (sum(rm_ligCode) > 0) {
   ligs_data <- ligs_data[!rm_ligCode,]
 }
 
-cat("\n\n* Filter out the ligands entries with a point cloud size at 0.95 qRank smaller than 150 points.")
-rm_ligs_by_size <- (ligs_data[[pc_type]] >= 150)
-# filter ligs with pc_type > 150
+
+cat("\n\n* Filter out the ligands entries with a point cloud size at 0.95 qRank smaller than ", min_qRank095_size," points.")
+rm_ligs_by_size <- (ligs_data[[pc_type]] >= min_qRank095_size)
+# filter ligs with pc_type > min_qRank095_size
 ligs_data <- ligs_data[rm_ligs_by_size, ]
 # print how many ligands were excluded
 cat("\n- Removed a total of", sum(!rm_ligs_by_size), 
-    "ligands that have a point cloud size with less than 150 points.")
+    "ligands that have a point cloud size with less than",min_qRank095_size,"points.")
 
 cat("\n\n* Entries by class occurrence ratio\n")
 class_by_entry_ratio <- colSums(ligs_data[,keep_labels]>0)
@@ -344,6 +339,7 @@ max_class_occ <- max(class_by_entry_ratio)
 
 write_csv(ligs_data, file=sub(x=basename(ligs_data_path), pattern = "\\_filter.*\\.csv", 
                               replacement = paste0("_undersampling_", keep_labels,
+                              			   "_size0.95_", min_qRank095_size,
                                                    "_maxLigCode_",max_num_ligCode,
                                                    "_classOcc_",min_class_occ,
                                                    "_", max_class_occ,

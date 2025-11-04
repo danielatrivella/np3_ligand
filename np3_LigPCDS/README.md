@@ -635,8 +635,8 @@ This dataset is intended to be used in the training pipeline of the DL semantic 
 #### 5.1 Undersampling in LigPCDS
 
 Applies an undersampling technique in a list of valid ligands (provided dataset) from LigPCDS. 
-It will filter the ligands entries using their occurrence by the selected classes of the given vocabulary and 
-by ligand code (unique structure).
+It will filter the ligands entries using their occurrence by the selected classes of the given vocabulary,
+by ligand code (unique structure) and by the size of their qRank0.95 representation.
 
 An anti-clustering algorithm is used in the undersampling approach to keep diversity among the filtered entries 
 related to their occurrence by class, size of the qRank0.95 representation, B factor, resolution and occupancy.
@@ -645,7 +645,7 @@ This step is intended to remove bias in the list of valid ligands towards freque
 
 *Run:*
 
-> ``` Rscript src/undersampling_ligs_by_diversity_occurence.R valid_ligands_list_path vocab_path classes_list max_ligCode_occ min_class_occ max_class_occ```
+> ``` Rscript src/undersampling_ligs_by_diversity_occurence.R valid_ligands_list_path vocab_path classes_list min_qRank095_size max_ligCode_occ min_class_occ max_class_occ```
 
 *Parameters:*
 
@@ -653,23 +653,24 @@ This step is intended to remove bias in the list of valid ligands towards freque
 This list is expected to be inside the xyz directory as a result of the labeling testing of the ligands representations. 
 The undersampling technique will be applied in this list to filter the ligands entries (rows), it will remove bias towards frequent ligand codes and frequent classes. Mandatory columns: ligCode, entry, bfactor, AverageBFactor, RefinementResolution, point_cloud_size_qRank0.95, and '0' to the number of classes in the vocabulary minus one;
 2. vocab_path: Path to the vocabulary file used to label the ligands entries present in the valid_ligands_list_path table. It must contain one label by row, defining their order (the Background class is not used);
-3. classes_list: The list of classes of the vocabulary that will be used in the undersampling of the entries by the anti-clustering algorithm (stratified approach). The names of the selected classes separated by comma or the word 'all' to use the entire vocabulary (all the classes). Only the ligands that were labeled with this list of classes will be kept, the rest will be filtered out;
-4. max_ligCode_occ: The maximum number of ligand entries occurrences by ligCode - balance the occurrence of different ligands structures in the dataset;
-5. min_class_occ: The minimum number of classes occurrences by ligand entry (minimum number of entries in which the class appear);
-6. max_class_occ: The maximum number of classes occurrences by ligand entry (maximum number of entries in which the class appear)
+3. classes_list: The list of classes of the vocabulary that will be used in the undersampling of the entries by the anti-clustering algorithm (stratified approach). The names of the selected classes separated by comma or the word 'all' to use the entire vocabulary (all the classes). Only the ligands that were labeled with this list of classes will be kept, the rest will be filtered out; 
+4. min_qRank095_size: The minimum size of the qRank0.95 point cloud representation that a ligand must have. Ligand entries with the qRank0.95 representation with fewer points than this will be removed. (recommended to 100 points - which is equivalent to the volume of 5 atoms when only 65% of its atomic sphere is considered); 
+5. max_ligCode_occ: The maximum number of ligand entries occurrences by ligCode - balance the occurrence of different ligands structures in the dataset; 
+6. min_class_occ: The minimum number of classes occurrences by ligand entry (minimum number of entries in which the class appear); 
+7. max_class_occ: The maximum number of classes occurrences by ligand entry (maximum number of entries in which the class appear)
 
 *Output:*
 
 One file is created in the current directory containing the list of valid ligands that were kept by the undersampling technique::
-- One CSV file named '<valid_ligands_list_path.name>_undersampling_<classes_list>_maxLigCode_<max_ligCode_occ>_classOcc_<min_class_occ>_<max_class_occ>.csv', the valid_ligands_list_path.name after the '_filter' tag until the '.csv' extension is removed from the naming to shorten the final filename.
+- One CSV file named '<valid_ligands_list_path.name>_undersampling_<classes_list>_size0.95_<min_qRank095_size>_maxLigCode_<max_ligCode_occ>_classOcc_<min_class_occ>_<max_class_occ>.csv', the valid_ligands_list_path.name after the '_filter' tag until the '.csv' extension is removed from the naming to shorten the final filename.
 
 It will print to the screen the occurrences of the vocabulary classes by ligand entry and by labeled atom. 
 The user may analyse this values to accept the result or plan a new undersampling job.
 
 *Example:*
 
-Limit the ligand's code frequency to 1000 repetitions and do not limit the classes occurrence:
-> ``` Rscript src/undersampling_ligs_by_diversity_occurence.R valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.csv vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt all 1000 0 1000000```
+Limit the ligand's code frequency to 1000 repetitions, the qRank0.95 size to 100 points and do not limit the classes occurrence:
+> ``` Rscript src/undersampling_ligs_by_diversity_occurence.R valid_ligands_list_PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate_noQualityFilter_box_class_freq_qRankTested_0.5_SP.csv vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt all 100 1000 0 1000000```
 
 #### 5.2 Stratified k-fold cross validation
 
