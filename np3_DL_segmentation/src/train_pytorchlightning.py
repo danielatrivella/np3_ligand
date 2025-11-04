@@ -3,8 +3,7 @@
 # Paper "4D Spatio-Temporal ConvNets: Minkowski Convolutional Neural
 # Networks", CVPR'19 (https://arxiv.org/abs/1904.08755)
 try:
-    from pytorch_lightning.core import LightningModule
-    from pytorch_lightning import Trainer
+    from pytorch_lightning import LightningModule, Trainer
 except ImportError:
     raise ImportError(
         "Please install requirements with `pip install open3d pytorch_lightning`."
@@ -30,21 +29,9 @@ class MinkowskiSegmentationModule(LightningModule):
     Segmentation Module for MinkowskiEngine.
     """
     #
-    def __init__(
-        self,
-        config,
-        model,
-        tb_logger,
-        # optimizer_name="SGD",
-        # lr=1e-3,
-        # weight_decay=1e-5,
-        # voxel_size=0.05,
-        # batch_size=12,
-        # val_batch_size=6,
-        # train_num_workers=4,
-        # val_num_workers=2,
-    ):
+    def __init__(self, config, model, tb_logger):
         super().__init__()
+        # creates the parms variables in self
         for name, value in vars().items():
             if name != "self":
                 setattr(self, name, value)
@@ -99,6 +86,12 @@ class MinkowskiSegmentationModule(LightningModule):
                 self.tb_logger.log_hyperparams(self.hparams,
                                             {"hyper_params/adam_beta1": config.adam_beta1,
                                              "hyper_params/adam_beta2": config.adam_beta2})
+        # creates the variables to store the train, validation and test outputs
+        if config.is_train:
+            self.training_step_outputs = []
+            self.validation_step_outputs = []
+        self.test_step_outputs = []
+    #
     # print the loss weights used for training
     def print_weights(self):
         class_names = self.class_names[self.loss_weights > 0.0]
@@ -281,6 +274,7 @@ class MinkowskiSegmentationModule(LightningModule):
         outs = self(stensor).F
         loss = self.criterion(outs, batch[2].long())
         preds = get_prediction(outs)
+        self.training_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()})
         return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
     #
     def training_step_end(self, outputs):
@@ -290,19 +284,20 @@ class MinkowskiSegmentationModule(LightningModule):
             #print("return log")
         return outputs
     #
-    def training_epoch_end(self, outputs):
+    def on_train_epoch_end(self):
         #print("training_epoch_end current epoch", self.current_epoch)
         #print(outputs)
-        if len(outputs) == 1:
-            outs = outputs[0]
+        if len(self.training_step_outputs) == 1:
+            outs = self.training_step_outputs[0]
         else:
             # concat results
             outs = {}
-            outs['loss'] = sum([out['loss'].detach().cpu() for out in outputs])/len(outputs)
-            outs['preds'] = torch.cat([out['preds'] for out in outputs])
-            outs['target'] = torch.cat([out['target'] for out in outputs])
+            outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in self.training_step_outputs]).mean()
+            outs['preds'] = torch.cat([out['preds'] for out in self.training_step_outputs])
+            outs['target'] = torch.cat([out['target'] for out in self.training_step_outputs])
         # print(outs)
         self.log_metrics_train(outs, on_epoch=True)
+        self.training_step_outputs.clear()  # free memory
         # reset histogram for next epoch IoU computation, except in the last epoch
         #print("current_epoch", self.current_epoch)
         if self.current_epoch+1 != self.config.max_epoch:
@@ -328,6 +323,7 @@ class MinkowskiSegmentationModule(LightningModule):
         # Must clear cache at regular interval
         if self.global_step % self.config.empty_cache_freq == 0:
             torch.cuda.empty_cache()
+        self.validation_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()})
         return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
     #
     def validation_step_end(self, outputs):
@@ -337,7 +333,7 @@ class MinkowskiSegmentationModule(LightningModule):
         if self.config.num_gpu > 1 and isinstance(outputs, list):
             # concat results
             outs = {}
-            outs['loss'] = sum([out['loss'].detach().cpu() for out in outputs])/len(outputs)
+            outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in outputs]).mean()
             outs['preds'] = torch.cat([out['preds'] for out in outputs])
             outs['target'] = torch.cat([out['target'] for out in outputs])
         else:
@@ -347,19 +343,20 @@ class MinkowskiSegmentationModule(LightningModule):
             self.log_metrics_val(outs, on_epoch=False)
         return outs
     #
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self):
         #print("validation_epoch_end")
         #print(outputs)
-        if len(outputs) == 1:
-            outs = outputs[0]
+        if len(self.validation_step_outputs) == 1:
+            outs = self.validation_step_outputs[0]
         else:
             # concat results
             outs = {}
-            outs['loss'] = sum([out['loss'].detach().cpu() for out in outputs])/len(outputs)
-            outs['preds'] = torch.cat([out['preds'] for out in outputs])
-            outs['target'] = torch.cat([out['target'] for out in outputs])
+            outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in self.validation_step_outputs]).mean()
+            outs['preds'] = torch.cat([out['preds'] for out in self.validation_step_outputs])
+            outs['target'] = torch.cat([out['target'] for out in self.validation_step_outputs])
         # print(outs)
         self.log_metrics_val(outs, on_epoch=True)
+        self.validation_step_outputs.clear() # free memory
     #
     def on_validation_end(self):
         # if last epoch, save validation confusion matrix
@@ -411,22 +408,30 @@ class MinkowskiSegmentationModule(LightningModule):
             raise ValueError(f'When testing and saving the predictions the total allowed batch size must be equals 1.')
     #
     def test_step(self, batch, batch_idx):
-        # print('start test')
+        #print('start test')
+        #print(batch)
         stensor = ME.SparseTensor(
-            coordinates=batch[0], features=batch[1]
+            coordinates=batch[0], features=batch[1], device = self.device
         )
+        #print('sparse tensor')
         outs = self(stensor).F
         loss = self.criterion(outs, batch[2].long())
         preds = get_prediction(outs)
+        #print('get outs')
         # Must clear cache at regular interval
         if self.global_step % self.config.empty_cache_freq == 0:
             torch.cuda.empty_cache()
+        #print('empty cache')
         if self.config.save_prediction and self.config.test_batch_size == 1:
-            # also return the coords when sabing the predictions
+            # also return the coords when saving the predictions
+            self.test_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu(),
+                    'coords': batch[0].detach().cpu(), 'batch_idx': batch_idx})
             return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu(),
                     'coords': batch[0].detach().cpu(), 'batch_idx': batch_idx}
         else:
+            self.test_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()})
             return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
+        print('test outs')
     #
     def test_step_end(self, outputs):
         # update and log
@@ -446,17 +451,18 @@ class MinkowskiSegmentationModule(LightningModule):
             self.log_metrics_test(outs, on_epoch=False)
         return outs
     #
-    def test_epoch_end(self, outputs):
-        if len(outputs) == 1:
-            outs = outputs[0]
+    def on_test_epoch_end(self):
+        if len(self.test_step_outputs) == 1:
+            outs = self.test_step_outputs[0]
         else:
             # concat results
             outs = {}
-            outs['loss'] = sum([out['loss'].detach().cpu() for out in outputs])/len(outputs)
-            outs['preds'] = torch.cat([out['preds'] for out in outputs])
-            outs['target'] = torch.cat([out['target'] for out in outputs])
+            outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in self.test_step_outputs]).mean()
+            outs['preds'] = torch.cat([out['preds'] for out in self.test_step_outputs])
+            outs['target'] = torch.cat([out['target'] for out in self.test_step_outputs])
         # print(outs)
         self.log_metrics_test(outs, on_epoch=True)
+        self.test_step_outputs.clear()  # free memory
     #
     def on_test_end(self):
         # save final confusion matrix
