@@ -66,7 +66,7 @@ the current folder and running the setup with corresponding parameters (preferre
 For **CPU** only installation, run the script:
 
 ```
-./install_conda_env_requirements_cpu.sh
+source install_conda_env_requirements_cpu.sh
 ```
 
 For **GPU** enabled installation, there are additional requirement:
@@ -78,7 +78,7 @@ The pytorch CUDA version must match the cudtoolkit version.
 
 For **GPU** enabled installation, run the script:
 ```
-./install_conda_env_requirements_cuda11.8.sh
+source install_conda_env_requirements_cuda11.8.sh
 ```
 
 ---------------------------------
@@ -151,7 +151,7 @@ pip install -r requirements_np3_ligand_cuda11.8.txt --index-url https://download
 
 Check the installed versions of pytorch, the corresponding CUDA used with it and GCC used, run:
 ```
-python -c "import sys; import torch; print('Python version:', sys.version); print('Torch version:', torch.__version__); print('Torch CUDA version:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available());" && gcc --version | head -n 1 | cut -d' ' -f3
+python -c "import sys; import torch; print('Python version:', sys.version); print('Torch version:', torch.__version__); print('Torch CUDA version:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available()); import MinkowskiEngine as ME; ME.print_diagnostics();" && gcc --version | head -n 1
 ```
 
 And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine by cloning its github source code and using the force_cuda parameter:

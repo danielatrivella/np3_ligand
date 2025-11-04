@@ -24,7 +24,7 @@
 ### 
 ### 3. Then install the NP3 LIGANDS requirements with pip, run:
 ### PYTORCH version compatibility with CUDA https://pytorch.org/get-started/previous-versions/
-#> pip install -r requirements_np3_ligand_cuda11.8.txt --index-url https://download.pytorch.org/whl/cu118
+#> pip install -r requirements_np3_ligand_cuda11.8.txt --extra-index-url https://download.pytorch.org/whl/cu118
 compiletools
 setuptools<60.0 # MinkowskiEngine Dependency to numpy.distutils
 torch==2.7.1 
