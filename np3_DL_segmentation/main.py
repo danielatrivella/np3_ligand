@@ -36,7 +36,7 @@ def main():
     elif not config.is_cuda:
         # set fixed this parameters if is_cuda is False
         config.accelerator = 'cpu'
-        config.gpu_index = None
+        config.gpu_index = 1
         config.num_gpu = 0
     elif config.is_cuda:
         # set parameters for cuda True
@@ -101,7 +101,7 @@ def main():
         # configure map_location properly, setting the main device when using gpu
         # map_location = ({'cuda:%d' % config.gpu_index: 'cuda:%d' % gpu} if gpu is not None else device)
         map_location = 'cpu'
-        state = torch.load(config.weights, map_location=map_location)
+        state = torch.load(config.weights, map_location=map_location, weights_only=False)
         if 'state_dict' not in state.keys():
             state = {'state_dict': state}
         #print(state['state_dict'])
@@ -125,6 +125,7 @@ def main():
 
     # create the pytorch lightning module
     pl_module = MinkowskiSegmentationModule(config, model, tb_logger)
+    #print("pl_modules")
     ####
     # initialize trainer
     trainer = Trainer(max_epochs=config.max_epoch,
@@ -134,7 +135,7 @@ def main():
                       log_every_n_steps=config.log_freq,
                       logger=tb_logger,
                       accumulate_grad_batches=config.iter_size)
-    
+    #print("Trainer")
     # run training pipeline or only testing
     if config.is_train:
         # run model fit
@@ -147,6 +148,7 @@ def main():
         trainer.test(ckpt_path="best")
     else:
         # test using provided weights if any
+        #print("run test")
         trainer.test(pl_module)
 
 
