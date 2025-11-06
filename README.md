@@ -39,10 +39,10 @@ The dependencies of all repositories are unified here in a single conda environm
 
 Tested in a Linux with Ubuntu 22.04.
 
-Let's start with the installation of the Ubuntu packages and GCC 9:
+Let's start with the installation of the Ubuntu packages and GCC 11:
 
 ```
-sudo apt install build-essential libopenblas-dev g++-9
+sudo apt install build-essential libopenblas-dev g++-11
 ```
 
 The required python and R packages will be installed with **anaconda + pip**. If you have any issues installing the packages, please report it on the github issue page.
@@ -157,7 +157,7 @@ python -c "import sys; import torch; print('Python version:', sys.version); prin
 And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine by cloning its github source code and using the force_cuda parameter:
 
 ```
-export CXX=g++-9;  # set this if you want to use a different C++ compiler
+export CXX=g++-11;  # set this if you want to use a different C++ compiler
 export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
 export LD_LIBRARY_PATH=$CUDA_HOME/lib:$LD_LIBRARY_PATH
 export PATH=$CUDA_HOME/bin:$PATH  
