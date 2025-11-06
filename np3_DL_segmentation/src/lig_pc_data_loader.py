@@ -25,7 +25,6 @@ def compute_imbalance_ratio_H(class_representation, pc_type):
 class LigandPointCloudDataset(Dataset):
     def __init__(self, ligs_retrieve_filepath, data_type, kfold, pc_path,
                  pc_type, vocab_path, class_mapping_path = None, rotation_rate = 0.5):
-                 #,device_id=0, num_devices=1, num_points=0,
         # set the class attributes
         self.rotation_rate = rotation_rate
         self.pc_path = Path(pc_path)
@@ -35,19 +34,9 @@ class LigandPointCloudDataset(Dataset):
         # read vocabulary labels and add background solvent class
         self.vocab = np.asarray([line.rstrip('\n') for line in open(vocab_path)] + ["solvent_background"])
         self.NUM_LABELS = len(self.vocab)
-        # set vocab col names
-        # vocab_cols = [str(x) for x in list(range(self.NUM_LABELS - 1))]
-        # read the dataset
-        #if self.pc_type in ['qRankMask', 'qRankMask_5', 'qRankMask_5_75_95', 'qRankMask_5_7_9']:
-        #    pc_type_size_col = 'point_cloud_size_qRankMask'
-        #else:
-        #    pc_type_size_col = 'point_cloud_size_'+self.pc_type
+        #
         self.ligs_retrieve = pd.read_csv(ligs_retrieve_filepath,
                                          usecols = ['ligID', 'entry', 'grid_space', 'kfolds', 'test_val'])
-                                                   #+[pc_type_size_col])  # + vocab_cols # not used anymore
-        # not used anymore - compute initial class weights based on the class representation (total #atoms) imbalance ratio
-        # self.class_H_imbalance_ratio = compute_imbalance_ratio_H(self.ligs_retrieve[vocab_cols].sum(0).values, pc_type)
-        #
         # filter the data set entries depending on the data type and the kfold being used for testing and validation
         if data_type == 'train':
             self.ligs_retrieve = self.ligs_retrieve[self.ligs_retrieve.kfolds != kfold].reset_index(drop=True)
@@ -96,14 +85,6 @@ class LigandPointCloudDataset(Dataset):
     def __len__(self):
         return self.ligs_retrieve.shape[0]
     #
-    # def partition(self, device_id, num_devices): - not used
-    #     if num_devices > 1:  # in a multi-process data loading
-    #         # split workload
-    #         per_worker = int(np.ceil((self.__len__() - 0) / num_devices))
-    #         iter_start = 0 + device_id * per_worker
-    #         iter_end = min(iter_start + per_worker, self.__len__())
-    #         self.ligs_retrieve = self.ligs_retrieve.iloc[range(iter_start, iter_end),:].reset_index(drop=True)
-        # self.indexes = iter(range(iter_start, iter_end))
     # check if the ligands input file exists an if not remove missing entries from the ligands table
     def checkLigandsFiles(self):
         logging.info('    ==> Checking if the ligand representations and label files exists')
@@ -132,23 +113,6 @@ class LigandPointCloudDataset(Dataset):
             logging.info('      ==> Removed a total of ' + str(n_rm)+ ' ligands entries with missing input files')
         else:
             logging.info('      ==> OK')
-        # check the entries size - not used
-        # remove entries with less points than the num_points
-        # if self.num_points > 0:
-        #     logging.info(
-        #         '    ==> Checking if the ligands point cloud size are greater or equal than the required number of points (' +
-        #         str(self.num_points) + ')')
-        #     if self.pc_type in ['qRankMask', 'qRankMask_5_75_95', 'qRankMask_5_7_9']:
-        #         pc_type_size_col = 'point_cloud_size_qRankMask'
-        #     else:
-        #         pc_type_size_col = 'point_cloud_size_' + self.pc_type
-        #     if any(self.ligs_retrieve[pc_type_size_col] < self.num_points):
-        #         logging.info('      ==> Removed a total of ' + str(
-        #                 sum(self.ligs_retrieve[pc_type_size_col] < self.num_points)) +
-        #                            ' ligands entries with a point cloud size < ' + str(self.num_points))
-        #         self.ligs_retrieve = self.ligs_retrieve[self.ligs_retrieve[pc_type_size_col] >= self.num_points]
-        #     else:
-        #         logging.info('      ==> OK')
     def __getitem__(self, i):
         # print("@@@ Get item ",i, " ligCode", self.ligs_retrieve.loc[i,'ligID'])
         pcfile_xyzrgb = self.pc_path / self.ligs_retrieve.loc[i,'entry'] / \
@@ -179,24 +143,12 @@ class LigandPointCloudDataset(Dataset):
         # draw pc to visualize data
         # if debug_img:
         #     draw_pc(coords, feats)
-        # removed num_points - tested for the DGCNN, but not used
-        # if self.num_points > 0:
-        #     # random sub sample the input to return a point cloud with a number of points equals the provided num_points
-        #     # sample num_points for this entry
-        #     mapping = np.random.choice(coords.shape[0], size=self.num_points, replace=False)
-        #     return torch.FloatTensor(np.concatenate([coords[mapping],feats[mapping]], 1)), torch.LongTensor(labels[mapping])
-        # else:
         # Quantize the input
         quantized_coords, mapping = ME.utils.sparse_quantize(coordinates=np.floor(coords / self.ligs_retrieve.loc[i,'grid_space']),
                                                              return_index=True)
         # draw pc to visualize data after quantize
         # if debug_img:
         #     draw_pc(quantized_coords[mapping], feats[mapping])
-        # return {
-        #     "coordinates": quantized_coords,
-        #     "features": feats[mapping],
-        #     "labels": labels[mapping],
-        # }
         return quantized_coords, feats[mapping], labels[mapping]
     def get_entry_id(self, i):
         return self.ligs_retrieve.loc[i,'ligID']
@@ -204,7 +156,6 @@ class LigandPointCloudDataset(Dataset):
         return self.ligs_retrieve.grid_space.unique()[0]
     def read_pc_table(self, pcfile):
         pc = pd.read_table(pcfile, header=None, delimiter=" ")
-        # if self.pc_type in ['sigmaMask', 'qRankMask_5_75_95'] return the three channels as features
         # else only return one of the channels as features
         return np.ascontiguousarray(pc.iloc[:, :3].values, np.float64), pc.iloc[:, 3:(3+self.num_feats())].values.astype(np.float64)
     # the labels file is expected to have one label per row
@@ -220,7 +171,7 @@ class LigandPointCloudDataset(Dataset):
         #
         return labels
     def num_feats(self):
-        if self.pc_type in ['sigmaMask', 'qRankMask_5_75_95', 'qRankMask_5_7_9']:
+        if self.pc_type in ['qRankMask_5_75_95', 'qRankMask_5_7_9']:
             # return the three channels as features - these representations are not used anymore
             return 3
         else:  # only return one of the channels as features
@@ -229,8 +180,6 @@ class LigandPointCloudDataset(Dataset):
         return self.NUM_LABELS
     def get_classnames(self):
         return self.vocab
-    # def get_lr_decrease_index(self):
-    #     return self.lr_decrease_i
     def get_class_representation_ratio(self):
         return self.class_H_imbalance_ratio # to be used and the weights initialization
     def random_shuffle_kfolds(self):
@@ -245,29 +194,12 @@ class LigandPointCloudDataset(Dataset):
 
 def collation_fn(data_labels):
     coords, feats, labels = list(zip(*data_labels))
-    # coords_batch, feats_batch, labels_batch = [], [], []
     # Generate batched coordinates
     coords_batch = ME.utils.batched_coordinates(coords)
     # Concatenate all lists
     feats_batch = torch.from_numpy(np.concatenate(feats, 0)).float()
     labels_batch = torch.from_numpy(np.concatenate(labels, 0)).long()
     return coords_batch, feats_batch, labels_batch
-# def collation_fn(list_data):
-#     r"""
-#         Collation function for MinkowskiEngine.SparseTensor that creates batched
-#         cooordinates given a list of dictionaries.
-#         """
-#     coordinates_batch, features_batch, labels_batch = ME.utils.sparse_collate(
-#         [d["coordinates"] for d in list_data],
-#         [d["features"] for d in list_data],
-#         [d["labels"] for d in list_data],
-#         dtype=torch.float32,
-#     )
-#     return {
-#         "coordinates": coordinates_batch,
-#         "features": features_batch,
-#         "labels": labels_batch,
-#     }
 
 def ligands_dataloader(config, data_type):  #, device_id=0, num_devices=1):
     np.random.seed(config.seed)
@@ -279,22 +211,11 @@ def ligands_dataloader(config, data_type):  #, device_id=0, num_devices=1):
                                               #device_id=device_id,num_devices=num_devices,
                                               # num_points=config.num_points,
                                               rotation_rate=config.rotation_rate)
-        # if config.num_points > 0:
-        #     # DGCNN - not used
-        #     lig_dataloader = DataLoader(
-        #         lig_dataset,
-        #         batch_size=config.batch_size,
-        #         num_workers=config.num_workers,
-        #         shuffle=True)
-        # else:
         # ME
         lig_dataloader = DataLoader(
             lig_dataset,
             batch_size=config.batch_size,
             collate_fn=collation_fn,
-            # 2) collate_fn=ME.utils.batch_sparse_collate,
-            # collate_fn=ME.utils.SparseCollation(),
-            # collate_fn=ME.utils.batch_sparse_collate,
             num_workers=config.num_workers,
             shuffle=True)
     else:
@@ -304,13 +225,6 @@ def ligands_dataloader(config, data_type):  #, device_id=0, num_devices=1):
                                               #False,device_id=device_id,num_devices=num_devices,
                                               # num_points=config.num_points,
                                               rotation_rate=config.rotation_rate)
-        # if config.num_points > 0:
-        #     # DGCNN - not used
-        #     lig_dataloader = DataLoader(
-        #         lig_dataset,
-        #         batch_size=config.batch_size,
-        #         num_workers=config.num_val_workers)
-        # else:
         # ME
         lig_dataloader = DataLoader(
             lig_dataset,
