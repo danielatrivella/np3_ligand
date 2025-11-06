@@ -31,6 +31,8 @@ class MinkowskiSegmentationModule(LightningModule):
     #
     def __init__(self, config, model, tb_logger):
         super().__init__()
+        if type(config.num_devices) is list:
+            config.num_devices = len(config.num_devices)
         # creates the parms variables in self
         for name, value in vars().items():
             if name != "self":
@@ -72,9 +74,9 @@ class MinkowskiSegmentationModule(LightningModule):
         # log hyper params
         if self.tb_logger is not None:
             self.tb_logger.log_hyperparams(self.hparams,
-                                        {"hyper_params/num_gpu": config.num_gpu,
+                                        {"hyper_params/num_devices": config.num_devices,
                                          "hyper_params/total_bach_size":
-                                             (config.num_gpu if config.num_gpu > 0 else 1) * config.batch_size * config.iter_size,
+                                             (config.num_devices) * config.batch_size * config.iter_size,
                                          "hyper_params/batch_size": config.batch_size,
                                          "hyper_params/iter_size": config.iter_size,
                                          "hyper_params/weight_decay": config.weight_decay})
@@ -330,7 +332,7 @@ class MinkowskiSegmentationModule(LightningModule):
         # update and log
         #print("validation step end")
         #print(outputs)
-        if self.config.num_gpu > 1 and isinstance(outputs, list):
+        if self.config.num_devices > 1 and isinstance(outputs, list):
             # concat results
             outs = {}
             outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in outputs]).mean()
@@ -373,7 +375,7 @@ class MinkowskiSegmentationModule(LightningModule):
     #
     def on_test_start(self):
         # save prediction only if batch size equals 1, create the output directory and table
-        if self.config.save_prediction and self.config.test_batch_size == 1 and self.config.num_gpu <= 1:
+        if self.config.save_prediction and self.config.test_batch_size == 1 and self.config.num_devices == 1:
             import os
             save_pred_dir = self.config.save_pred_dir
             os.makedirs(save_pred_dir, exist_ok=True)
@@ -435,7 +437,7 @@ class MinkowskiSegmentationModule(LightningModule):
     #
     def test_step_end(self, outputs):
         # update and log
-        if self.config.num_gpu > 1 and isinstance(outputs, list):
+        if self.config.num_devices > 1 and isinstance(outputs, list):
             # concat results
             outs = {}
             outs['loss'] = sum([out['loss'].detach().cpu() for out in outputs])/len(outputs)
