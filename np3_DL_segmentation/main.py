@@ -13,7 +13,7 @@ except ImportError:
         "Please install requirements with `pip install open3d pytorch_lightning`."
     )
 from pytorch_lightning import loggers as pl_loggers
-
+from pytorch_lightning.callbacks import StochasticWeightAveraging
 import numpy as np
 import pandas as pd
 import MinkowskiEngine as ME
@@ -29,23 +29,27 @@ def main():
     config = get_config()
 
     if config.is_cuda and not torch.cuda.is_available():
-        raise Exception("No GPU found")
-    if config.is_cuda and max(config.gpu_index) >= torch.cuda.device_count():
-        raise Exception("Wrong GPU index ("+str(config.gpu_index)+"). The number of devices is "+
-                        str(torch.cuda.device_count())+".")
-    elif not config.is_cuda:
-        # set fixed this parameters if is_cuda is False
-        config.accelerator = 'cpu'
-        config.gpu_index = 1
-        config.num_gpu = 0
-    elif config.is_cuda:
+        raise Exception("No GPU found! Cuda is not available, aborting. ")
+    if config.is_cuda:
         # set parameters for cuda True
         config.accelerator = 'gpu'
-        if len(config.gpu_index) != config.num_gpu:
-            raise Exception("Wrong number of GPU indexes ("+str(config.gpu_index)+"). It should match with the number of GPUs "+
-                        str(config.num_gpu)+".")
-
-
+        if config.gpu_index is not None:
+            config.num_devices = config.gpu_index
+            if len(config.num_devices) >= torch.cuda.device_count() or max(config.gpu_index) >= torch.cuda.device_count():
+                raise Exception("Wrong GPU index ("+str(config.gpu_index)+") or number of devices ("+
+                                str(len(config.num_devices))+") . The number of available GPU devices is "+
+                                str(torch.cuda.device_count())+". Aborting.")
+        else: # gpu_index not informed
+            if config.num_devices >= torch.cuda.device_count() or config.num_devices < 1:
+                raise Exception("Wrong number of GPU devices ("+str(config.num_devices)+") . "+
+                                "The number of available GPU devices is "+
+                                str(torch.cuda.device_count())+". Aborting.")
+    else: # not config.is_cuda:
+        # set parameter for CPU use
+        config.accelerator = 'cpu'
+        if config.num_devices < 1:
+            raise Exception("Wrong number of CPU devices (" + str(config.num_devices) + ") . " +
+                            "It must be a value greater or equal than 1. Aborting.")
     # Trainer configs
     config.strategy = 'ddp'
 
@@ -109,16 +113,14 @@ def main():
         state['state_dict'] = {(k.partition('model.')[2] if k.startswith('model.') else k): state['state_dict'][k]
                                for k in state['state_dict'].keys() if k not in ['criterion.weight', 'model.criterion.weight', 'criterion.cross_entropy.weight', 'model.criterion.cross_entropy.weight']}
         logging.info(state['state_dict'])
-        if config.weights_for_inner_model:
-            model.load_state_dict(state['state_dict'])
+
+        if config.lenient_weight_loading:
+            matched_weights = load_state_with_same_shape(model, state['state_dict'])
+            model_dict = model.state_dict()
+            model_dict.update(matched_weights)
+            model.load_state_dict(model_dict)
         else:
-            if config.lenient_weight_loading:
-                matched_weights = load_state_with_same_shape(model, state['state_dict'])
-                model_dict = model.state_dict()
-                model_dict.update(matched_weights)
-                model.load_state_dict(model_dict)
-            else:
-                model.load_state_dict(state['state_dict'])
+            model.load_state_dict(state['state_dict'])
         del state
     else:
         model.weight_initialization()
@@ -126,15 +128,21 @@ def main():
     # create the pytorch lightning module
     pl_module = MinkowskiSegmentationModule(config, model, tb_logger)
     #print("pl_modules")
+    # define callbacks if stochastic_weight_avg is true
+    if config.stochastic_weight_avg:
+        callbacks = [StochasticWeightAveraging()]
+    else:
+        callbacks = None
     ####
     # initialize trainer
     trainer = Trainer(max_epochs=config.max_epoch,
-                      devices=config.gpu_index,
+                      devices=config.num_devices,
                       accelerator=config.accelerator,
                       strategy=config.strategy,
                       log_every_n_steps=config.log_freq,
                       logger=tb_logger,
-                      accumulate_grad_batches=config.iter_size)
+                      accumulate_grad_batches=config.iter_size,
+                      callbacks = callbacks)
     #print("Trainer")
     # run training pipeline or only testing
     if config.is_train:
@@ -150,7 +158,6 @@ def main():
         # test using provided weights if any
         #print("run test")
         trainer.test(pl_module)
-
 
 
 if __name__ == '__main__':
