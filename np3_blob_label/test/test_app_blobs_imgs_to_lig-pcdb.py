@@ -80,11 +80,12 @@ if __name__ == "__main__":
     new_output_path = sys.argv[3]
     db_ligxyz_path = sys.argv[4]
   else:
-    sys.exit("Wrong number of arguments. Three argument must be supplied to copy the blobs images to a new output directory"
-             "following the training pipeline input files naming and organization. Label the images using .xyz files from np3_pc_DB scripts. \n"
+    sys.exit("Wrong number of arguments. Three argument must be supplied to copy the blobs point clouds to a new output directory"
+             " following the training pipeline input files naming and organization. "
+             "Label the point clouds using the .xyz files from np3_LigPCDS scripts. \n"
              "  1. entries_list_path;\n"
-             "  2. np3_output_path: The path to the output data folder where the np3 ligand result was stored for a "
-             "past job ('data/np3_ligand_<DATE>/');\n"
+             "  2. np3_ligand_output_path: The path to the output data folder where the np3 blob label result was stored for a "
+             "past job ('data/np3_ligand_<output_name>_<DATE>/');\n"
              "  3. new_output_path;\n"
              "  4. db_ligxyz_path.\n"
              )
