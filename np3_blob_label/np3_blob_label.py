@@ -31,7 +31,7 @@ def create_final_blobs_prediction_report(entries_list, np3_output_path):
 #########
 # search for blobs in the entire map - unique entryID
 ######### find_all blobs_label
-def np3_ligand_blob_label(db_path, entries_list_path, model_ckpt_path, grid_space, num_gpu, gpu_index, num_workers = 1,
+def np3_ligand_blob_label(db_path, output_path, entries_list_path, model_ckpt_path, grid_space, num_devices, gpu_index, num_workers = 1,
                           sigma_cutoff=3, blob_min_volume=20, blob_min_score=10, blob_min_peak=0,
                           num_processors = 2, refinement_path = None,
                           overwrite_grid_pc = False, overwrite_blob_pc = False):
@@ -40,7 +40,7 @@ def np3_ligand_blob_label(db_path, entries_list_path, model_ckpt_path, grid_spac
     # add output_name value, if not empty add an underscore
     if config.output_name != "":
         config.output_name = config.output_name + "_"
-    np3_output_path = Path(db_path) / strftime("np3_ligand_" + config.output_name + "%Y%m%d_%Hh%Mm%Ss", localtime())
+    np3_output_path = Path(output_path) / strftime("np3_blob_label_" + config.output_name + "%Y%m%d_%Hh%Mm%Ss", localtime())
     if not np3_output_path.exists() or not np3_output_path.is_dir():
         np3_output_path.mkdir(parents=True)
 
@@ -66,7 +66,7 @@ def np3_ligand_blob_label(db_path, entries_list_path, model_ckpt_path, grid_spac
     logging.info("- entries_list_path " + str(entries_list_path))
     logging.info("- model_ckpt_path " + str(model_ckpt_path))
     logging.info("- grid_space " + str(grid_space))
-    logging.info("- num_gpu " + str(num_gpu))
+    logging.info("- num_devices " + str(num_devices))
     logging.info("- gpu_index " + str(gpu_index))
     logging.info("- num_workers " + str(num_workers))
     logging.info("- sigma_cutoff " + str(sigma_cutoff))
@@ -88,7 +88,7 @@ def np3_ligand_blob_label(db_path, entries_list_path, model_ckpt_path, grid_spac
 
     t0 = time()
     if refinement_path is None or not Path(refinement_path).exists():
-        # if refinement_path does not exists, stop here
+        # if refinement_path does not exist, stop here
         if refinement_path is not None:
             logging.info("-> The provided refinement_path does not exists!! =/ Enable running Dimple to refine the "
                      "entries or correct the provided path.")
@@ -214,10 +214,10 @@ def np3_ligand_blob_label(db_path, entries_list_path, model_ckpt_path, grid_spac
         t1 = time()
         # 5. Predict the model classes in the blobs images and convert the pc result to CCP4 maps, one by class with all blobs
         # also create a pdb with fake atoms pointing to the blobs position
-        # num_gpu max to 1. Com +2 a predicao pode vir em outra formatacao.. similar a um batch_size > 1
+        # num_devices max to 1. With +2 the prediction may come with another format similar to batch_size > 1
         pred_res = predict_blobs(entry_output_path=entry_output_path.as_posix(),
                       entry_refinement_path=entry_ref_path, model_ckpt_path=model_ckpt_path,
-                      batch_size=1, num_gpu=num_gpu, gpu_index=gpu_index, num_workers=num_workers)
+                      batch_size=1, num_devices=num_devices, gpu_index=gpu_index, num_workers=num_workers)
         if pred_res:
             # logging.info(pred_res)
             logging.info("  - Done!")
@@ -250,7 +250,7 @@ def np3_ligand_blob_label(db_path, entries_list_path, model_ckpt_path, grid_spac
 #########
 # search for blobs in specific positions and given blobIds
 ######### search_blobs_specific_pos_label
-def np3_ligand_listed_blob_label(db_path, blobs_list_path, model_ckpt_path, grid_space, num_gpu, gpu_index, num_workers = 1,
+def np3_ligand_listed_blob_label(db_path, output_path, blobs_list_path, model_ckpt_path, grid_space, num_devices, gpu_index, num_workers = 1,
                           sigma_cutoff=3.0, blob_min_volume=20, blob_min_score=10, blob_min_peak=0,
                           num_processors = 2, refinement_path = None,
                           overwrite_grid_pc = False, overwrite_blob_pc = False):
@@ -261,7 +261,7 @@ def np3_ligand_listed_blob_label(db_path, blobs_list_path, model_ckpt_path, grid
     # add output_name value, if not empty add an underscore
     if config.output_name != "":
         config.output_name = config.output_name + "_"
-    np3_output_path = Path(db_path) / strftime("np3_ligand_" + config.output_name + "%Y%m%d_%Hh%Mm%Ss", localtime())
+    np3_output_path = Path(output_path) / strftime("np3_blob_label_" + config.output_name + "%Y%m%d_%Hh%Mm%Ss", localtime())
     if not np3_output_path.exists() or not np3_output_path.is_dir():
         np3_output_path.mkdir(parents=True)
 
@@ -287,7 +287,7 @@ def np3_ligand_listed_blob_label(db_path, blobs_list_path, model_ckpt_path, grid
     logging.info("- entries_list_path " + str(blobs_list_path))
     logging.info("- model_ckpt_path " + str(model_ckpt_path))
     logging.info("- grid_space " + str(grid_space))
-    logging.info("- num_gpu " + str(num_gpu))
+    logging.info("- num_devices " + str(num_devices))
     logging.info("- gpu_index " + str(gpu_index))
     logging.info("- num_workers " + str(num_workers))
     logging.info("- sigma_cutoff " + str(sigma_cutoff))
@@ -457,10 +457,10 @@ def np3_ligand_listed_blob_label(db_path, blobs_list_path, model_ckpt_path, grid
         t1 = time()
         # 5. Predict the model classes in the blobs images and convert the pc result to CCP4 maps, one by class with all blobs
         # also create a pdb with fake atoms pointing to the blobs position
-        # num_gpu max to 1. Com +2 a predicao pode vir em outra formatacao.. similar a um batch_size > 1
+        # num_devices max to 1. With +2 the prediction may come with another format similar to batch_size > 1
         predict_blobs(entry_output_path=entry_output_path.as_posix(),
                       entry_refinement_path=entry_ref_path, model_ckpt_path=model_ckpt_path,
-                      batch_size=1, num_gpu=num_gpu, gpu_index=gpu_index, num_workers=num_workers)
+                      batch_size=1, num_devices=num_devices, gpu_index=gpu_index, num_workers=num_workers)
         logging.info("  - Done!")
         logging.info("  - Elapsed time: %.2f s" % (time() - t1))
         dt = time() - t0
@@ -490,16 +490,16 @@ def np3_ligand_listed_blob_label(db_path, blobs_list_path, model_ckpt_path, grid
 if __name__ == "__main__":
     config = get_config()
     if config.search_blobs == 'all':
-        np3_ligand_blob_label(config.data_folder, config.entries_list_path, config.model_ckpt_path, config.grid_space,
-                              config.num_gpu, config.gpu_index,
+        np3_ligand_blob_label(config.data_folder, config.output_path, config.entries_list_path, config.model_ckpt_path, config.grid_space,
+                              config.num_devices, config.gpu_index,
                               num_workers=config.num_workers, sigma_cutoff=config.sigma_cutoff,
                               blob_min_volume=config.blob_min_volume,
                               blob_min_score=config.blob_min_score, blob_min_peak=config.blob_min_peak,
                               num_processors=config.num_processors, refinement_path=config.refinement_path,
                               overwrite_grid_pc=config.overwrite_grid_pc, overwrite_blob_pc=config.overwrite_blob_pc)
     elif config.search_blobs == 'list':
-        np3_ligand_listed_blob_label(config.data_folder, config.entries_list_path, config.model_ckpt_path, config.grid_space,
-                              config.num_gpu, config.gpu_index,
+        np3_ligand_listed_blob_label(config.data_folder, config.output_path, config.entries_list_path, config.model_ckpt_path, config.grid_space,
+                              config.num_devices, config.gpu_index,
                               num_workers=config.num_workers, sigma_cutoff=config.sigma_cutoff,
                               blob_min_volume=config.blob_min_volume,
                               blob_min_score=config.blob_min_score, blob_min_peak=config.blob_min_peak,
