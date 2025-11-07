@@ -21,7 +21,7 @@ import MinkowskiEngine as ME
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+ "/../../")
 sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/../../np3_DL_segmentation")
-from np3_DL_segmentation.src.utils import mkdir_p,load_state_with_same_shape
+from np3_DL_segmentation.src.utils import mkdir_p
 from np3_DL_segmentation.src.load_models import load_model
 from np3_DL_segmentation.src.train_pytorchlightning import MinkowskiSegmentationModule
 from src_.blob_pc_data_loader import *
@@ -143,7 +143,7 @@ def save_blobs_predictions_singleMap(blobs_preds_coords, blobs_dataset, blobs_im
 
 
 def predict_blobs(entry_output_path, entry_refinement_path, model_ckpt_path, batch_size,
-                  num_gpu, gpu_index, num_workers):
+                  num_devices, gpu_index, num_workers):
     entry_refinement_path = Path(entry_refinement_path)
     entry_output_path = Path(entry_output_path).resolve()
     entry_id = entry_output_path.name
@@ -151,17 +151,18 @@ def predict_blobs(entry_output_path, entry_refinement_path, model_ckpt_path, bat
     blobs_list_path = blobs_img_path / "blobs_list_processed_qRank_scale.csv"
     # config = get_config()
     # check if the num of gpus is valid
-    if num_gpu > 0 and not torch.cuda.is_available():
-        raise Exception("No GPU found")
 
-
-    if num_gpu > 0 and gpu_index >= torch.cuda.device_count():
-        raise Exception("Wrong GPU index ("+str(gpu_index)+"). The number of devices is "+
-                        str(torch.cuda.device_count())+".")
-    elif num_gpu == 0:
-        # set fixed this parameters if is_cuda is False
-        gpu_index = 0
-        num_gpu = 0
+    # if gpu_index is None, set it to 0 for CPU processing as expected in the following usage
+    if gpu_index is not None:
+        accelerator = 'gpu'
+        if not torch.cuda.is_available():
+            raise Exception("No GPU found! Cuda is not available, aborting. ")
+        if gpu_index >= torch.cuda.device_count():
+            raise Exception("Wrong GPU index (" + str(gpu_index) + "). The number of available GPU devices is " +
+                            str(torch.cuda.device_count()) + ". Aborting.")
+    else: # CPU processing
+        # set these parameters fixed if no GPU
+        accelerator = 'cpu'
 
     # set the stdout logging level
     ch = logging.StreamHandler(sys.stdout)
@@ -186,7 +187,7 @@ def predict_blobs(entry_output_path, entry_refinement_path, model_ckpt_path, bat
     dconfig = {'blobs_list_path': blobs_list_path.as_posix(),
                'blobs_img_path': blobs_img_path.as_posix(),
                'model_ckpt_path': model_ckpt_path,
-               'num_gpu': num_gpu, 'gpu_index': gpu_index}
+               'num_devices': num_devices, 'gpu_index': gpu_index}
     for k in dconfig:
         logging.info('    {}: {}'.format(k, dconfig[k]))
 
@@ -195,7 +196,7 @@ def predict_blobs(entry_output_path, entry_refinement_path, model_ckpt_path, bat
     # configure map_location properly, setting the main device when using gpu
     # map_location = ({'cuda:%d' % config.gpu_index: 'cuda:%d' % gpu} if gpu is not None else device)
     map_location = 'cpu'
-    state = torch.load(model_ckpt_path, map_location=map_location)
+    state = torch.load(model_ckpt_path, map_location=map_location, weights_only=False)
     if 'state_dict' not in state.keys():
         state = {'state_dict': state}
 
@@ -223,7 +224,7 @@ def predict_blobs(entry_output_path, entry_refinement_path, model_ckpt_path, bat
     net = load_model(model_name)
     # initialize model
     model = net(in_channels=(3 if "qRankMask_5_" in img_type else 1), out_channels=len(class_names), config=config, D=3)
-    if num_gpu > 1:
+    if (type(num_devices) is list and len(num_devices) > 1) or (type(num_devices) is int and num_devices > 1):
         model = ME.MinkowskiSyncBatchNorm.convert_sync_batchnorm(model)
 
     # Load weights to the model
@@ -238,18 +239,20 @@ def predict_blobs(entry_output_path, entry_refinement_path, model_ckpt_path, bat
         fh.close()
         return None
 
+    # set config num_devices and gpu_index
+    config.num_devices = num_devices
+    config.gpu_index = gpu_index
     # create the pytorch lightning module
     pl_module = MinkowskiSegmentationModule(config, model, tb_logger)
     ####
     # initialize trainer
     trainer = Trainer(max_epochs=1,
-                      gpus=num_gpu,
-                      accelerator="ddp",
+                      devices=num_devices,
+                      accelerator=accelerator,
+                      strategy="ddp",
                       log_every_n_steps=1,
-                      flush_logs_every_n_steps=1,
                       logger=tb_logger,
-                      accumulate_grad_batches=1,
-                      stochastic_weight_avg=False)
+                      accumulate_grad_batches=1)
     # predict with the blobs dataloader
     blobs_prediction = trainer.predict(pl_module, blobs_data)
     logging.info("")
@@ -317,25 +320,22 @@ def predict_blobs(entry_output_path, entry_refinement_path, model_ckpt_path, bat
     return 1
 
 
-
 if __name__ == '__main__':
     batch_size = 1  # fixed to ease code, could be increased for high throughput performance
-    # removed num_gpu from the arguments list similar to batch_size = 1, only use gpu_index ->
-    #   if False use CPU, else use the given GPU index
+    # gpu_index ->  if False use CPU, else use the given GPU index
     if len(sys.argv) >= 6:
         entry_output_path = sys.argv[1]
         entry_refinement_path = sys.argv[2]
         model_ckpt_path = sys.argv[3]
-        # num_gpu = int(sys.argv[4])
-        # gpu_index = int(sys.argv[5])
-        gpu_index = sys.argv[4].lower()
-        if gpu_index == "false":
+        gpu_index = sys.argv[4]
+        if gpu_index == "None":
             # CPU processing
-            gpu_index = 0
-            num_gpu = 0
+            gpu_index = None
+            num_devices = 1
         else:
+            # GPU processing
             gpu_index = int(sys.argv[4])
-            num_gpu = 1
+            num_devices = [gpu_index]
         num_workers = int(sys.argv[5])
     else:
         sys.exit("Wrong number of arguments. Five arguments must be supplied in order to predict the classes of each "
@@ -356,14 +356,10 @@ if __name__ == '__main__':
                  "'model_blobs' subfolder to help visualizing the results;\n"
                  "  3. model_ckpt_path: The path to the segmentation model checkpoint file to be used in the "
                  "predictions for inferring the classes of each point present in the blobs point cloud image;\n"
-                 # "  X. batch_size: a number defining the size of the batch size to be used in the model prediction, "
-                 # "the number of images to be processed in each step;\n"
-                 # "  X. num_gpu: a number defining the number of GPUs to be used in the model prediction;\n"
-                 "  4. gpu_index: 'False' for CPU process or a integer number defining the GPU index to be used in "
-                 "the segmentation process;\n"
+                 "  4. gpu_index: 'None' for CPU process or a integer number defining the GPU index to be used in "
+                 "the segmentation process. Only one device is used in any case;\n"
                  "  5. num_workers: a number defining the number of workers to be used in the segmentation "
                  "model prediction;\n"
                  )
     predict_blobs(entry_output_path, entry_refinement_path, model_ckpt_path, batch_size,
-                  num_gpu, gpu_index, num_workers)
-
+                  num_devices, gpu_index, num_workers)
