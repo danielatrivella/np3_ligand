@@ -94,7 +94,7 @@ def main():
     # initialize model
     # removed multiple in channels -> (3 if "qRankMask_" in config.pc_type else 1), all representation types now use only one in channel
     model = net(in_channels=1, out_channels=len(class_names), config=config, D=3)
-    if config.num_gpu > 1:
+    if config.num_devices > 1:
         model = ME.MinkowskiSyncBatchNorm.convert_sync_batchnorm(model)
     
     logging.info(model)
@@ -130,7 +130,7 @@ def main():
     #print("pl_modules")
     # define callbacks if stochastic_weight_avg is true
     if config.stochastic_weight_avg:
-        callbacks = [StochasticWeightAveraging()]
+        callbacks = [StochasticWeightAveraging(swa_lrs=0.05)]
     else:
         callbacks = None
     ####
