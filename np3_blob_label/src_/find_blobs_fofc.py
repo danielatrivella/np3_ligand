@@ -459,7 +459,7 @@ def find_blobs_parse_place_fake_atoms(entry_refinement_path, entry_output_path, 
             cra = ns.find_nearest_atom(blob.centroid)
             cra_dist = -1
             if cra is not None:
-                cra_dist = cra.pos().dist(blob.centroid)
+                cra_dist = cra.pos.dist(blob.centroid)
                 cra = cra.to_cra(st[0])
             # set near atom information: chain and residue location and distance to the blob center
             blobs_list['chainResAtom'].append(str(cra))
