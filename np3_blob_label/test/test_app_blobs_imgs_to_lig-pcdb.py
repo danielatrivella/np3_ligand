@@ -47,7 +47,7 @@ def organize_imgs_np3_blob_outs(entries_list_path, np3_output_path, new_output_p
         # label copied blob img
         #print("entrou")
         n_correctly_label += label_blob_imgs(new_blob_img_path, db_ligxyz_path/(entries_list.blobID[i] + '_class.xyz'),
-                                             entries_list.blobID[i], entries_list.Resolution[i])
+                                             entries_list.blobID[i], entries_list.RefinementResolution[i])
       # If source and destination are same
       except shutil.SameFileError:
         if i < 20:
