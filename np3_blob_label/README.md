@@ -33,27 +33,26 @@
 ## Getting Started
 
   Nine PDB entries from the stratified training dataset of LigPCDS with k=1 are used as example.
-Their data is present in the 'examples_top_down' folder. A previous refinement result is also present.
+Their data is present in the 'examples_top_down' folder. A previous refinement result is also present. The output result will be stored in the 'outs' folder.
 
   To execute the NP³ Blob Label to search for blobs in the entire Fo-Fc map of these nine entries, run:
 
 ```
 conda activate np3_blob_label  # or alternativaly - conda activate np3_lig
 
-python np3_blob_label.py --data_folder examples_top_down/ --refinement_path examples_top_down/refinement/ --entries_list_path examples_top_down/entries_list_top_down.csv 
---model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56 
+python np3_blob_label.py --data_folder examples_top_down/ --refinement_path examples_top_down/refinement/ --entries_list_path examples_top_down/entries_list_top_down.csv --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56 --output_path outs/
 ```
 
   Alternatively, the application may be executed to search for blobs in their specific positions. An example with six blobs from six of the selected entries may be searched and labeled by running::
 
 ```
-python np3_blob_label.py --data_folder examples_top_down/ --entries_list_path examples_top_down/entries_list_top_down_search_positions.csv --refinement_path examples_top_down/refinement/ --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56_searchBlobPositions --search_blobs list
+python np3_blob_label.py --data_folder examples_top_down/ --entries_list_path examples_top_down/entries_list_top_down_search_positions.csv --refinement_path examples_top_down/refinement/ --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56_searchBlobPositions --output_path outs/ --search_blobs list 
 ```
 
   At the end of the workflow the user may easily visualize the result of each entry with the *Python script created for Coot* (named 'prediction-blobs-view-coot.py'). This script can be executed by Coot to automatically open and visualize the inputs (.mtz and .pdb) of an entry along with the synthetic electron density maps of each segmented class of the found blobs. This script also loads the created .pdb file of the protein entry with dummy atoms centered at the position of each found blob, inserted into a new dummy chain of the structure (always the last chain). It may be executed as follow:
   
 ```
-coot --script examples_top_down/np3_ligand_modelAtomC347CA56_20230428_16h19m06s/4rvn/prediction-blobs-view-coot.py --no-guano
+coot --script outs/np3_blob_label_modelAtomC347CA56_<Date>/4rvn/prediction-blobs-view-coot.py --no-guano
 ```
 
   The user may browse the found blobs and visualize their predictions using Coot's atom navigation tool. The application result also contains a *report table* with all found blobs, their information (intensity, volume, score and position) and their predicted classes by size (number of labeled points in each class), which may help the user summarize the findings and prioritize further analysis. 
