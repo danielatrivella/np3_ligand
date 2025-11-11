@@ -57,7 +57,7 @@ def save_blobs_predictions_singleMap(blobs_preds_coords, blobs_dataset, blobs_im
     # read entry map to extract the unit cell
     # get from fofc
     entry_map = gemmi.read_ccp4_map(entry_map_path, setup=True)
-    entry_map.grid.fill(np.NaN)
+    entry_map.grid.fill(np.nan)
     entry_map.update_ccp4_header(mode=0, update_stats=True)
     # create one grid by class_name
     grid_classes = [{'class_name': class_label, 'class_grid': entry_map.grid.clone(), 'class_idx': i, 'present': False}
@@ -114,13 +114,13 @@ def save_blobs_predictions_singleMap(blobs_preds_coords, blobs_dataset, blobs_im
     out_map_names = []
     # save the map with the ligand space
     # symmetrize maximum
-    #entry_map.setup(np.NaN)
+    #entry_map.setup(np.nan)
     entry_map.grid.symmetrize_max()
     # The setup function has two arguments. The first one is a value to be used for unknown values.
     # It is used only when the input file does not cover a complete asymmetric unit.
     # (If you used CCP4 program MAPMASK – it is keyword PAD there).
-    # When you call a read function with setup=True, this argument is NaN for maps and -1 for masks.
-    #entry_map.setup(np.NaN)
+    # When you call a read function with setup=True, this argument is nan for maps and -1 for masks.
+    #entry_map.setup(np.nan)
     entry_map.update_ccp4_header(mode=0, update_stats=True)
     #entry_map.grid.normalize()
     entry_map.write_ccp4_map(blobs_img_path + '/../' + entry_id+'_ligand_region.ccp4')
@@ -131,7 +131,7 @@ def save_blobs_predictions_singleMap(blobs_preds_coords, blobs_dataset, blobs_im
         # only save the not empty maps
         if grid_classes[i]['present']:
             entry_map.grid = grid_classes[i]['class_grid']
-            #entry_map.setup(np.NaN)
+            #entry_map.setup(np.nan)
             entry_map.grid.symmetrize_max()
             entry_map.update_ccp4_header(mode=0, update_stats=True)
             entry_map.write_ccp4_map(blobs_img_path + '/../' + entry_id + '_' +class_names[i]+'_class.ccp4')
