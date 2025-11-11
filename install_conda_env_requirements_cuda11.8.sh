@@ -1,13 +1,15 @@
 #!/bin/bash
 ### Install python 3.9 using ANACONDA
 ###
-export CXX=g++-11; # set this if you want to use a different C++ compiler
+export CXX=g++-9; # set this if you want to use a different C++ compiler
 conda create -n np3_lig python=3.9 -y
 conda activate np3_lig
 # explicity set gcc equals 11 in conda env
-conda install -c conda-forge gcc=11.2.0 gxx=11.2.0 -y
+conda install -c conda-forge gcc=9.5 gxx=9.5 -y
 conda install openblas-devel -c anaconda -y
 conda install r-base=4.4.0 r-readr r-dplyr -c conda-forge -y
+# open3D dependency to draw geometrics
+conda install -c conda-forge libstdcxx-ng=13.2 -y
 ## install R anticlust package - not present in conda                            
 Rscript -e 'install.packages("anticlust",repos = "http://cran.us.r-project.org")'
 ## For CUDA capability also install cuda and cudatoolkit

@@ -7,6 +7,8 @@ conda activate np3_lig
 conda install -c conda-forge gcc=11.2.0 gxx=11.2.0 -y
 conda install openblas-devel -c anaconda -y
 conda install r-base=4.4.0 r-readr r-dplyr -c conda-forge -y
+# open3D dependency to draw geometrics
+conda install -c conda-forge libstdcxx-ng=13.2 -y
 ## install R anticlust package - not present in conda                            
 Rscript -e 'install.packages("anticlust",repos = "http://cran.us.r-project.org")' 
 # install pip requerements
