@@ -97,18 +97,6 @@ def retrieve_entry_density_map(entryID, refinement_data_path, grid_space, verbos
                                                    sample_rate=sample_rate * 1.2)
         del mtz
         #
-        # compute sigma contour
-        # if verbose:
-        #     logging.info("Computing the Electron Density map mean,std,median,quantile25th,quantile75th values")
-        # # converting the map to a numpy array
-        # p_std, p_mean, p_median, p_quantile25th, p_quantile75th = std_mean_median_q25th_q75th(np.array(map_grid,copy=False))
-
-        # contour_sigma = [mean_I+std_I*-sigma_factor,mean_I+std_I*sigma_factor]
-        # if verbose:
-        #     logging.info("rho Standard deviation = "+ p_std + "\nrho mean = "+ p_mean + "\nrho median = "+ p_median +
-        #           "\nrho quantile25th = " + p_quantile25th + "\nrho quantile75th = " + p_quantile75th)
-        # "\nContour sigma = ", contour_sigma)
-        #
         # apply symmetry if it is necessary - removed for now
         # map_grid_fofc.symmetrize_max()
         # std_I, mean_I = std_mean(np.array(map_grid_fofc, copy=False))
@@ -161,10 +149,6 @@ def search_blobs_parse_place_fake_atoms(blobs_list, entry_refinement_path, entry
         return 0  # no blobs found due to missing entry
     grid.normalize()
 
-    # old - compute the sigma contour cutoff
-    # points_mean_rho = np.mean(grid)  #grid.sum()/grid.point_count
-    # points_std = np.std(grid)
-    # rho_cutoff = points_mean_rho + points_std*sigma_cutoff
     # after normalization the cutoff is the sigma cutoff
     rho_cutoff = sigma_cutoff
 
@@ -180,18 +164,12 @@ def search_blobs_parse_place_fake_atoms(blobs_list, entry_refinement_path, entry
     logging.info("Parameters")
     logging.info(" - sigma cutoff:" + str(rho_cutoff))
 
-    # blobs_list.loc[:,'blobScore'] = None
-    # blobs_list.loc[:,'blobVolume'] = None
-    # blobs_list.loc[:,'xyz_bound'] = None
-    # blobs_list.loc[:,'chainResAtom'] = None
     # search for the blobs position
     logging.info("Blobs list:\n"+str(blobs_list)+ "\n")
     for i in range(blobs_list.shape[0]):
         if i < 3:
             logging.info("  Blob #"+ str(i+1))
         blob_pos = blobs_list.loc[i,['x','y','z']].values
-        #blob_pos_gemmi = gemmi.Position(blob_pos[0],blob_pos[1],blob_pos[2])
-        # blob_mask = gemmi.flood_fill_above(grid, [blob_pos_gemmi], threshold=rho_cutoff)
         # get the positions of the borders of a cube centered in the position to be searched
         # to prevent not finding blobs that are around the given position, but do not contain it
         cube_d = 1.0
@@ -220,36 +198,20 @@ def search_blobs_parse_place_fake_atoms(blobs_list, entry_refinement_path, entry
         else:
             # get bounding box dimension from mask
             extent = blob_mask.get_nonzero_extent()  # bounding box containing the blob
-            # logging.info("extent min: " + str(extent.minimum))
-            # logging.info("extent max: " + str(extent.maximum))
-            # bb_min = grid.unit_cell.orthogonalize(extent.minimum)
-            # bb_max = grid.unit_cell.orthogonalize(extent.maximum)
-            # logging.info("bb_min: " + str(bb_min.tolist()))
-            # logging.info("bb_max: " + str(bb_max.tolist()))
-            #bb dimension - abs diff
-            # bb_dim = bb_max - bb_min
             # get the bb extent size from orthogonalized box
             bb_dim = grid.unit_cell.orthogonalize_box(extent).get_size()
-
-            # very slow, not used -> alternative getting the extend directly from the positions plus a gap, but is slow
-            # blob_points_index = np.where(blob_mask.array > 0)
-            # blob_positions = np.asarray([blob_mask.get_position(blob_points_index[0][i], blob_points_index[1][i],
-            #                                                     blob_points_index[2][i]).tolist() for i in
-            #                              range(len(blob_points_index[0]))])
-            # # [[blob_positions[:,0].min(),blob_positions[:,1].min(),blob_positions[:,2].min()], [blob_positions[:,0].max(),blob_positions[:,1].max(),blob_positions[:,2].max()]]
-            # bb_min = np.asarray([blob_positions[:,0].min(), blob_positions[:,1].min(), blob_positions[:,2].min()])
-            # bb_max = np.asarray([blob_positions[:,0].max(), blob_positions[:,1].max(), blob_positions[:,2].max()])
-            # bb_dim = bb_max - bb_min
-            # bb dimensions in x,y,z
-            # xyz_bound = ','.join([str(round(abs(bb_i), 2)) for bb_i in bb_dim.tolist()])
+            # add limit of grid to 40A in each bound if their volume is greater than 40**3 - prevent memory leak here - test
+            if bb_dim[0]*bb_dim[1]*bb_dim[2] > 64000:
+                logging.info("  - WARNING Memory Leak Caution: the retrieved bounding box dimensions equal to "+str(bb_dim[0])+","+
+                             str(bb_dim[1])+","+str(bb_dim[2])+" would create a very big volume (greater than 40**3), "+
+                             "its dimension were cut to a maximum of 40 A.")
+                bb_dim[0] = min(bb_dim[0], 40)
+                bb_dim[1] = min(bb_dim[1], 40)
+                bb_dim[2] = min(bb_dim[2], 40)
             # add gap
             bb_gap = sigma_cutoff  # add a gap to include the entire blob
             xyz_bound = ','.join([str(round(abs(bb_i) + bb_gap, 2)) for bb_i in bb_dim])
             # bb center from the table, when orthogonalize the symmetric location is lost
-            # bb_center = (bb_max + bb_min) / 2
-            # blobs_list.loc[i, 'x'] = bb_center[0]
-            # blobs_list.loc[i, 'y'] = bb_center[1]
-            # blobs_list.loc[i, 'z'] = bb_center[2]
             # compute blob score by summing non zero values
             blob_score = grid.array[np.where(blob_mask.array > 0)].sum()
             # compute the peak intensity by getting the maximum value in the blob mask
@@ -367,10 +329,6 @@ def find_blobs_parse_place_fake_atoms(entry_refinement_path, entry_output_path, 
         return 0  # no blobs found due to missing entry
     grid.normalize()
 
-    # old - compute the sigma contour cutoff and the minimum blob volume
-    # points_mean_rho = grid.sum()/grid.point_count
-    # points_std = np.std(grid)
-    # rho_cutoff = points_mean_rho + points_std*sigma_cutoff
     # after normalization the cutoff is the sigma cutoff
     rho_cutoff = sigma_cutoff
     # default min volume equals 4/3*np.pi*1.0**3 * 5 atoms ~ 20 - equivalent to 5 atoms with radius equals 1
@@ -412,21 +370,15 @@ def find_blobs_parse_place_fake_atoms(entry_refinement_path, entry_output_path, 
             seed = blob.peak_pos
             blob_mask = gemmi.flood_fill_above(grid, [seed], threshold=rho_cutoff)  # bounding box containing the blob
             extent = blob_mask.get_nonzero_extent()
-            # bb_min = grid.unit_cell.orthogonalize(extent.minimum)
-            # bb_max = grid.unit_cell.orthogonalize(extent.maximum)
-            # # bb dimension - abs diff
-            # bb_dim = bb_max - bb_min
             # get the bb extent size from orthogonalized box
             bb_dim = grid.unit_cell.orthogonalize_box(extent).get_size()
-            # testing getting the extend directly from the positions plus a gap
-            # blob_points_index = np.where(blob_mask.array > 0)
-            # blob_positions = np.asarray([blob_mask.get_position(blob_points_index[0][i], blob_points_index[1][i],
-            #                                                     blob_points_index[2][i]).tolist() for i in
-            #                              range(len(blob_points_index[0]))])
-            # # [[blob_positions[:,0].min(),blob_positions[:,1].min(),blob_positions[:,2].min()], [blob_positions[:,0].max(),blob_positions[:,1].max(),blob_positions[:,2].max()]]
-            # bb_min = np.asarray([blob_positions[:, 0].min(), blob_positions[:, 1].min(), blob_positions[:, 2].min()])
-            # bb_max = np.asarray([blob_positions[:, 0].max(), blob_positions[:, 1].max(), blob_positions[:, 2].max()])
-            # bb_dim = bb_max - bb_min
+            if bb_dim[0]*bb_dim[1]*bb_dim[2] > 64000:
+                logging.info("  - WARNING Memory Leak Caution: the retrieved bounding box dimensions equal to "+str(bb_dim[0])+","+
+                             str(bb_dim[1])+","+str(bb_dim[2])+" would create a very big volume (greater than 40**3), "+
+                             "its dimensions were cut to a maximum of 40 A.")
+                bb_dim[0] = min(bb_dim[0], 40)
+                bb_dim[1] = min(bb_dim[1], 40)
+                bb_dim[2] = min(bb_dim[2], 40)
             # bb dimensions in x,y,z
             bb_gap = sigma_cutoff  # add a gap to include the entire blob
             xyz_bound = ','.join([str(round(abs(bb_i) + bb_gap,2)) for bb_i in bb_dim])  #.tolist()])
@@ -443,9 +395,8 @@ def find_blobs_parse_place_fake_atoms(entry_refinement_path, entry_output_path, 
             blobs_list['blobPeak'].append(blob.peak_value)
             blobs_list['blobMeanScore'].append(blob.score/blob.volume)
             #
-            # compute the grid bounding box size by considering the volume as a sphere to get its radius,
-            # then multiple by 2 to get the diameter and expand it by 300%
-            blobs_list['xyz_bound'].append(xyz_bound)  # old -> np.ceil((blob.volume*3/4/np.pi)**(1/3) * 2 * 2 * 1.5))
+            # set the grid bounding box size
+            blobs_list['xyz_bound'].append(xyz_bound)
 
             if i < 3:
                 logging.info("  - centroid " + str(bb_center))
@@ -453,7 +404,7 @@ def find_blobs_parse_place_fake_atoms(entry_refinement_path, entry_output_path, 
                 logging.info("  - peak value " + str(np.round(blob.peak_value,2)))
                 logging.info("  - score " + str(np.round(blob.score,2)))
                 logging.info("  - volume " + str(np.round(blob.volume,2)) + " A^3")
-                logging.info("  - xyz bounding box dimensions " + str(xyz_bound) + " A")  #np.ceil((blob.volume*3/4/np.pi)**(1/3) * 2 * 2 * 1.5), "A")
+                logging.info("  - xyz bounding box dimensions " + str(xyz_bound) + " A")
             # search the closer residue to the blob and then assign its centroid as a fake atom to a new fake chain
             # if nothing found, append None
             cra = ns.find_nearest_atom(blob.centroid)
