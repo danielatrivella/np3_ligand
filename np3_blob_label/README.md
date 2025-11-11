@@ -32,13 +32,14 @@
 
 ## Getting Started
 
-  Nine PDB entries from the stratified training dataset of LigPCDS with k=1 are used as example.
-Their data is present in the 'examples_top_down' folder. A previous refinement result is also present. The output result will be stored in the 'outs' folder.
+  Nine ligand entries from the stratified training dataset of LigPCDS with k=1 are used as example.
+Their data is present in the 'examples_top_down' folder. A previous refinement result is also present for their PDB entry.
+The output result will be stored in the 'outs' folder.
 
   To execute the NP³ Blob Label to search for blobs in the entire Fo-Fc map of these nine entries, run:
 
 ```
-conda activate np3_blob_label  # or alternativaly - conda activate np3_lig
+conda activate np3_blob_label  # or alternativaly -> conda activate np3_lig
 
 python np3_blob_label.py --data_folder examples_top_down/ --refinement_path examples_top_down/refinement/ --entries_list_path examples_top_down/entries_list_top_down_all.csv --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56 --output_path outs/
 ```
@@ -174,7 +175,50 @@ conda clean --all
 ![](docs/imgs/app_evaluation.png)
 
 
+
+## Testing the NP³ Blob Label Application against LigPCDS entries
+
 ---------------------------------------------------------------
+
+The accuracy of this application is a little bit different from the models trained with LigPCDS. This happens because
+the point clouds created by the application follow a slight different methodology. The difference is in the blobs position
+and sizing of the grid point cloud and further representations. 
+
+In LigPCDS the deposited atomic coordinates of the ligand entries were used to estimate their
+center position and sizing and were used to compute the entries bounding box sizing and grid. 
+In NP³ Blob Label, there is no atomic coordinates for an unmodelled blob, 
+instead this app uses the blob center and sizing estimation to define the point cloud center and bounding box sizing, which affects
+the grid point cloud creation and thus the final representations of the list of blobs. Additionally, 
+the sigma cutoff value will directly affect the blob sizing.
+
+With different input point clouds the models prediction
+outputs different results. So there is a need of testing the accuracy of the LigPCDS models against the point clouds 
+created by the NP³ blob label using different sigma cutoff values.
+
+First, we must create the entries_list_path table with the expected columns to execute the NP³ Blob Label. This table must 
+contain all the data from the stratified training dataset from LigPCDS. Start as follows:
+
+1. Copy the stratified training dataset from LigPCDS to be used in the testing
+2. Create in this table the following columns required by NP³ Blob Label and save it with the suffix "_blobLabel":
+   - Column 'blobID' equals to column 'ligID'; 
+   - Column 'refinement' equals to 1;
+   - Column 'nohetam' equals to 0; and
+   - Column 'entryID' equals to column 'entry'
+3. Use a previous refinement from LigPCDS entries and a previous structure labeling result (xyz directory)
+4. Execute np3_blob_label with LigPCDS using a sigma cutoff value equal to 3 (most similar to qRank0.95 used in LigPCDS):
+` python np3_blob_label.py --search_blobs list --output_name ligPCDS_1.5_2.2_SP --entries_list_path training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP_blobLabel.csv --refinement_path data/refinement_LigPCDS --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --output_path outputs/ --num_workers 4 --parallel_cores 2 --sigma_cutoff 3 `
+5. Then organize the NP³ Blob Label result following the LigPCDS format and naming formats using the script:
+`python test/test_app_blobs_imgs_to_lig-pcdb.py entries_list_path np3_blob_label_output_path new_output_path db_ligxyz_path`  
+6. Finally, run a testing of the LigPCDS models following the np3_DL_segm tutorials, using the new_output_path as the 'lig_pcds_path' and the
+entries_list_path as the 'ligs_data_filepath' parameters.
+
+Different sigma cutoff values may be used here. 
+Values closer to 3 sigma will give better results, but will lead to fewer entries representation correctly created.
+Smaller values <= 2.5 sigma may lead to more entries representation correctly created, but will
+also lower the accuracy of the models because the final representations will have more noise and 
+more difference to the point clouds from LigPCDS.
+
+The NP³ Blob Label evaluation result using LigPCDS and different sigma cutoff values is presented in the [*Usage Notes*](docs/NP3_Blob_Label-Usage_Notes.pdf).
 
 ## Citing
 
@@ -182,4 +226,4 @@ _Paper in preparation to be published._
 
 ## License
 
-    LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+LigPCDS: Labeled Dataset of X-ray Protein Ligand 3D Images in Point Clouds and Validated Deep Learning Models © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
