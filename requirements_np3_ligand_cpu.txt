@@ -18,7 +18,7 @@ matplotlib
 pandas
 addict
 plyfile
-open3d>=0.12
+open3d==0.18
 tqdm
 multiprocess
 pathlib
