@@ -12,11 +12,11 @@
 
 ----------------
 
-  The deep learning semantic segmentation models were trained and validated with a dataset of **78911** ligands images from difference electron density of PDB entries in a resolution range between **1.5 Å** and **2.2 Å**. Data outside this resolution range may still be used in the NP³ Blob Label application, but the models accuracy (presented below) may not be reliable.
+  The deep learning semantic segmentation models were trained and validated with a dataset of **78911** ligand 3D point clouds from difference electron density of PDB entries in a resolution range between **1.5 Å** and **2.2 Å**. Data outside this resolution range may still be used in the NP³ Blob Label application, but the models accuracy (presented below) may not be reliable.
 
-  The application will create an image of the blob from its difference electron density map and label this image. The blob image will be slight affected by the sigma contour level used in the search and the labels depends on the model used for the predictions. A schema of the application pipeline is illustrated next.
+  The application will create a 3D point cloud of each blob from its difference electron density map and label this representation using the models prediction. The blob representation will be slight affected by the sigma contour level used in the search and the labels depends on the model used for the predictions. A schema of the application pipeline is illustrated next.
 
-  The following models are available in the NP³ Blob Label repository and gave the better results:
+  The following models are available in the NP³ Blob Label repository and gave the best results:
 
 - *Model AtomC347CA56* : Predicts generic atoms out of cycles, cycles with sizes from 3 to 7 and aromatic cycles with sizes 5 and 6
 - *Model AtomSymbolGroups* : Predicts the atoms symbols with groupings. The halo group with the halogen atoms (Cl, Br, I, F) and the PSe group with the minority atoms (P, S, Se)
@@ -40,16 +40,16 @@ Their data is present in the 'examples_top_down' folder. A previous refinement r
 ```
 conda activate np3_blob_label  # or alternativaly - conda activate np3_lig
 
-python np3_blob_label.py --data_folder examples_top_down/ --refinement_path examples_top_down/refinement/ --entries_list_path examples_top_down/entries_list_top_down.csv --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56 --output_path outs/
+python np3_blob_label.py --data_folder examples_top_down/ --refinement_path examples_top_down/refinement/ --entries_list_path examples_top_down/entries_list_top_down_all.csv --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56 --output_path outs/
 ```
 
-  Alternatively, the application may be executed to search for blobs in their specific positions. An example with six blobs from six of the selected entries may be searched and labeled by running::
+  Alternatively, the application may be executed to search for blobs in their specific positions. An example with six blobs from six of the example entries may be searched and labeled by running:
 
 ```
-python np3_blob_label.py --data_folder examples_top_down/ --entries_list_path examples_top_down/entries_list_top_down_search_positions.csv --refinement_path examples_top_down/refinement/ --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56_searchBlobPositions --output_path outs/ --search_blobs list 
+python np3_blob_label.py --entries_list_path examples_top_down/entries_list_top_down_list.csv --refinement_path examples_top_down/refinement/ --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k1.ckpt --output_name modelAtomC347CA56_searchBlobPositions --output_path outs/ --search_blobs list 
 ```
 
-  At the end of the workflow the user may easily visualize the result of each entry with the *Python script created for Coot* (named 'prediction-blobs-view-coot.py'). This script can be executed by Coot to automatically open and visualize the inputs (.mtz and .pdb) of an entry along with the synthetic electron density maps of each segmented class of the found blobs. This script also loads the created .pdb file of the protein entry with dummy atoms centered at the position of each found blob, inserted into a new dummy chain of the structure (always the last chain). It may be executed as follow:
+  At the end of the workflow, the user may easily visualize the result of each entry using the **Python script created for Coot** (named 'prediction-blobs-view-coot.py'). This script can be executed by Coot to automatically open and visualize the inputs (.mtz and .pdb) of an entry along with the synthetic electron density maps of each segmented class of the found blobs. This script also loads the created .pdb file of the protein entry with dummy atoms centered at the position of each found blob, inserted into a new dummy chain of the structure (always the last chain). It may be executed as follow:
   
 ```
 coot --script outs/np3_blob_label_modelAtomC347CA56_<Date>/4rvn/prediction-blobs-view-coot.py --no-guano
@@ -57,7 +57,7 @@ coot --script outs/np3_blob_label_modelAtomC347CA56_<Date>/4rvn/prediction-blobs
 
   The user may browse the found blobs and visualize their predictions using Coot's atom navigation tool. The application result also contains a *report table* with all found blobs, their information (intensity, volume, score and position) and their predicted classes by size (number of labeled points in each class), which may help the user summarize the findings and prioritize further analysis. 
 
-More information about the workflow inputs and results, can be found in the provided Usage Notes:
+More information about the workflow inputs, results and overview can be found in the provided Usage Notes:
 
 > [*Usage Notes*](docs/NP3_Blob_Label-Usage_Notes.pdf)
 
@@ -84,7 +84,7 @@ More information about the workflow inputs and results, can be found in the prov
 First install the Ubuntu packages:
 
 ```
-sudo apt install build-essential libopenblas-dev g++-7
+sudo apt install build-essential libopenblas-dev g++-9
 ```
 
 The required python and packages for NP³ Blob Label can be installed with **anaconda + pip**, or on the **system + pip** directly. If you have any issues installing the packages, please report it on the github issue page.
@@ -104,12 +104,13 @@ First, follow the [anaconda documentation](https://www.anaconda.com/products/dis
 We recommend setting the anaconda channel priority to flexible mode before creating the environment:
 `conda config --set channel_priority true`
 
-Create a conda environment with python 3.8 to encapsulate the installation, then activate the environment and install the openblas package:
+Create a conda environment with python 3.9 to encapsulate the installation, then activate the environment, install the openblas package and another dependency of the open3d package:
 
 ```
-conda create -n np3_blob_label python=3.8
+conda create -n np3_blob_label python=3.9
 conda activate np3_blob_label
 conda install openblas-devel -c anaconda
+conda install -c conda-forge libstdcxx-ng=13.2 -y
 ```
 
 #### CPU only
@@ -131,26 +132,29 @@ pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --glob
 Additional requirement:
 - CUDA >= 10.1.243 and compatible with the CUDA version used for pytorch
 
-The provided pip requirements files uses a pytorch compatible with CUDA>=11.1 and cuda-toolkit=11.1. For other CUDA versions please modify the corresponding requirements .txt file and the following cudatoolkit version. The pytorch CUDA version must match the cudtoolkit version.
+The provided pip requirements files uses a pytorch compatible with CUDA>=11.8 and cuda-toolkit=11.8. For other CUDA versions please modify the corresponding requirements .txt file and the following cudatoolkit version. The pytorch CUDA version must match the cudatoolkit version.
 
-Install the cudatoolkit=11.1 with conda:
+Install the cudatoolkit=11.8 with conda and gcc=9.5:
 
 ```
-conda install cudatoolkit=11.1 -c pytorch -c conda-forge 
+conda install -c conda-forge gcc=9.5 gxx=9.5 -y
+conda install nvidia/label/cuda-11.8.0::cuda -y
+conda install nvidia/label/cuda-11.8.0::cuda-toolkit -y 
 ```
 
 Next, install the rest of the python packages requirements with pip, here [pytorch](https://pytorch.org/get-started/previous-versions/) compatible with CUDA=11.1 is being used:
 
 ```
-pip install -r requirements_np3_blob_label_cuda11.1.txt -f https://download.pytorch.org/whl/torch_stable.html
+pip install -r requirements_np3_blob_label_cuda11.8.txt --extra-index-url https://download.pytorch.org/whl/cu118
 ```
 
 And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine with pip and the force_cuda parameter:
 
 ```
-export CXX=g++-7;  # set this if you want to use a different C++ compiler
+export CXX=g++-9;  # set this if you want to use a different C++ compiler
 export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--force_cuda"
+export MAX_JOBS=2; # parallel compilation - prevent to much CPU assignment and process killed
+pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --config-settings="--global-option=--blas=openblas" --config-settings="--global-option=--force_cuda"
 ```
 
 #### Clean the installation space
@@ -162,40 +166,7 @@ pip cache purge
 conda clean --all
 ```
 
-### System python + pip
-
-Install python 3.8 and some packages:
-
-```
-sudo apt install python3.8 
-sudo apt install python3-dev python3-distutils python3-apt
-```
-
-Then, install git and pip:
-```
-sudo apt install git
-# check if pip is installed:
-#> python3 -m pip --version 
-# if not installed than run:
-python3 -m ensurepip --upgrade # install pip
-# or
-#> sudo apt install -f python3-pip # another option to install pip
-```
-
-Next, install the rest of the python packages requirements with pip:
-
-```
-pip install -r requirements_np3_blob_label_cpu.txt
-```
-
-And finally install que Minkowski Engine with pip:
-
-```
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--cpu_only"
-```
-
-
-## Application evaluation with all validated models
+## Application evaluation with all LigPCDS validated models
 
 --------------------
 
