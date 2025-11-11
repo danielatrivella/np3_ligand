@@ -279,7 +279,7 @@ class MinkowskiSegmentationModule(LightningModule):
         self.training_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()})
         return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
     #
-    def training_step_end(self, outputs):
+    def on_training_batch_end(self, outputs,batch, batch_idx):
         if self.global_step % self.config.log_freq == 0 or self.global_step == 0:
             #print("log metrics ")
             self.log_metrics_train(outputs, on_step=True)
@@ -328,7 +328,7 @@ class MinkowskiSegmentationModule(LightningModule):
         self.validation_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()})
         return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
     #
-    def validation_step_end(self, outputs):
+    def on_validation_batch_end(self, outputs, batch, batch_idx):
         # update and log
         #print("validation step end")
         #print(outputs)
@@ -435,7 +435,7 @@ class MinkowskiSegmentationModule(LightningModule):
             return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
         print('test outs')
     #
-    def test_step_end(self, outputs):
+    def on_test_batch_end(self, outputs,batch, batch_idx):
         # update and log
         if self.config.num_devices > 1 and isinstance(outputs, list):
             # concat results
