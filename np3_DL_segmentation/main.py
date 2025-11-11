@@ -35,12 +35,12 @@ def main():
         config.accelerator = 'gpu'
         if config.gpu_index is not None:
             config.num_devices = config.gpu_index
-            if len(config.num_devices) >= torch.cuda.device_count() or max(config.gpu_index) >= torch.cuda.device_count():
+            if len(config.num_devices) > torch.cuda.device_count() or max(config.gpu_index) >= torch.cuda.device_count():
                 raise Exception("Wrong GPU index ("+str(config.gpu_index)+") or number of devices ("+
                                 str(len(config.num_devices))+") . The number of available GPU devices is "+
                                 str(torch.cuda.device_count())+". Aborting.")
         else: # gpu_index not informed
-            if config.num_devices >= torch.cuda.device_count() or config.num_devices < 1:
+            if config.num_devices > torch.cuda.device_count() or config.num_devices < 1:
                 raise Exception("Wrong number of GPU devices ("+str(config.num_devices)+") . "+
                                 "The number of available GPU devices is "+
                                 str(torch.cuda.device_count())+". Aborting.")
