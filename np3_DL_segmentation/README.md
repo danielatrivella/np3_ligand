@@ -104,21 +104,24 @@ The following arguments are required:
 
 > --lig_pcds_path : This is the path to a LigPCDS dataset.
 
-> --vocab_path : This is the path to the vocabulary used to label the provided dataset. The 'class_mapping_path' parameters must be informed to used a mapped vocabulary.
+> --vocab_path : This is the path to the vocabulary used to label the provided dataset. The 'class_mapping_path' parameter must be informed to use a mapped vocabulary.
 
 The output directory is defined with the following parameter:
 > --log_dir : The output logging directory will be named as: "<log_dir>\_<'train'|'test'>_<pc_type>\_kfold\_\<kfold>\_model-\<model>\_<current_time>" 
 
-To train a DL model, first the number of threads for multiprocessing parallelization must be set using the variable 'OMP_NUM_THREADS', following [Minkwoski Engine](https://github.com/NVIDIA/MinkowskiEngine) setup (example with 8 threads).
+To train a DL model, first the number of threads for multiprocessing parallelization must be set using the variable 'OMP_NUM_THREADS', following [Minkwoski Engine](https://github.com/NVIDIA/MinkowskiEngine) setup (example with 4 threads).
 Then, the pipeline may be executed passing the desired parameters. 
 The parameter `--resume` may be used to continue the training of a previous trained model. 
 
-Example training model AtomC347CA56, executed from this repository root folder:
+Example training model AtomC347CA56 in CPU using a small set of entries from the stratified training dataset from LigPCDS, data available in the 'test' folder.
+This training example will be executed for 10 epochs, using a batch_size equals 4, with logging after every 8 steps.
+
+Execute the following commands from this repository 'np3_DL_segmentation' folder:
 
 ```
 conda activate np3_lig
-export OMP_NUM_THREADS=8
-python main.py --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcds_path LigPCDS-SP/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --iter_size 1 --batch_size 8 --num_gpu 2 --gpu_index 0,1 --max_epoch 200 --log_dir output/train_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --num_val_workers 4 --val_batch_size 4 --test_batch_size 4 --loss_weights 1,10,5,5,50,5,500,500,500 --kfold 1
+export OMP_NUM_THREADS=4
+python main.py --ligs_data_filepath /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/training_dataset_small_top_down_example_SP.csv --lig_pcds_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example --vocab_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --is_cuda False --batch_size 8 --max_epoch 10 --log_freq 8 --log_dir test/outputs/out_train_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example
 ```
 
 ------------------------------------------
@@ -127,22 +130,21 @@ python main.py --ligs_data_filepath training_dataset_valid_ligands_undersampling
   The parameter `--is_train` controls if the training pipeline will train (True) or test (False) a model.
 And the parameter `--weights` is used to load a previous trained model for testing.
 
-Example of testing the model AtomC347CA56 with k=13:
+Example of testing the model AtomC347CA56 from LigPCDS available in the 'np3_blob_label' directory against the provided small example dataset, using k=13 (default `--kfold` parameter value - used in the model training):
 ```
-export OMP_NUM_THREADS=8
-python main.py --is_train False --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcds_path LigPCDS-SP/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir output/test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --test_batch_size 4 --loss_weights 1 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt
+export OMP_NUM_THREADS=4
+python main.py --is_train False --ligs_data_filepath /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/training_dataset_small_top_down_example_SP.csv --lig_pcds_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir test/outputs/out_test_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example --test_batch_size 4 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --is_cuda False
 ```
 
 #### Test and save the predictions
 
   To save the predictions result of a testing, the parameters `--save_prediction` and `--save_pred_dir` must be defined together with `--test_batch_size 1`.
 
-Example of testing a DL model and saving the predictions result.
+Example of testing a DL model and saving the predictions result of each test entry.
 
 ```
-python main.py --is_train False --ligs_data_filepath training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv --lig_pcds_path LigPCDS-SP/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir output/test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 --num_workers 8 --test_batch_size 1 --loss_weights 1 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --save_prediction True --save_pre_dir output/prediction_dir_test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5 
+python main.py --is_train False --ligs_data_filepath /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/training_dataset_small_top_down_example_SP.csv --lig_pcds_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir test/outputs/out_test_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example --test_batch_size 1 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --is_cuda False --save_prediction True --save_pred_dir test/outputs/out_test_predictions_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example 
 ```
- 
 
 -----------------------------------------------
 
@@ -162,7 +164,7 @@ tensorboard --logdir=<your_log_dir>
 The visualization of the predictions result, together with an error mask of each test entry, can be assessed with the following code:
 
 ```
-python src/visualize_predictions.py output/prediction_dir_test_lr-8_lossSL_w1-10-5-5-50-5-500C347_batch16iter1_gridsp0.5
+python src/visualize_predictions.py test/outputs/out_test_predictions_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example
 ```
 
 The error mask point cloud have the points with a wrong prediction colored in red and the rest in grey. 
