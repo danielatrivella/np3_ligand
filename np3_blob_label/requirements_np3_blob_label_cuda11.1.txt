@@ -32,15 +32,15 @@
 ###
 #> pip install -r requirements_np3_blob_label_cuda11.1.txt  -f https://download.pytorch.org/whl/torch_stable.html
 compiletools
-setuptools==59.5.0
+setuptools<60.0 # MinkowskiEngine Dependency to numpy.distutils
 torch==1.9.0+cu111 
 torchvision
 torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 torchmetrics
 #openblas-devel
-pytorch-lightning>=1.6.5
+pytorch-lightning>=2.0.0
 tensorboardX
-gemmi==0.5.8
+gemmi>=0.7.0
 numpy
 mkl-include
 matplotlib
@@ -48,7 +48,7 @@ pandas
 addict
 plyfile
 scikit-learn
-open3d==0.16
+open3d==0.18
 tqdm
 multiprocess
 pathlib
