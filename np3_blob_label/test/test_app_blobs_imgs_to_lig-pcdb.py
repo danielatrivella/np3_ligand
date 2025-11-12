@@ -85,7 +85,7 @@ if __name__ == "__main__":
              " following the input files naming and organization. "
              "Label the point clouds using the .xyz files from np3_LigPCDS scripts. \n"
              "  1. entries_list_path: The path to the CSV metadata table defining the ligands dataset that was used in the NP3 Blob Label process;\n"
-             "  2. np3_ligand_output_path: The path to the output data folder where the np3 blob label result was stored for the "
+             "  2. np3_blob_label_output_path: The path to the output data folder where the np3 blob label result was stored for the "
              "desired job ('data/np3_ligand_<output_name>_<DATE>/');\n"
              "  3. new_output_path: the new output path to store the result;\n"
              "  4. db_ligxyz_path: The path to the xyz directory with the structure labels of the ligands present in the entries_list_path.\n"
