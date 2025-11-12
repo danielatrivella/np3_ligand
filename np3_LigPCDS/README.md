@@ -543,12 +543,19 @@ It will also add columns with the electron density descriptive statistics of the
 Create the final representations of the ligands in 3D point cloud and also create their labeling files for each representation type.
 The output folder will be a LigPCDS dataset
 
-For each ligand entry that had its ligand grid representation successfully created, this script will scale it using 
+For each ligand entry that had its ligand grid representation successfully created, this script will scale this grid using 
 the quantile rank scale, extract the ligand mask representation and then create the final representations of the ligands. 
+Next it creates the labeling file for each representation type, 
+it uses the atom's radius, center proximity and neighbour searching to label each point.
+
 The following representation types will be created: 
 qRank0.5, qRank0.7, qRank0.75, qRank0.8, qRank0.85, qRank0.9, qRank0.95, qRankMask, and qRankMask_5.
 At the end, the final representations will be stored in a 3D point cloud file inside the subfolder of each PDB entry of 
-the ligand entries in the provided output path (parameter output_LigPCDS_path).
+the ligand entries in the provided output path (parameter output_LigPCDS_path), together with its labeling file.
+
+If one wants to use the ligand grids (present in the output_grid_path) created with another xyz directory (using another vocabulary),
+the user must manually copy the file xyz_\<the other ligand file name\>_<SP|AtomSymbol>/\<the other ligand file name\>_<SP|AtomSymbol>_box_pc.csv
+to the current xyz_labels_path or recreate the grids using the last step with the current xyz_labels_path to create this file (more disk space and time required).
 
 *Run:*
 
