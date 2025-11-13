@@ -34,7 +34,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 
 # Network
 net_arg = add_argument_group('Network')
-net_arg.add_argument('--model', type=str, default='MinkUNet34C_CONVATROUS_HYBRID', help='Model name to be used. The models that end with IN use instance normalization layer instead of batch normalization.',
+net_arg.add_argument('--model', type=str, default='MinkUNet34C_CONVATROUS_HYBRID', help='The network model name to be used. The net models that end with IN use instance normalization layer instead of batch normalization.',
                      choices=['MinkUNet101', 'MinkUNet14', 'MinkUNet14A', 'MinkUNet14B', 'MinkUNet14C', 'MinkUNet14D',
                               'MinkUNet18', 'MinkUNet18A', 'MinkUNet18B', 'MinkUNet18D', 'MinkUNet34', 'MinkUNet34A',
                               'MinkUNet34B', 'MinkUNet34C', 'MinkUNet34CIN', 'MinkUNet50','Res16UNet34CIN',
@@ -42,8 +42,8 @@ net_arg.add_argument('--model', type=str, default='MinkUNet34C_CONVATROUS_HYBRID
 net_arg.add_argument(
     '--conv1_kernel_size', type=int, default=3, help='First layer conv kernel size')
 net_arg.add_argument(
-    '--resume', default=None, type=str, help='path to latest model checkpoint - used to resume from previous training (default: none)')
-net_arg.add_argument('--weights', type=str, default='None', help='Saved weights from previous trained model to load - used for testing.')
+    '--resume', default=None, type=str, help='path to latest DL model checkpoint - used to resume from previous training (default: none)')
+net_arg.add_argument('--weights', type=str, default='None', help='Saved weights from previous trained DL model to load - used for testing.')
 net_arg.add_argument(
     '--lenient_weight_loading',
     type=str2bool,
@@ -72,20 +72,20 @@ opt_arg.add_argument('--step_gamma', type=float, default=0.1, help="Scheduler st
 opt_arg.add_argument('--poly_power', type=float, default=0.9, help="Scheduler poly power parm.")
 opt_arg.add_argument('--exp_gamma', type=float, default=0.95, help="Scheduler exp gamma parm.")
 opt_arg.add_argument('--exp_step_size', type=float, default=445, help="Scheduler exp step size.")
-opt_arg.add_argument('--max_epoch', type=int, default=100, help="Maximum number of epochs to train the current model, stops after this number of epochs is reached.")
+opt_arg.add_argument('--max_epoch', type=int, default=100, help="Maximum number of epochs to train the current DL model, stops after this number of epochs is reached.")
 
 # Directories
 data_arg = add_argument_group('Data In/Out')
 data_arg.add_argument('--log_dir', type=str, default='outputs/out',
-                     help="the output directory path where the logging info and the final model will be saved. "
+                     help="the output directory path where the logging info and the final DL model will be saved. "
                           "A suffix will be added to this directory name specifying if it is a train or test output, "
-                          "the kfold used, the model name selected and the current time.")
+                          "the kfold used, the net model name selected and the current time.")
 data_arg.add_argument('--ligs_data_filepath', type=str, required=True,
                       help='path to a ligands entries table defining the training dataset to be used. '
                            'It must contain the following columns: ligID, entry, kfolds, test_val, grid_space')
 data_arg.add_argument('--lig_pcds_path', type=str, required=True,
                       help='path to the folder where the LigPCDS with the ligands points clouds are located. '
-                           'These point clouds will be used for training, validating and testing a model.'
+                           'These point clouds will be used for training, validating and testing a DL model.'
                            'It is expected to have a subfolder for each PDB entryID present in the ligand entries table (ligs_data_filepath). '
                            'The PDB entries subfolders should contain the ligand representations and labels for all ligID '
                            'present in that table for each respective entryID. ')
@@ -139,7 +139,7 @@ train_arg.add_argument(
     '--stochastic_weight_avg',
     type=str2bool,
     default=False,
-    help='Apply the Stochastic Weight Averaging (SWA), which can make your models generalize better at virtually no additional cost. This can be used with both non-trained and trained models. The SWA procedure smooths the loss landscape thus making it harder to end up in a local minimum during optimization.')
+    help='Apply the Stochastic Weight Averaging (SWA), which can make your DL models generalize better at virtually no additional cost. This can be used with both non-trained and trained DL models. The SWA procedure smooths the loss landscape thus making it harder to end up in a local minimum during optimization.')
 
 train_arg.add_argument(
     '--loss_func',
