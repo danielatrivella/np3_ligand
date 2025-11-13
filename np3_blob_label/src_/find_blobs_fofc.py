@@ -200,14 +200,14 @@ def search_blobs_parse_place_fake_atoms(blobs_list, entry_refinement_path, entry
             extent = blob_mask.get_nonzero_extent()  # bounding box containing the blob
             # get the bb extent size from orthogonalized box
             bb_dim = grid.unit_cell.orthogonalize_box(extent).get_size()
-            # add limit of grid to 40A in each bound if their volume is greater than 40**3 - prevent memory leak here - test
-            if bb_dim[0]*bb_dim[1]*bb_dim[2] > 64000:
+            # add limit of grid to 50A in each bound if their volume is greater than 50**3 - prevent memory leak here - test
+            if bb_dim[0]*bb_dim[1]*bb_dim[2] > 50**3:
                 logging.info("  - WARNING Memory Leak Caution: the retrieved bounding box dimensions equal to "+str(bb_dim[0])+","+
-                             str(bb_dim[1])+","+str(bb_dim[2])+" would create a very big volume (greater than 40**3), "+
-                             "its dimension were cut to a maximum of 40 A.")
-                bb_dim[0] = min(bb_dim[0], 40)
-                bb_dim[1] = min(bb_dim[1], 40)
-                bb_dim[2] = min(bb_dim[2], 40)
+                             str(bb_dim[1])+","+str(bb_dim[2])+" would create a very big volume (greater than 50**3), "+
+                             "its dimension were cut to a maximum of 50 A.")
+                bb_dim[0] = min(bb_dim[0], 50)
+                bb_dim[1] = min(bb_dim[1], 50)
+                bb_dim[2] = min(bb_dim[2], 50)
             # add gap
             bb_gap = sigma_cutoff  # add a gap to include the entire blob
             xyz_bound = ','.join([str(round(abs(bb_i) + bb_gap, 2)) for bb_i in bb_dim])
@@ -372,13 +372,13 @@ def find_blobs_parse_place_fake_atoms(entry_refinement_path, entry_output_path, 
             extent = blob_mask.get_nonzero_extent()
             # get the bb extent size from orthogonalized box
             bb_dim = grid.unit_cell.orthogonalize_box(extent).get_size()
-            if bb_dim[0]*bb_dim[1]*bb_dim[2] > 64000:
+            if bb_dim[0]*bb_dim[1]*bb_dim[2] > 50**3:
                 logging.info("  - WARNING Memory Leak Caution: the retrieved bounding box dimensions equal to "+str(bb_dim[0])+","+
-                             str(bb_dim[1])+","+str(bb_dim[2])+" would create a very big volume (greater than 40**3), "+
-                             "its dimensions were cut to a maximum of 40 A.")
-                bb_dim[0] = min(bb_dim[0], 40)
-                bb_dim[1] = min(bb_dim[1], 40)
-                bb_dim[2] = min(bb_dim[2], 40)
+                             str(bb_dim[1])+","+str(bb_dim[2])+" would create a very big volume (greater than 50**3), "+
+                             "its dimensions were cut to a maximum of 50 A.")
+                bb_dim[0] = min(bb_dim[0], 50)
+                bb_dim[1] = min(bb_dim[1], 50)
+                bb_dim[2] = min(bb_dim[2], 50)
             # bb dimensions in x,y,z
             bb_gap = sigma_cutoff  # add a gap to include the entire blob
             xyz_bound = ','.join([str(round(abs(bb_i) + bb_gap,2)) for bb_i in bb_dim])  #.tolist()])
