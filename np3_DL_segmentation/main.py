@@ -113,6 +113,21 @@ def main():
         state['state_dict'] = {(k.partition('model.')[2] if k.startswith('model.') else k): state['state_dict'][k]
                                for k in state['state_dict'].keys() if k not in ['criterion.weight', 'model.criterion.weight', 'criterion.cross_entropy.weight', 'model.criterion.cross_entropy.weight']}
         logging.info(state['state_dict'])
+        # check if class names matches from the loaded model and the input vocab+mapping
+        if state['hyper_parameters']['class_names'].size != config.class_names.size:
+            logging.info("Error. The classes names mismatched between the provided DL model weights and the vocab+mapping.")
+            raise Exception("Wrong number of classes names between the provided DL model weights and the vocab+mapping."+
+                            " DL model weights classes:" + str(state['hyper_parameters']['class_names']) +
+                            "; vocab+mapping classes: " + str(config.class_names)+
+                            ". These set of classes must match in size and name. Aborting.")
+        elif not all(state['hyper_parameters']['class_names'] == config.class_names):
+            logging.info(
+                "Error. The classes names mismatched between the provided DL model weights and the vocab+mapping.")
+            raise Exception(
+                "Wrong set of classes names between the provided DL model weights and the vocab+mapping." +
+                " DL model weights classes:" + str(state['hyper_parameters']['class_names']) +
+                "; vocab+mapping classes: " + str(config.class_names) +
+                ". These set of classes must match in size and names. Aborting.")
 
         if config.lenient_weight_loading:
             matched_weights = load_state_with_same_shape(model, state['state_dict'])
