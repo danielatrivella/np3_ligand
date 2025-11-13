@@ -46,7 +46,7 @@ np3_blobs_arg.add_argument('--parallel_cores', type=int, default=2,
                            help="The number of processors to use for multiprocessing parallelization."
                                 " If 1, the parallelization is disabled and more verbose messages are emitted."
                                 "The parallelization is applied in the refinement (step 1) and in the call to the point clouds "
-                                "creation and prediction (steps 3 and 4).")
+                                "creation and prediction (steps 3 and 4). More memory is required for more cores.")
 
 
 # refinement - dimple
@@ -96,11 +96,11 @@ data_arg.add_argument('--refinement_path', type=str, default=None,
 find_b_arg = add_argument_group('Find blobs')
 find_b_arg.add_argument('--sigma_cutoff', type=float, default=3.0,
                         help="A numeric defining the sigma cutoff to be used to search for blobs in "
-                             "the difference electron density map. Values greater or equal than 2σ are recommended. "
+                             "the difference electron density map. Values closer to 3σ are recommended. "
                              "Values closer to 2σ may retrieve low quality blobs (which could have a fragmented density) "
                              "and values closer to 3σ may retrieve only high quality blobs."
-                             "Values smaller than 1.5σ are *not recommended*, "
-                             "because they could create a blob image with too much noise, very big and slow to process.")
+                             "Values smaller than 1.5σ are *not recommended* due to memory constrains. For values smaller "
+                             "or equal than 2.5σ, more than 32Gb of memory RAM is required.")
 find_b_arg.add_argument('--blob_min_volume', type=float, default=24.0,
                         help="A numeric defining the minimum volume that a blob must have to be considered. Only used when search_blobs is 'all'. "
                              "Default to 24 A^3, what is equivalent to the volume of a water. "
