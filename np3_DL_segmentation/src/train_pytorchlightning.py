@@ -52,7 +52,7 @@ class MinkowskiSegmentationModule(LightningModule):
                                                  weight=self.loss_weights)
         else:  # config.loss_func == "SL"
             # self.loss_weights = torch.Tensor([1, 3, 3.7])
-            #print("\n\ndevice: ",self.device) before device was always 0
+            #print("\n\ndevice: ",self.device)
             self.criterion = SCELoss(self.device, alpha=config.SL_alpha,
                                 beta=config.SL_beta,
                                 num_classes=len(self.class_names),
@@ -88,11 +88,6 @@ class MinkowskiSegmentationModule(LightningModule):
                 self.tb_logger.log_hyperparams(self.hparams,
                                             {"hyper_params/adam_beta1": config.adam_beta1,
                                              "hyper_params/adam_beta2": config.adam_beta2})
-        # creates the variables to store the train, validation and test outputs
-        if config.is_train:
-            self.training_step_outputs = []
-            self.validation_step_outputs = []
-        self.test_step_outputs = []
     #
     # print the loss weights used for training
     def print_weights(self):
@@ -109,18 +104,22 @@ class MinkowskiSegmentationModule(LightningModule):
     #
     def log_metrics_train(self, output, on_step=False, on_epoch=False):
         #print("global step",self.global_step)
+        # print('log metrics func')
         # update accuracy and loss
-        #print('log metrics func')
-        self.score_train(output['preds'], output['target'])
-        self.loss_train(output['loss'], output['target'].size(0))
-        self.hist_IoU_train(output['preds'], output['target'])
-        #print("log metrics updated ")
-        # log scalars
-        self.log('train/train_loss', self.loss_train, on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
-        self.log('train/train_acc', self.score_train, on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
-        self.log('train/train_mIoU', self.hist_IoU_train, on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
-        lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
-        self.log('train/train_lr', float(lrs), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
+        # only update in the step on_step=True, which counts for new data
+        # on_epoch=True will only compute and print the stats stored so far - no redundancy with the entries result already stored
+        if on_step :
+            self.score_train(output['preds'], output['target'])
+            self.loss_train(output['loss'], output['target'].size(0))
+            self.hist_IoU_train(output['preds'], output['target'])
+            #print("log metrics updated ")
+            # log scalars
+            if self.global_step % self.config.log_freq == 0 or self.global_step == 0:
+                self.log('train/train_loss', self.loss_train, on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
+                self.log('train/train_acc', self.score_train, on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
+                self.log('train/train_mIoU', self.hist_IoU_train, on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
+                lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
+                self.log('train/train_lr', float(lrs), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             # log to file
@@ -150,13 +149,15 @@ class MinkowskiSegmentationModule(LightningModule):
     def log_metrics_val(self, output, on_step=False, on_epoch=False):
         # update accuracy and loss, on_epoch for val is always true
         # print('log metrics')
-        self.score_val(output['preds'], output['target'])
-        self.loss_val(output['loss'], output['target'].size(0))
-        self.hist_IoU_val(output['preds'], output['target'])
-        # log scalars
-        self.log('validation/val_loss', self.loss_val, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-        self.log('validation/val_acc', self.score_val, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-        self.log('validation/val_mIoU', self.hist_IoU_val, on_step=on_step, on_epoch=True, prog_bar=True, sync_dist=on_epoch)
+        if on_step:
+            self.score_val(output['preds'], output['target'])
+            self.loss_val(output['loss'], output['target'].size(0))
+            self.hist_IoU_val(output['preds'], output['target'])
+            # log scalars
+            if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
+                self.log('validation/val_loss', self.loss_val, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('validation/val_acc', self.score_val, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('validation/val_mIoU', self.hist_IoU_val, on_step=on_step, on_epoch=True, prog_bar=True, sync_dist=on_epoch)
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
@@ -183,19 +184,20 @@ class MinkowskiSegmentationModule(LightningModule):
             self.print_metric_perclass(f1_per_class, data_type='Validation', metric_type="F1")
             self.print_metric_perclass(precision_per_class, data_type='Validation', metric_type="Precision")
             self.print_metric_perclass(recall_per_class, data_type='Validation', metric_type="Recall")
-
     #
     def log_metrics_test(self, output, on_step=False, on_epoch=False):
         # update accuracy and loss, on_epoch for test is always true
         #print('log metrics func')
-        self.score_test(output['preds'], output['target'])
-        self.loss_test(output['loss'], output['target'].size(0))
-        self.hist_IoU_test(output['preds'], output['target'])
-        #print("updated metrics")
-        # log scalars
-        self.log('test/test_loss', self.loss_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-        self.log('test/test_acc', self.score_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-        self.log('test/test_mIoU', self.hist_IoU_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+        if on_step:
+            self.score_test(output['preds'], output['target'])
+            self.loss_test(output['loss'], output['target'].size(0))
+            self.hist_IoU_test(output['preds'], output['target'])
+            #print("updated metrics")
+            # log scalars
+            if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
+                self.log('test/test_loss', self.loss_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('test/test_acc', self.score_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('test/test_mIoU', self.hist_IoU_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             lrs = self.config.lr
@@ -222,10 +224,9 @@ class MinkowskiSegmentationModule(LightningModule):
             self.print_metric_perclass(f1_per_class, data_type='Test', metric_type="F1")
             self.print_metric_perclass(precision_per_class, data_type='Test', metric_type="Precision")
             self.print_metric_perclass(recall_per_class, data_type='Test', metric_type="Recall")
-
         elif self.config.save_prediction and self.config.test_batch_size == 1:
             # at the end of each step save the predictions
-            # the quantitazion divided the coords by the grid_space in the reading,
+            # the quantization divided the coords by the grid_space in the reading,
             # # revert this operation before saving by multiplying by the grid_space
             save_predictions(output['coords'].numpy()*self.test_dataset.get_grid_space(),
                              output['target'], output['preds'],
@@ -276,43 +277,29 @@ class MinkowskiSegmentationModule(LightningModule):
         outs = self(stensor).F
         loss = self.criterion(outs, batch[2].long())
         preds = get_prediction(outs)
-        self.training_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()})
         return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
     #
     def on_training_batch_end(self, outputs,batch, batch_idx):
-        if self.global_step % self.config.log_freq == 0 or self.global_step == 0:
-            #print("log metrics ")
-            self.log_metrics_train(outputs, on_step=True)
-            #print("return log")
+        #print("log metrics ")
+        self.log_metrics_train(outputs, on_step=True)
         return outputs
     #
     def on_train_epoch_end(self):
         #print("training_epoch_end current epoch", self.current_epoch)
         #print(outputs)
-        if len(self.training_step_outputs) == 1:
-            outs = self.training_step_outputs[0]
-        else:
-            # concat results
-            outs = {}
-            outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in self.training_step_outputs]).mean()
-            outs['preds'] = torch.cat([out['preds'] for out in self.training_step_outputs])
-            outs['target'] = torch.cat([out['target'] for out in self.training_step_outputs])
+        self.log_metrics_train(None, on_epoch=True)
         # print(outs)
-        self.log_metrics_train(outs, on_epoch=True)
-        self.training_step_outputs.clear()  # free memory
-        # reset histogram for next epoch IoU computation, except in the last epoch
         #print("current_epoch", self.current_epoch)
-        if self.current_epoch+1 != self.config.max_epoch:
-            self.hist_IoU_train.reset()
-        else:
+        if self.current_epoch+1 == self.config.max_epoch:
             # save final confusion matrix in the last epoch
             confusion_m = self.hist_IoU_train.compute_confusion_matrix()
             m_not_nan = (np.diag(confusion_m) == np.diag(confusion_m))
             pd.DataFrame(confusion_m[m_not_nan][:, m_not_nan], columns=self.class_names[m_not_nan],
                          index=self.class_names[m_not_nan]).to_csv(self.config.log_dir + "/train_confusion_matrix.csv")
-        #  single scheduler step, not possible when accumulating grad
-        # sch = self.lr_schedulers()
-        # sch.step()
+        # reset histogram for next epoch train and IoU computation
+        self.hist_IoU_train.reset()
+        self.loss_train.reset()
+        self.score_train.reset()
     #
     def validation_step(self, batch, batch_idx):
         # print('start val')
@@ -325,7 +312,6 @@ class MinkowskiSegmentationModule(LightningModule):
         # Must clear cache at regular interval
         if self.global_step % self.config.empty_cache_freq == 0:
             torch.cuda.empty_cache()
-        self.validation_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()})
         return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
     #
     def on_validation_batch_end(self, outputs, batch, batch_idx):
@@ -341,24 +327,13 @@ class MinkowskiSegmentationModule(LightningModule):
         else:
             outs = outputs
         # log metrics
-        if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
-            self.log_metrics_val(outs, on_epoch=False)
+        self.log_metrics_val(outs, on_step=True)
         return outs
     #
     def on_validation_epoch_end(self):
         #print("validation_epoch_end")
         #print(outputs)
-        if len(self.validation_step_outputs) == 1:
-            outs = self.validation_step_outputs[0]
-        else:
-            # concat results
-            outs = {}
-            outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in self.validation_step_outputs]).mean()
-            outs['preds'] = torch.cat([out['preds'] for out in self.validation_step_outputs])
-            outs['target'] = torch.cat([out['target'] for out in self.validation_step_outputs])
-        # print(outs)
-        self.log_metrics_val(outs, on_epoch=True)
-        self.validation_step_outputs.clear() # free memory
+        self.log_metrics_val(None, on_epoch=True)
     #
     def on_validation_end(self):
         # if last epoch, save validation confusion matrix
@@ -426,12 +401,9 @@ class MinkowskiSegmentationModule(LightningModule):
         #print('empty cache')
         if self.config.save_prediction and self.config.test_batch_size == 1:
             # also return the coords when saving the predictions
-            self.test_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu(),
-                    'coords': batch[0].detach().cpu(), 'batch_idx': batch_idx})
             return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu(),
                     'coords': batch[0].detach().cpu(), 'batch_idx': batch_idx}
         else:
-            self.test_step_outputs.append({'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()})
             return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
         print('test outs')
     #
@@ -449,22 +421,12 @@ class MinkowskiSegmentationModule(LightningModule):
         else:
             outs = outputs
         # log metrics
-        if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
-            self.log_metrics_test(outs, on_epoch=False)
+        self.log_metrics_test(outs, on_step=True)
         return outs
     #
     def on_test_epoch_end(self):
-        if len(self.test_step_outputs) == 1:
-            outs = self.test_step_outputs[0]
-        else:
-            # concat results
-            outs = {}
-            outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in self.test_step_outputs]).mean()
-            outs['preds'] = torch.cat([out['preds'] for out in self.test_step_outputs])
-            outs['target'] = torch.cat([out['target'] for out in self.test_step_outputs])
-        # print(outs)
-        self.log_metrics_test(outs, on_epoch=True)
-        self.test_step_outputs.clear()  # free memory
+        self.log_metrics_test(None, on_epoch=True)
+        # print(outs)  # free memory
     #
     def on_test_end(self):
         # save final confusion matrix
@@ -490,12 +452,6 @@ class MinkowskiSegmentationModule(LightningModule):
             torch.cuda.empty_cache()
         # return preds.detach().cpu()
         return {'preds': preds.detach().cpu(), 'coords': batch[0].detach().cpu(), 'batch_idx': batch_idx}
-        # if self.config.save_prediction and self.config.test_batch_size == 1:
-        #     # also return the coords when sabing the predictions
-        #     return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu(),
-        #             'coords': batch[0].detach().cpu(), 'batch_idx': batch_idx}
-        # else:
-        #     return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
     #
     def configure_optimizers(self):
         optimizer = initialize_optimizer(self.model.parameters(), self.config)
