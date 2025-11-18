@@ -70,12 +70,12 @@ More information about the workflow inputs, results and overview can be found in
 - Ubuntu >= 20.04 (may also work with other Unix operating systems, but was not tested)
 - CCP4 (with [Dimple](https://ccp4.github.io/dimple/))
 - [Coot](https://www2.mrc-lmb.cam.ac.uk/personal/pemsley/coot/) - Crystallographic Object-Oriented Toolkit
-- GCC >= 7.4.0 and GCC <= 11 (depends on the CUDA version)
+- GCC >= 7.4.0 and GCC <= 10 (depends on the CUDA version)
 - Python >= 3.9 and packages
 - Ubuntu packages:
   - build-essentials
   - libopenblas-dev
-- For GPU compatibility: 
+- For GPU use enabled: 
   - CUDA >= 10.1.243 and recommended CUDA < 12
   - Compatible with the CUDA version used for [pytorch](https://pytorch.org/get-started/previous-versions/) (e.g. if you use conda cudatoolkit=11.8, use CUDA=11.8 for MinkowskiEngine compilation) and with the [GPU driver](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html).
 
