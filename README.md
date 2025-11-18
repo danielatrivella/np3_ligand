@@ -23,13 +23,14 @@ The dependencies of all repositories are unified here in a single conda environm
 - Anaconda (https://www.anaconda.com/download/)
 - CCP4 (with [Dimple](https://ccp4.github.io/dimple/))
 - [Coot](https://www2.mrc-lmb.cam.ac.uk/personal/pemsley/coot/) - Crystallographic Object-Oriented Toolkit (comes with ccp4)
-- GCC >= 7.4.0 and GCC <= 11
+- GCC >= 7.4.0 and GCC <= 10 (depends on the CUDA version)
 - Python >= 3.9 and packages
 - Ubuntu packages:
   - build-essentials
   - libopenblas-dev
 - For GPU use enabled: 
-  - CUDA >= 10.1.243 and compatible with the CUDA version used for pytorch (e.g. if you use conda cudatoolkit=11.8, use CUDA=11.8 for MinkowskiEngine compilation)
+  - CUDA >= 10.1.243 and recommended CUDA < 12
+  - Compatible with the CUDA version used for [pytorch](https://pytorch.org/get-started/previous-versions/) (e.g. if you use conda cudatoolkit=11.8, use CUDA=11.8 for MinkowskiEngine compilation) and with the [GPU driver](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html).
 
 ---------------------------------
 
@@ -37,21 +38,24 @@ The dependencies of all repositories are unified here in a single conda environm
 
 ----------------------
 
-Tested in a Linux with Ubuntu 22.04.
+Tested in a Linux with Ubuntu 22.02 and GPU Driver Version nvidia 535.274.02.
 
-Let's start with the installation of the Ubuntu packages and GCC 11:
+
+Let's start with the system installation of the Ubuntu packages and GCC 9:
 
 ```
-sudo apt install build-essential libopenblas-dev g++-11
+sudo apt install build-essential libopenblas-dev g++-9
 ```
 
-The required python and R packages will be installed with **anaconda + pip**. If you have any issues installing the packages, please report it on the github issue page.
+The required python and R packages will be installed with **anaconda + pip**. If you have any issues installing the packages, 
+please report it on the github issue page.
 
-The GPU compatibility is explained separated from the CPU only installation. In both cases the [Minkowski Engine](https://github.com/NVIDIA/MinkowskiEngine) package, used for the deep learning model training and prediction, is installed at the end with pip.
+The GPU compatibility is explained separated from the CPU only installation. In both cases the [Minkowski Engine](https://github.com/NVIDIA/MinkowskiEngine) package, 
+used for the deep learning model training and prediction, is installed at the end by cloning its repository and calling the setup script.
 
 ### Anaconda + pip
 
-Two pip requirements files are provided to help in the installation. One have GPU compatibility and the other is for CPU only.
+A pip requirements file is provided to help in the installation, for both GPU and CPU compatibility.
 
 First, we recommend setting the anaconda channel priority to flexible mode before creating the environment:
 `conda config --set channel_priority true`
@@ -59,9 +63,9 @@ First, we recommend setting the anaconda channel priority to flexible mode befor
 ---------------------------------
 #### Auto installation
 
-Two scripts are provided for the CPU and the GPU installation. 
-The Minkowski Engine python package, for DL training and validation, is installed by clonning its github source code in
-the current folder and running the setup with corresponding parameters (preferred than the installation with pip).
+Two scripts are provided for the CPU and the GPU auto installation. 
+The Minkowski Engine python package, for DL training and validation, is installed by cloning its github source code into
+the lib folder and running its setup script with corresponding parameters (more recommended than the installation with pip).
 
 For **CPU** only installation, run the script:
 
@@ -70,15 +74,27 @@ source install_conda_env_requirements_cpu.sh
 ```
 
 For **GPU** enabled installation, there are additional requirement:
-- CUDA >= 11.x and compatible with the CUDA version used for pytorch
+- CUDA >= 10.1.243 and < 12 and compatible with the CUDA version used for pytorch and the GPU driver.
 
 The provided installation script uses a pytorch compatible with CUDA=11.8 and cuda-toolkit=11.8. 
-For other CUDA versions please modify the corresponding script and requirements files with correct CUDA version. 
-The pytorch CUDA version must match the cudtoolkit version.
+For other CUDA versions please modify the corresponding script and requirements file with correct CUDA version. 
+The pytorch CUDA version must match the cuda-toolkit version.
 
 For **GPU** enabled installation, run the script:
 ```
 source install_conda_env_requirements_cuda11.8.sh
+```
+
+Check the version of the system, python, pytorch, CUDA and GCC used, run a diagnostic:
+```
+python diagnostics.py
+```
+
+Check the MinkowskiEngine installation for CPU and GPU capabilities, test if a SparseTensor can be correctly created
+in all devices:
+
+```
+python np3_DL_segmentation/test/test_ME_SparseTensor_CPU_GPU.py
 ```
 
 ---------------------------------
@@ -109,7 +125,7 @@ Rscript -e 'install.packages("anticlust",repos = "http://cran.us.r-project.org")
 Next, install the rest of the python packages requirements with pip:
 
 ```
-pip install -r requirements_np3_ligand_cpu.txt
+pip install -r requirements_np3_ligand.txt --extra-index-url https://download.pytorch.org/whl/cpu
 ```
 
 And finally install que Minkowski Engine package by cloning its github source code and running the setup for cpu only:
@@ -124,40 +140,39 @@ python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include:/usr/include
 ###### GPU enabled
 
 Additional requirement:
-- CUDA >= 11.x and compatible with the CUDA version used for pytorch
+- CUDA >= 10.1.243 and < 12 and compatible with the CUDA version used for pytorch and the GPU driver.
 
 The provided pip requirements files uses a pytorch compatible with CUDA=11.8 and cuda-toolkit=11.8. 
-For other CUDA versions please modify the corresponding requirements .txt file and the following cudatoolkit version. 
-The pytorch CUDA version must match the cudtoolkit version.
+For other CUDA versions please modify the corresponding requirements .txt file and the following cuda-toolkit version. 
+The pytorch CUDA version must match the cuda-toolkit version.
 
-Check installed CUDA driver compatibility:
+Check installed CUDA driver compatibility and other diagnostics (nvidia-smi and NVCC):
 ```
-nvidia-smi
-nvcc --version
+python diagnostics.py
 ```
 
 Install the cuda=11.8 and cudatoolkit=11.8 with conda:
 
 ```
-conda install nvidia/label/cuda-11.8.0::cuda
-conda install nvidia/label/cuda-11.8.0::cuda-toolkit -y 
+conda install -c "nvidia/label/cuda-11.8.0" cuda cuda-toolkit 
 ```
 
 Next, install the rest of the python packages requirements with pip, here [pytorch](https://pytorch.org/get-started/previous-versions/) compatible with CUDA=11.8 is being used:
 
 ```
-pip install -r requirements_np3_ligand_cuda11.8.txt --index-url https://download.pytorch.org/whl/cu118
+pip install -r requirements_np3_ligand_cuda11.8.txt --extra-index-url https://download.pytorch.org/whl/cu118
 ```
 
 Check the installed versions of pytorch, the corresponding CUDA used with it and GCC used, run:
 ```
-python -c "import sys; import torch; print('Python version:', sys.version); print('Torch version:', torch.__version__); print('Torch CUDA version:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available()); import MinkowskiEngine as ME; ME.print_diagnostics();" && gcc --version | head -n 1
+python diagnostics.py
 ```
 
-And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine by cloning its github source code and using the force_cuda parameter:
+And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine by cloning its github source code and 
+using the force_cuda parameter:
 
 ```
-export CXX=g++-11;  # set this if you want to use a different C++ compiler
+export CXX=g++-9;  # set this if you want to use a different C++ compiler
 export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
 export LD_LIBRARY_PATH=$CUDA_HOME/lib:$LD_LIBRARY_PATH
 export PATH=$CUDA_HOME/bin:$PATH  
@@ -166,6 +181,33 @@ cd MinkowskiEngine
 export MAX_JOBS=2; # parallel compilation - prevent to much CPU assignment and process killed
 python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include --blas=openblas --force_cuda
 ```
+
+Check the MinkowskiEngine installation for CPU and GPU capabilities, test if a SparseTensor can be correctly created
+in all devices:
+
+```
+python np3_DL_segmentation/test/test_ME_SparseTensor_CPU_GPU.py
+```
+
+---------------------------------
+###### Installation Errors
+
+The MinkowskiEngine installation for GPU can lead to some troubles. Make sure you have only **one CUDA** version installed, 
+this may prevent stack smashing and segmentation fault errors. Also check if the installed CUDA from conda have the correct version:
+
+```
+conda list cuda
+```
+
+Make sure all your CUDA, GPU driver and pytorch version are compatible.
+
+```
+python diagnostics.py
+```
+
+If you want to use a newer version of CUDA, checkout the following repositories to help in your installation: 
+- [CUDA > 12](https://github.com/CiSong10/MinkowskiEngine/tree/cuda12-installation)
+- [CUDA > 13](https://github.com/AzharSindhi/MinkowskiEngineCuda13)
 
 ---------------------------------
 # How to use
@@ -181,7 +223,7 @@ conda activate np3_lig
 More instructions are present in each repository documentation.
 
 --------------------------------------
-### Acknowledment
+### Acknowledgment
 
 This research was funded by the [Serrapilheira](https://serrapilheira.org/en/) Institute, grant number Serra-1709-19681 (to Daniela B. B. Trivella).
 It was part of the [Master's thesis](https://repositorio.unicamp.br/acervo/detalhe/1371294) of Cristina Freitas Bazzano, developed within an interdisciplinary project from the DDP-LNBio-CNPEM and the Institute of Computing from the University of Campinas (UNICAMP). 
