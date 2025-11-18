@@ -1,0 +1,26 @@
+compiletools
+setuptools<60.0 # MinkowskiEngine Dependency to numpy.distutils
+torch==2.6.0
+torchvision==0.21.0
+torchaudio==2.6.0
+torchmetrics
+pytorch-lightning>=2.0.0
+tensorboardX
+gemmi>=0.7.0
+numpy
+mkl-include
+matplotlib
+pandas
+addict
+plyfile
+scikit-learn
+open3d==0.18
+tqdm
+multiprocess
+pathlib
+p-tqdm
+ninja
+rdkit
+biopython
+mordred
+seaborn
