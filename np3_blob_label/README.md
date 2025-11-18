@@ -67,20 +67,23 @@ More information about the workflow inputs, results and overview can be found in
 
 --------------------
 
-- Ubuntu >= 14.04 (may also work with other Unix operating systems)
+- Ubuntu >= 20.04 (may also work with other Unix operating systems, but was not tested)
 - CCP4 (with [Dimple](https://ccp4.github.io/dimple/))
 - [Coot](https://www2.mrc-lmb.cam.ac.uk/personal/pemsley/coot/) - Crystallographic Object-Oriented Toolkit
-- GCC >= 7.4.0
-- Python >= 3.8 and packages
+- GCC >= 7.4.0 and GCC <= 11 (depends on the CUDA version)
+- Python >= 3.9 and packages
 - Ubuntu packages:
   - build-essentials
   - libopenblas-dev
 - For GPU compatibility: 
-  - CUDA >= 10.1.243 and compatible with the CUDA version used for pytorch (e.g. if you use conda cudatoolkit=11.1, use CUDA=11.1 for MinkowskiEngine compilation)
+  - CUDA >= 10.1.243 and recommended CUDA < 12
+  - Compatible with the CUDA version used for [pytorch](https://pytorch.org/get-started/previous-versions/) (e.g. if you use conda cudatoolkit=11.8, use CUDA=11.8 for MinkowskiEngine compilation) and with the [GPU driver](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html).
 
 ## Installation
 
 ---------
+
+Tested in a Linux with Ubuntu 22.02 and GPU Driver Version nvidia 535.274.02.
 
 First install the Ubuntu packages:
 
@@ -111,7 +114,7 @@ Create a conda environment with python 3.9 to encapsulate the installation, then
 conda create -n np3_blob_label python=3.9
 conda activate np3_blob_label
 conda install openblas-devel -c anaconda
-conda install -c conda-forge libstdcxx-ng=13.2 -y
+conda install -c conda-forge libstdcxx-ng=13.2 
 ```
 
 #### CPU only
@@ -119,43 +122,62 @@ conda install -c conda-forge libstdcxx-ng=13.2 -y
 Next, install the rest of the python packages requirements with pip:
 
 ```
-pip install -r requirements_np3_blob_label_cpu.txt
+pip install -r requirements_np3_blob_label.txt --extra-index-url https://download.pytorch.org/whl/cpu
 ```
 
-And finally install que Minkowski Engine package with pip:
+And finally install que Minkowski Engine package from the github source code:
 
 ```
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --global-option="--blas=openblas" --global-option="--cpu_only"
+if [ ! -d 'lib/MinkowskiEngine' ]; then
+  mkdir lib && cd lib
+  git clone https://github.com/NVIDIA/MinkowskiEngine.git
+  cd MinkowskiEngine
+else
+  cd lib/MinkowskiEngine
+fi
+python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include:/usr/include/ --blas=openblas --cpu_only
+cd ../..
 ```
 
 #### GPU compatibility
 
 Additional requirement:
-- CUDA >= 10.1.243 and compatible with the CUDA version used for pytorch
+- CUDA - compatible with the CUDA version used for pytorch
 
-The provided pip requirements files uses a pytorch compatible with CUDA>=11.8 and cuda-toolkit=11.8. For other CUDA versions please modify the corresponding requirements .txt file and the following cudatoolkit version. The pytorch CUDA version must match the cudatoolkit version.
+The provided pip requirements files uses a pytorch compatible with CUDA>=11.8 and cuda-toolkit=11.8. 
+For other CUDA versions please modify the corresponding requirements .txt file and the following cuda-toolkit version. 
+The pytorch CUDA version must match the cuda-toolkit version.
 
-Install the cudatoolkit=11.8 with conda and gcc=9.5:
-
-```
-conda install -c conda-forge gcc=9.5 gxx=9.5 -y
-conda install nvidia/label/cuda-11.8.0::cuda -y
-conda install nvidia/label/cuda-11.8.0::cuda-toolkit -y 
-```
-
-Next, install the rest of the python packages requirements with pip, here [pytorch](https://pytorch.org/get-started/previous-versions/) compatible with CUDA=11.1 is being used:
+Install the cuda-toolkit=11.8 with conda and gcc=9.5:
 
 ```
-pip install -r requirements_np3_blob_label_cuda11.8.txt --extra-index-url https://download.pytorch.org/whl/cu118
+conda install -c conda-forge gcc=9 gxx=9 -y
+conda install -c "nvidia/label/cuda-11.8.0" cuda cuda-toolkit
 ```
 
-And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine with pip and the force_cuda parameter:
+Next, install the rest of the python packages requirements with pip, here [pytorch](https://pytorch.org/get-started/previous-versions/) compatible with CUDA=11.8 is being used:
+
+```
+pip install -r requirements_np3_blob_label.txt --extra-index-url https://download.pytorch.org/whl/cu118
+```
+
+And finally set the C++ compiler, set CUDA_HOME and install que Minkowski Engine from the github source code using the force_cuda parameter:
 
 ```
 export CXX=g++-9;  # set this if you want to use a different C++ compiler
 export CUDA_HOME=$(dirname $(dirname $(which nvcc))); # or select the correct cuda version on your system.
+export LD_LIBRARY_PATH=$CUDA_HOME/lib:$LD_LIBRARY_PATH
+export PATH=$CUDA_HOME/bin:$PATH 
 export MAX_JOBS=2; # parallel compilation - prevent to much CPU assignment and process killed
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --config-settings="--global-option=--blas=openblas" --config-settings="--global-option=--force_cuda"
+if [ ! -d 'lib/MinkowskiEngine' ]; then
+  mkdir lib && cd lib
+  git clone https://github.com/NVIDIA/MinkowskiEngine.git
+  cd MinkowskiEngine
+else
+  cd lib/MinkowskiEngine
+fi
+python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include --blas=openblas --force_cuda
+cd ../..
 ```
 
 #### Clean the installation space
