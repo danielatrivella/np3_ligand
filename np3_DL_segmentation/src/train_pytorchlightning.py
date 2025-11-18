@@ -108,18 +108,18 @@ class MinkowskiSegmentationModule(LightningModule):
         # update accuracy and loss
         # only update in the step on_step=True, which counts for new data
         # on_epoch=True will only compute and print the stats stored so far - no redundancy with the entries result already stored
-        if on_step :
+        lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
+        if on_step:
             self.score_train(output['preds'], output['target'])
             self.loss_train(output['loss'], output['target'].size(0))
             self.hist_IoU_train(output['preds'], output['target'])
             #print("log metrics updated ")
             # log scalars
             if self.global_step % self.config.log_freq == 0 or self.global_step == 0:
-                self.log('train/train_loss', self.loss_train, on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
-                self.log('train/train_acc', self.score_train, on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
-                self.log('train/train_mIoU', self.hist_IoU_train, on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
-                lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
-                self.log('train/train_lr', float(lrs), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
+                self.log('train/train_loss', self.loss_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
+                self.log('train/train_acc', self.score_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
+                self.log('train/train_mIoU', self.hist_IoU_train.to(self.device), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
+                self.log('train/train_lr', float(lrs).to(self.device), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             # log to file
@@ -132,7 +132,7 @@ class MinkowskiSegmentationModule(LightningModule):
             precision_per_class = self.hist_IoU_train.compute_precision()
             recall_per_class = self.hist_IoU_train.compute_recall()
             debug_str += " - Macro - F1-Dice {:.3f}, Precision {:.3f}, Recall {:.3f}".format(
-                f1_per_class.mean(), precision_per_class.mean(), recall_per_class.mean())
+                f1_per_class.nanmean(), precision_per_class.nanmean(), recall_per_class.nanmean())
             logging.info(debug_str)
             # compute iou per class
             iou_per_class = self.hist_IoU_train.compute_iou()
@@ -140,7 +140,7 @@ class MinkowskiSegmentationModule(LightningModule):
             # log IoU to tensorboard
             for i in range(len(iou_per_class)):
                 self.log('train_IoU/'+self.class_names[i],
-                         iou_per_class[i], on_step=on_step, on_epoch=on_epoch, sync_dist=True)
+                         iou_per_class[i].to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=True)
             # log f1 score and precision and recall
             self.print_metric_perclass(f1_per_class, data_type='Train', metric_type="F1")
             self.print_metric_perclass(precision_per_class, data_type='Train', metric_type="Precision")
@@ -155,9 +155,9 @@ class MinkowskiSegmentationModule(LightningModule):
             self.hist_IoU_val(output['preds'], output['target'])
             # log scalars
             if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
-                self.log('validation/val_loss', self.loss_val, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-                self.log('validation/val_acc', self.score_val, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-                self.log('validation/val_mIoU', self.hist_IoU_val, on_step=on_step, on_epoch=True, prog_bar=True, sync_dist=on_epoch)
+                self.log('validation/val_loss', self.loss_val.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('validation/val_acc', self.score_val.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('validation/val_mIoU', self.hist_IoU_val.to(self.device), on_step=on_step, on_epoch=True, prog_bar=True, sync_dist=on_epoch)
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
@@ -171,7 +171,7 @@ class MinkowskiSegmentationModule(LightningModule):
             precision_per_class = self.hist_IoU_val.compute_precision()
             recall_per_class = self.hist_IoU_val.compute_recall()
             debug_str += " - Macro - F1-Dice {:.3f}, Precision {:.3f}, Recall {:.3f}".format(
-                f1_per_class.mean(), precision_per_class.mean(), recall_per_class.mean())
+                f1_per_class.nanmean(), precision_per_class.nanmean(), recall_per_class.nanmean())
             logging.info(debug_str)
             # compute iou per class
             iou_per_class = self.hist_IoU_val.compute_iou()
@@ -179,11 +179,11 @@ class MinkowskiSegmentationModule(LightningModule):
             # log IoU to tensorboard
             for i in range(len(iou_per_class)):
                 self.log('validation_IoU/'+self.class_names[i],
-                         iou_per_class[i], on_step=on_step, on_epoch=True, sync_dist=True) # sync dist across checkpoints, in not tensor metrics
+                         iou_per_class[i].to(self.device), on_step=on_step, on_epoch=True, sync_dist=True) # sync dist across checkpoints, in not tensor metrics
             # log f1 score and precision and recall
-            self.print_metric_perclass(f1_per_class, data_type='Validation', metric_type="F1")
-            self.print_metric_perclass(precision_per_class, data_type='Validation', metric_type="Precision")
-            self.print_metric_perclass(recall_per_class, data_type='Validation', metric_type="Recall")
+            self.print_metric_perclass(f1_per_class.to(self.device), data_type='Validation', metric_type="F1")
+            self.print_metric_perclass(precision_per_class.to(self.device), data_type='Validation', metric_type="Precision")
+            self.print_metric_perclass(recall_per_class.to(self.device), data_type='Validation', metric_type="Recall")
     #
     def log_metrics_test(self, output, on_step=False, on_epoch=False):
         # update accuracy and loss, on_epoch for test is always true
@@ -195,9 +195,9 @@ class MinkowskiSegmentationModule(LightningModule):
             #print("updated metrics")
             # log scalars
             if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
-                self.log('test/test_loss', self.loss_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-                self.log('test/test_acc', self.score_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-                self.log('test/test_mIoU', self.hist_IoU_test, on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('test/test_loss', self.loss_test.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('test/test_acc', self.score_test.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('test/test_mIoU', self.hist_IoU_test.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             lrs = self.config.lr
@@ -211,7 +211,7 @@ class MinkowskiSegmentationModule(LightningModule):
             precision_per_class = self.hist_IoU_test.compute_precision()
             recall_per_class = self.hist_IoU_test.compute_recall()
             debug_str += " - Macro - F1-Dice {:.3f}, Precision {:.3f}, Recall {:.3f}".format(
-                f1_per_class.mean(), precision_per_class.mean(), recall_per_class.mean())
+                f1_per_class.nanmean(), precision_per_class.nanmean(), recall_per_class.nanmean())
             logging.info(debug_str)
             # compute iou per class
             iou_per_class = self.hist_IoU_test.compute_iou()
@@ -219,7 +219,7 @@ class MinkowskiSegmentationModule(LightningModule):
             # log IoU to tensorboard
             for i in range(len(iou_per_class)):
                 self.log('test_IoU/'+self.class_names[i],
-                         iou_per_class[i], on_step=on_step, on_epoch=True, sync_dist=True)
+                         iou_per_class[i].to(self.device), on_step=on_step, on_epoch=True, sync_dist=True)
             # log f1 score and precision and recall
             self.print_metric_perclass(f1_per_class, data_type='Test', metric_type="F1")
             self.print_metric_perclass(precision_per_class, data_type='Test', metric_type="Precision")
@@ -277,9 +277,9 @@ class MinkowskiSegmentationModule(LightningModule):
         outs = self(stensor).F
         loss = self.criterion(outs, batch[2].long())
         preds = get_prediction(outs)
-        return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
+        return {'loss': loss, 'preds': preds, 'target': batch[2].long()}
     #
-    def on_training_batch_end(self, outputs,batch, batch_idx):
+    def on_train_batch_end(self, outputs,batch, batch_idx):
         #print("log metrics ")
         self.log_metrics_train(outputs, on_step=True)
         return outputs
@@ -312,7 +312,7 @@ class MinkowskiSegmentationModule(LightningModule):
         # Must clear cache at regular interval
         if self.global_step % self.config.empty_cache_freq == 0:
             torch.cuda.empty_cache()
-        return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
+        return {'loss': loss, 'preds': preds, 'target': batch[2].long()}
     #
     def on_validation_batch_end(self, outputs, batch, batch_idx):
         # update and log
@@ -321,7 +321,7 @@ class MinkowskiSegmentationModule(LightningModule):
         if self.config.num_devices > 1 and isinstance(outputs, list):
             # concat results
             outs = {}
-            outs['loss'] = torch.stack([out['loss'].detach().cpu() for out in outputs]).mean()
+            outs['loss'] = torch.stack([out['loss'] for out in outputs]).nanmean()
             outs['preds'] = torch.cat([out['preds'] for out in outputs])
             outs['target'] = torch.cat([out['target'] for out in outputs])
         else:
@@ -401,10 +401,10 @@ class MinkowskiSegmentationModule(LightningModule):
         #print('empty cache')
         if self.config.save_prediction and self.config.test_batch_size == 1:
             # also return the coords when saving the predictions
-            return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu(),
-                    'coords': batch[0].detach().cpu(), 'batch_idx': batch_idx}
+            return {'loss': loss, 'preds': preds, 'target': batch[2].long(),
+                    'coords': batch[0], 'batch_idx': batch_idx}
         else:
-            return {'loss': loss, 'preds': preds.detach().cpu(), 'target': batch[2].long().detach().cpu()}
+            return {'loss': loss, 'preds': preds, 'target': batch[2].long()}
         print('test outs')
     #
     def on_test_batch_end(self, outputs,batch, batch_idx):
@@ -412,7 +412,7 @@ class MinkowskiSegmentationModule(LightningModule):
         if self.config.num_devices > 1 and isinstance(outputs, list):
             # concat results
             outs = {}
-            outs['loss'] = sum([out['loss'].detach().cpu() for out in outputs])/len(outputs)
+            outs['loss'] = sum([out['loss'] for out in outputs])/len(outputs)
             outs['preds'] = torch.cat([out['preds'] for out in outputs])
             outs['target'] = torch.cat([out['target'] for out in outputs])
             if self.config.save_prediction and self.config.test_batch_size == 1:
@@ -450,8 +450,8 @@ class MinkowskiSegmentationModule(LightningModule):
         # Must clear cache at regular interval
         if self.global_step % self.config.empty_cache_freq == 0:
             torch.cuda.empty_cache()
-        # return preds.detach().cpu()
-        return {'preds': preds.detach().cpu(), 'coords': batch[0].detach().cpu(), 'batch_idx': batch_idx}
+        # return preds
+        return {'preds': preds, 'coords': batch[0], 'batch_idx': batch_idx}
     #
     def configure_optimizers(self):
         optimizer = initialize_optimizer(self.model.parameters(), self.config)
