@@ -291,8 +291,8 @@ class ScoreAccuracy(Metric):
         # print('compute score', self.correct.float() / self.total)
         return self.correct.float() / self.total
     def reset(self):
-        self.correct = torch.tensor(0)
-        self.total = torch.tensor(0)
+        self.correct = torch.tensor(0).to(self.correct.device)
+        self.total = torch.tensor(0).to(self.total.device)
 
 class WeightAverageMeter(Metric):
     def __init__(self, dist_sync_on_step=False):
@@ -306,8 +306,8 @@ class WeightAverageMeter(Metric):
         # print('compute wavgmeter', self.total / self.count)
         return self.total / self.count
     def reset(self):
-        self.count = torch.tensor(0)
-        self.total = torch.Tensor([0])
+        self.count = torch.tensor(0).to(self.count.device)
+        self.total = torch.Tensor([0]).to(self.total.device)
 
 class HistIoU(Metric):
     def __init__(self, class_names, dist_sync_on_step=False):
@@ -318,7 +318,7 @@ class HistIoU(Metric):
     def update(self, preds: torch.Tensor, target: torch.Tensor):
         # preds, target = self._input_format(preds, target)
         assert preds.shape == target.shape
-        current_hist = torch.Tensor(fast_hist(preds, target,
+        current_hist = torch.Tensor(fast_hist(preds.detach().cpu(), target.detach().cpu(),
                                  len(self.class_names))).to(self.hist.device)
         self.hist += current_hist
         # return per_class_iu(current_hist) * 100
@@ -337,7 +337,7 @@ class HistIoU(Metric):
     def compute_recall(self):
         return per_class_recall(self.hist.detach().cpu()) * 100
     def reset(self):
-        self.hist = torch.Tensor(np.zeros((len(self.class_names), len(self.class_names))))
+        self.hist = torch.Tensor(np.zeros((len(self.class_names), len(self.class_names)))).to(self.hist.device)
 
 
 def mkdir_p(path):
