@@ -101,7 +101,7 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SP
     vocab = [line.rstrip('\n') for line in open(vocab_path)]
 
     # store the retrieved ligands informations: bounding box, class freq and # H's
-    ligand_label = [] #pd.DataFrame([], columns=['entryID', 'x', 'y', 'z','x_bound','y_bound','z_bound', 'occupancy', 'bfactor','MissingHeavyAtoms', 'class_freq'])
+    ligand_label = [] #pd.DataFrame([], columns=['entryID', 'x', 'y', 'z','x_bound','y_bound','z_bound', 'occupancy', 'bfactor', 'class_freq'])
 
     # PDB parser to retrieve the ligands occupancy and bfactor by atom
     parser = MMCIFParser(QUIET=True)
@@ -111,7 +111,7 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SP
     # encode each ligand using the provided vocabulary
     sdf_errors = []
     # sort by smiles to put the empty smiles in the end and by ligCode to prevent recomputing ligand's smiles classes
-    ligs_retrieve = ligs_retrieve.sort_values(["ligCode","missingHeavyAtoms"]).reset_index(drop=True)
+    ligs_retrieve = ligs_retrieve.sort_values(["ligCode"]).reset_index(drop=True)
     lig_code = "" # store the last lig code of the corresponding smiles for which the SP classes where computed
     lig_smiles_SP_class = [] # store the last SP classes of the corresponding smiles
     ligs_retrieve["match_structure"] = True
@@ -145,7 +145,9 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SP
             #
             # test if the sp classes match the corresponding smiles sp classes
             # retrieve the sp classes of the corresponding smiles
-            if lig_code != ligs_retrieve.ligCode[i] or ligs_retrieve.loc[i,"missingHeavyAtoms"]:
+            # not using the missingHeavyAtoms anymore - this information is not present in the new sdf files and is always True here
+            # recreate mol here for every entry
+            if lig_code != ligs_retrieve.ligCode[i] or True:
                 # smiles present in the sdf file
                 lig_code = ligs_retrieve.ligCode[i]
                 mol_ref = get_mol(ligs_retrieve.smiles[i], addHs=True)
@@ -166,30 +168,26 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SP
             # check if classes are equal
             if len(map_atoms) == len(atoms_sp_class): # mapping was successful
                 if not atoms_sp_class == [lig_smiles_SP_class[j] for j in map_atoms]:
-                    # if missing heavy atoms also compare the classes using the matching substructure instead of only the original reference
-                    if ligs_retrieve.missingHeavyAtoms[i]:
-                        chem.Kekulize(mol_ref)
-                        mol_ref_sub = get_clique_mol(mol_ref, list(map_atoms))
-                        restore_aromatics(mol_ref)
-                        restore_aromatics(mol_ref_sub)
-                        map_atoms = match_substructure(mol_ref_sub, mol)
-                        lig_sub_smiles_SP_class = label_mol_atoms(chem.AddHs(mol_ref_sub), steric_number=label_SP,
-                                                                     notH=False)
-                        if not atoms_sp_class == [lig_sub_smiles_SP_class[j] for j in map_atoms]:
-                            ligs_retrieve.loc[i, "filter_quality"] = False
-                    else:
+                    # also compare the classes using the matching substructure instead of only the original reference
+                    # extra chance, missingHeavyAtoms is not present anymore - testing with every entry
+                    chem.Kekulize(mol_ref)
+                    mol_ref_sub = get_clique_mol(mol_ref, list(map_atoms))
+                    restore_aromatics(mol_ref)
+                    restore_aromatics(mol_ref_sub)
+                    map_atoms = match_substructure(mol_ref_sub, mol)
+                    lig_sub_smiles_SP_class = label_mol_atoms(chem.AddHs(mol_ref_sub), steric_number=label_SP,
+                                                                 notH=False)
+                    if not atoms_sp_class == [lig_sub_smiles_SP_class[j] for j in map_atoms]:
                         ligs_retrieve.loc[i, "filter_quality"] = False
             else: # mapping failed when matching structures
                 ligs_retrieve.loc[i, "match_structure"] = False
                 # remove hydrogen class before matching
                 lig_smiles_SP_class = [x for x in lig_smiles_SP_class if not x == '-1']
                 # if sdf is complete, then the smiles classes must be equal to the sdf classes
-                if not ligs_retrieve.missingHeavyAtoms[i] and not sorted(atoms_sp_class) == sorted(lig_smiles_SP_class):
-                    ligs_retrieve.loc[i, "filter_quality"] = False
                 # if sdf is missing atoms, the sdf classes will be a subset of the smiles classes
-                elif ligs_retrieve.missingHeavyAtoms[i] and not set(atoms_sp_class).issubset(lig_smiles_SP_class):
+                if not sorted(atoms_sp_class) == sorted(lig_smiles_SP_class) and not set(atoms_sp_class).issubset(lig_smiles_SP_class):
                     # if missing atoms and not a subset, then the complete smiles is different from the fragment - possible aromatic atoms are different
-                    # try to match structure after kekulize - remore aromaticity info
+                    # try to match structure after kekulize - remove aromaticity info
                     chem.Kekulize(mol_ref)
                     chem.Kekulize(mol)
                     map_atoms = match_substructure(mol_ref, mol)
@@ -206,7 +204,7 @@ def encode_ligands_vocabulary(db_lig_path, valid_ligs_file, vocab_path, label_SP
                             # relabel the mol_ref substructure and check labels equality to the sdf mol
                             lig_sub_smiles_SP_class = label_mol_atoms(chem.AddHs(mol_ref_sub), steric_number=label_SP,
                                                                          notH=False)
-                            # if the classes are still not equal, than remove lig entry
+                            # if the classes are still not equal, then remove lig entry
                             if not atoms_sp_class == [lig_sub_smiles_SP_class[j] for j in map_atoms]:
                                 ligs_retrieve.loc[i, "filter_quality"] = False   
                     else:                     
@@ -319,7 +317,7 @@ if __name__ == "__main__":
                  "ligand's atoms labeled with the given vocabulary;\n"
                  "  2. valid_ligands_filtered_list_file: The path to the CSV file containing the valid ligands list and their IDs. "
                  "This file is expected to be the output of the quality filter script."
-                 "Mandatory column = 'ligID','ligCode','missingHeavyAtoms','smiles'.;\n"
+                 "Mandatory column = 'ligID','ligCode','smiles'.;\n"
                  "  3. vocab_path: The path to the text file containing the desired vocabulary to be used to label the ligands. "
                  "It must contain one class per line. The ligands SDF will be fragmented and matched against this "
                  "list to be labeled using the vocabulary index order;\n"
