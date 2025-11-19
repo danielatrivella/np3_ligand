@@ -89,6 +89,8 @@ class LigandPointCloudDataset(Dataset):
     def checkLigandsFiles(self):
         logging.info('    ==> Checking if the ligand representations and label files exists')
         self.ligs_retrieve['file_check'] = True
+        # skip checking for faster start
+        # n=0
         n = self.__len__()
         for i in range(n):
             pcfile_xyzrgb = self.pc_path / self.ligs_retrieve.loc[i, 'entry'] / \
