@@ -119,7 +119,7 @@ class MinkowskiSegmentationModule(LightningModule):
                 self.log('train/train_loss', self.loss_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
                 self.log('train/train_acc', self.score_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
                 self.log('train/train_mIoU', self.hist_IoU_train.to(self.device), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
-                self.log('train/train_lr', float(lrs).to(self.device), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
+                self.log('train/train_lr', float(lrs), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             # log to file
