@@ -327,7 +327,7 @@ Filter the free ligands, compute some parameters and apply global quality filter
 *Run:*
 
 ``` 
-python src/quality_filter_pdb_ligands_lists.py pdb_list_file ligands_list_file db_path valid_ligands_list_file bfactor_ratio_max bfactor_std_max min_occupancy_cutoff allow_missingHeavyAtoms max_num_disordered 
+python src/quality_filter_pdb_ligands_lists.py pdb_list_file ligands_list_file db_path valid_ligands_list_file bfactor_ratio_max bfactor_std_max min_occupancy_cutoff max_num_disordered 
 ```
 
 *Parameters:*
@@ -335,24 +335,23 @@ python src/quality_filter_pdb_ligands_lists.py pdb_list_file ligands_list_file d
     1. pdb_list_file: The path to the CSV file containing the list of filtered PDB entries (result of step 1.2). Mandatory columns = 'PDBID', 'RefinementResolution', 'SpaceGroup', 'AverageBFactor';
     2. ligands_list_file: The path to the CSV file containing the list of filtered ligands entries present in the filtered PDB entries (result of step 1.2). Mandatory columns = 'EntryID', 'LigandID', 'freeLigand',  'LigandFormula', 'LigandMW', 'numTotalCount';
     3. db_path: The path to the data folder where the directories 'pdb' and 'coefficients' are located;
-    4. valid_ligands_list_file: The path to the CSV file containing the list of available ligands with a valid sdf file and their info (result of step 1.4). Mandatory columns: ligID, entry, ligCode, bfactor, min_occupancy, missingHeavyAtoms, numDisordered;
+    4. valid_ligands_list_file: The path to the CSV file containing the list of available ligands with a valid sdf file and their info (result of step 1.4). Mandatory columns: ligID, entry, ligCode, bfactor, min_occupancy, numDisordered;
     5. bfactor_ratio_max: The maximum allowed bfactor ratio between a ligand bfactor and its PDB entry bfactor;
     6. bfactor_std_max: The maximum allowed bfactor standard deviation between the ligand atom's bfactor;
     7. min_occupancy_cutoff: The minimum occupancy cutoff to keep a ligand;
-    8. allow_missingHeavyAtoms: The missingHeavyAtoms boolean TRUE (1) or FALSE (0) to allow missing heavy atoms in the ligands. If FALSE, no ligands entries with missing heavy atoms will be allowed;
-    9. max_num_disordered: The maximum numDisordered that a ligand entry is allowed to have. 
+    8. max_num_disordered: The maximum numDisordered that a ligand entry is allowed to have. 
 
 *Return:*
 
 Two tables will be created in the current directory:
    
-    - '<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<max_num_disordered>.csv' : containing the filtered pdb entries that passed the quality criteria;
-    - '<valid_ligands_list_file.name>_<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_missHAtoms_<allow_missingHeavyAtoms>_numDisorder_<max_num_disordered>.csv' : containing the ligands that passed the quality criteria. This is the list of available ligands with quality filters and additional parameters.
+    - '<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_numDisorder_<max_num_disordered>.csv' : containing the filtered pdb entries that passed the quality criteria;
+    - '<valid_ligands_list_file.name>_<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_numDisorder_<max_num_disordered>.csv' : containing the ligands that passed the quality criteria. This is the list of available ligands with quality filters and additional parameters.
 
 *Example:*
 
 Do not apply the quality filters related to bfactor, occupancy and disorder (as used in LigPCDS v1.0.1 creation).
-> ``` python src/quality_filter_pdb_ligands_lists.py PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv ligands_free_PDB_1.5_2.2_NP_atoms_1_counts_2008-02-01_depDate.csv data/ ligands_valid_sdf_info.csv 10000 10000 0 TRUE 10000```
+> ``` python src/quality_filter_pdb_ligands_lists.py PDB_1.5_2.2_NP_atoms_free_ligands_1_counts_2008-02-01_depDate.csv ligands_free_PDB_1.5_2.2_NP_atoms_1_counts_2008-02-01_depDate.csv data/ ligands_valid_sdf_info.csv 10000 10000 0 10000```
 
 ### Step 3
 
@@ -389,7 +388,7 @@ Ligands with bad defined SDF files, that raises an error when reading them are a
 
 1. data_folder_path: The path to the data folder where the vocabulary output will be stored and where the 'ligands' folder with the ligands in .sdf format is located.
 2. valid_ligands_filtered_list_path: The path to the CSV file containing the valid ligands list and their smiles with the quality filters applied. This file is expected to be the output of the quality filter script (step 1.5 result).
-   Mandatory columns = 'ligID','smiles','ligCode','missingHeavyAtoms'. The name of this file will be used to label the output vocabulary file, the ligand's SMILES dataset file and the xyz folder, which will store the labeled ligands .xyz files;
+   Mandatory columns = 'ligID','smiles','ligCode'. The name of this file will be used to label the output vocabulary file, the ligand's SMILES dataset file and the xyz folder, which will store the labeled ligands .xyz files;
 3. label_SP: (optional) Set to 'True' to use the SP-based approach to create the vocabulary (default), otherwise it will use the AtomSymbol-based labeling approach. Both labeling approaches contains the atoms' cyclic information.
 4. row_start: (optional) The number of the row in the valid_ligands_filtered_list_path file where the script should start. Skip to the given row or, if missing, start from the beginning;
 5. row_end: (optional) The number of the row in the valid_ligands_filtered_list_path file where the script should stop. Stop in the given row or, if missing, stop in the last row.
@@ -435,7 +434,7 @@ Ligands with mismatching labels in this test are removed. Ligands with bad defin
 
 1. ligands_data_folder: The path to the ligand data folder called 'ligands' where the ligands sdf files are located. Its parent folder is expected to the data_folder_path.
 2. valid_ligands_filtered_list_path: The path to the CSV file containing the list of valid ligands and their SMILES. 
-This file is expected to be the output of the quality filter script (step 1.5). Mandatory columns = 'ligID','ligCode','missingHeavyAtoms','smiles'.
+This file is expected to be the output of the quality filter script (step 1.5). Mandatory columns = 'ligID','ligCode','smiles'.
 The name of this file will be used to label the output xyz folder, which will store the labeled ligands .xyz files;
 3. vocab_path: The path to the text file containing the desired vocabulary to be used to label the ligands structure. 
 It must contain one class per line. The ligands SDF will be fragmented and its atoms classes will be matched against this
