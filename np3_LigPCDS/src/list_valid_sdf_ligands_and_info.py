@@ -43,7 +43,6 @@ def list_valid_sdf_ligands_and_info(db_ligand_path):
 
 	# CIF-PDB parser to retrieve the ligands occupancy and bfactor by atom
 	parser = MMCIFParser(QUIET=True)
-	#parser = PDBParser(PERMISSIVE=1)
 
 	# store the valid ligands sdf present in the db path informations: b factor
 	ligand_entries = []
@@ -61,7 +60,9 @@ def list_valid_sdf_ligands_and_info(db_ligand_path):
 				print('ERROR parsing sdf ' + sdf.name + "\n")
 				errors_count.append(sdf.name)
 				continue
-			if mol_res.GetNumAtoms() == 0:
+			# get number of atoms
+			numAtoms = mol_res.GetNumAtoms()
+			if numAtoms == 0:
 				print('ERROR no atoms in sdf ' + sdf.name + "\n")
 				errors_count.append(sdf.name)
 				continue
@@ -85,17 +86,16 @@ def list_valid_sdf_ligands_and_info(db_ligand_path):
 		bf, bf_min, bf_max, bf_std = np_mean_min_max_std(atoms_info[1])
 		num_disordered_units = sum(atoms_info[2])
 		# store ligands info:
-		# columns=['ligID', 'entry', 'bfactor', 'bfactor_min', 'bfactor_max', 'bfactor_std', 'min_occupancy', 'smiles', 'missingHeavyAtoms', 'numDisordered']
+		# columns=['ligID', 'entry', 'bfactor', 'bfactor_min', 'bfactor_max', 'bfactor_std', 'min_occupancy', 'smiles', 'numAtoms', 'numDisordered']
 		ligand_entries.append([sdf.name.replace('_NO_H.sdf', ''),
 							  sdf.name[5:8].rstrip('_'),
 							  sdf.name[0:4], bf, bf_min, bf_max, bf_std, occ, smiles_res,
-							  str(True).upper(),
-							  #str(mol_res.GetPropsAsDict()['MissingHeavyAtoms']>0).upper(),  # this field is not present in the sdf file anymore
+							  numAtoms,
 							  num_disordered_units])
 
 	ligand_entries = pd.DataFrame(ligand_entries,
 				 columns=['ligID', 'ligCode', 'entry', 'bfactor', 'bfactor_min', 'bfactor_max', 'bfactor_std',
-						  'min_occupancy', 'smiles', 'missingHeavyAtoms', 'numDisordered'])
+						  'min_occupancy', 'smiles', 'numAtoms', 'numDisordered'])
 	
 	if ligand_entries.shape[0] < len(db_ligs_sdf_path):
 		print("Finish. There were", len(db_ligs_sdf_path)-ligand_entries.shape[0], "ligand sdf files with error.")
@@ -106,7 +106,7 @@ def list_valid_sdf_ligands_and_info(db_ligand_path):
 	# from the given ligands table
 	print("DONE!\n")
 	if len(errors_count) > 0:
-		print("* A total of "+str(len(errors_count))+"/"+str(i)+" ligands .sdf's raised an error and could not be processed *\n")
+		print("* A total of "+str(len(errors_count))+"/"+str(len(db_ligs_sdf_path))+" ligands .sdf's raised an error and could not be processed *\n")
 		print(errors_count)
 
 if __name__ == "__main__":
