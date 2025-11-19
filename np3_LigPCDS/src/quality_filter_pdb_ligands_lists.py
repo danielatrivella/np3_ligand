@@ -29,12 +29,11 @@ def pdb_avgBFactor(parser, pdbid, db_path):
 
 # list the entries classes frequency aggregated for the desired and available/valid ligands
 def filter_pdb_ligands_list_quality(pdb_list_file, ligands_list_file, db_path, valid_ligands_list_file, bfactor_ratio_max, bfactor_std_max,
-                                       min_occupancy_cutoff, allow_missingHeavyAtoms, max_num_disordered):
+                                       min_occupancy_cutoff, max_num_disordered):
     bfactor_ratio_max = as_float(bfactor_ratio_max)
     min_occupancy_cutoff = as_float(min_occupancy_cutoff)
     bfactor_std_max = as_float(bfactor_std_max)
     max_num_disordered = as_float(max_num_disordered)
-    allow_missingHeavyAtoms = str(allow_missingHeavyAtoms).upper()
 
     # store the filtering impact
     total_ligs_filter = {}
@@ -54,14 +53,9 @@ def filter_pdb_ligands_list_quality(pdb_list_file, ligands_list_file, db_path, v
     if not valid_ligands_list_file.exists() or not valid_ligands_list_file.is_file():
         sys.exit("The provided valid ligands list file does not exists.")
 
-    if allow_missingHeavyAtoms == "TRUE":
-        allow_missingHeavyAtoms = True
-    else:
-        allow_missingHeavyAtoms = False
-
     # read the pdb list containing the desired pdb codes
     pdb_list = pd.read_csv(pdb_list_file,
-                           usecols=['PDBID', 'RefinementResolution', 'SpaceGroup', 'AverageBFactor'])
+                           usecols=['PDBID', 'RefinementResolution', 'SpaceGroup', 'AverageBFactor', 'DepositionDate'])
     pdb_list['PDBID'] = pdb_list.PDBID.str.lower() # pdb id to lower
     total_PDB_filter['total_filtered_PDB_entries'] = pdb_list.shape[0]
     # n = pdb_list.shape[0]
@@ -164,9 +158,7 @@ def filter_pdb_ligands_list_quality(pdb_list_file, ligands_list_file, db_path, v
     bf_ratio_filter = (valid_ligs_list.bfactor <= valid_ligs_list.AverageBFactor * bfactor_ratio_max)
     total_ligs_filter['valid_ligs_bfactor_ratio_max_<='+str(bfactor_ratio_max)] = [
         valid_ligs_list.ligCode[bf_ratio_filter].unique().size, sum(bf_ratio_filter)]
-    missingHA = (~(valid_ligs_list.missingHeavyAtoms) | allow_missingHeavyAtoms)
-    total_ligs_filter['valid_ligs_Missing_Heavy_Atoms'] = [valid_ligs_list.ligCode[missingHA].unique().size, sum(missingHA)]
-    valid_ligs_list = valid_ligs_list[missingHA & occ_filter & disordered_cutoff_filter & bf_std_filter & bf_ratio_filter]
+    valid_ligs_list = valid_ligs_list[occ_filter & disordered_cutoff_filter & bf_std_filter & bf_ratio_filter]
     valid_ligs_list = valid_ligs_list.reset_index(drop=True)
     total_ligs_filter['Total_final_valid_ligs_quality_filter'] = [valid_ligs_list.ligCode.unique().size, valid_ligs_list.shape[0]]
 
@@ -182,15 +174,14 @@ def filter_pdb_ligands_list_quality(pdb_list_file, ligands_list_file, db_path, v
     pdb_list = pdb_list.drop(['missing_data', 'missing_ligs'], axis=1)
     pdb_list.to_csv(str(pdb_list_file.name.replace(".csv", "_filter_") + "bfRatio_" + str(bfactor_ratio_max) +
                         "bfStd_" + str(bfactor_std_max) + "_occ_" + str(min_occupancy_cutoff) +
-                        "_missHAtoms_" + str(allow_missingHeavyAtoms) + "_numDisorder_" + str(max_num_disordered) + ".csv"),
+                        "_numDisorder_" + str(max_num_disordered) + ".csv"),
                     index=False)
     total_PDB_filter['Total_final_PDB_entries_valid_quality_filter'] = pdb_list.shape[0]
 
     valid_ligs_list = valid_ligs_list.drop(['Free_ligand', 'missing_data','missing_ligs'], axis=1)  # remove not used info
     valid_ligs_list.to_csv(str(valid_ligands_list_file.name.replace(".csv", "_") + pdb_list_file.name.replace(".csv", "_filter_") +
                          "bfRatio_" + str(bfactor_ratio_max) + "_bfStd_" + str(bfactor_std_max) + "_occ_" +
-                        str(min_occupancy_cutoff) + "_missHAtoms_" + str(allow_missingHeavyAtoms) + "_numDisorder_" +
-                        str(max_num_disordered) + ".csv"),
+                        str(min_occupancy_cutoff) + "_numDisorder_" + str(max_num_disordered) + ".csv"),
                     index=False)
     # print subtotals
     print_dict(total_PDB_filter)
@@ -199,7 +190,7 @@ def filter_pdb_ligands_list_quality(pdb_list_file, ligands_list_file, db_path, v
 
 if __name__ == "__main__":
     # read the entries folder path, pdb file, quality filters
-    if len(sys.argv) >= 10:
+    if len(sys.argv) >= 9:
         pdb_list_file = sys.argv[1]
         ligands_list_file = sys.argv[2]
         db_path = sys.argv[3]
@@ -207,8 +198,7 @@ if __name__ == "__main__":
         bfactor_ratio_max = sys.argv[5]
         bfactor_std_max = sys.argv[6]
         min_occupancy_cutoff = sys.argv[7]
-        allow_missingHeavyAtoms = sys.argv[8]
-        max_num_disordered = sys.argv[9]
+        max_num_disordered = sys.argv[8]
     else:
         sys.exit("Wrong number of arguments. Seven arguments must be supplied in order to filter the valid ligands and "
                  "to apply a quality filter in the provided PDB filtered list and available ligands: \n"
@@ -220,22 +210,19 @@ if __name__ == "__main__":
                  "  3. db_path: The path to the data folder where the directories 'pdb' and 'coefficients' are located;\n"
                  "  4. valid_ligands_list_file: The path to the CSV file containing the list of available ligands with a "
                  "valid sdf file and their info (result of step 1.4). "
-                 "Mandatory columns: ligID, entry, ligCode, bfactor, min_occupancy, missingHeavyAtoms, numDisordered;\n"
+                 "Mandatory columns: ligID, entry, ligCode, bfactor, min_occupancy, numDisordered;\n"
                  "  5. bfactor_ratio_max: The maximum allowed bfactor ratio between a ligand bfactor and its PDB entry bfactor;\n"
                  "  6. bfactor_std_max: The maximum allowed bfactor standard deviation between the ligand atom's bfactor;\n"
                  "  7. min_occupancy_cutoff: The minimum occupancy cutoff to keep a ligand;\n"
-                 "  8. allow_missingHeavyAtoms: The missingHeavyAtoms boolean TRUE (1) or FALSE (0) to allow missing "
-                 "heavy atoms in the ligands. If FALSE, no ligands entries with missing heavy atoms will be allowed;\n"
-                 "  9. max_num_disordered: The maximum numDisordered that a ligand entry is allowed to have. "
+                 "  8. max_num_disordered: The maximum numDisordered that a ligand entry is allowed to have. "
                  "\n\nResults: Two tables will be created in the current directory: \n"
-                 "  - '<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_missHAtoms_"
-                 "<allow_missingHeavyAtoms>_numDisorder_<max_num_disordered>.csv' : containing the "
+                 "  - '<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_"
+                 "numDisorder_<max_num_disordered>.csv' : containing the "
                  "filtered pdb entries that passed the quality criteria;\n"
-                 "  - '<valid_ligands_list_file.name>_<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_missHAtoms_"
-                 "<allow_missingHeavyAtoms>_numDisorder_<max_num_disordered>.csv' : containing the "
+                 "  - '<valid_ligands_list_file.name>_<pdb_list_file.name>_filter_bfRatio_<bfactor_ratio_max>_bfStd_<bfactor_std_max>_occ_<min_occupancy_cutoff>_"
+                 "numDisorder_<max_num_disordered>.csv' : containing the "
                  "valid ligands that passed the quality criteria.\n"
                  )
     
     filter_pdb_ligands_list_quality(pdb_list_file, ligands_list_file, db_path, valid_ligands_list_file,
-                                    bfactor_ratio_max, bfactor_std_max, min_occupancy_cutoff, allow_missingHeavyAtoms,
-                                    max_num_disordered)
+                                    bfactor_ratio_max, bfactor_std_max, min_occupancy_cutoff, max_num_disordered)
