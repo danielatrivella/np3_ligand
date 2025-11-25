@@ -192,6 +192,7 @@ class LigandPointCloudDataset(Dataset):
         ligs_kfolds_groups = [df for _, df in ligs_retrieve.groupby('kfolds')]
         np.random.shuffle(ligs_kfolds_groups)
         self.ligs_retrieve = pd.concat(ligs_kfolds_groups).reset_index(drop=True)
+        logging.info('      ==> OK')
 
 
 def collation_fn(data_labels):
