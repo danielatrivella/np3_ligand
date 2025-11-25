@@ -176,7 +176,7 @@ if __name__ == "__main__":
         sys.exit("Wrong number of arguments. Two arguments must be supplied in order to read the valid ligands "
                  "list, retrieve their smiles and create a vocabulary of their atoms. "
                  "A third parameter is supplied to choose between the SP classes labels and the atom symbol label: \n"
-                 "  1. output_path: The path to the data folder where the vocabulary output will be stored"
+                 "  1. output_path: The path to the data folder where the vocabulary output will be stored."
                  "Two files will be created: "
                  "- 'ligs_smiles_<ligs_file.name>.txt' containing all the smiles used in the vocabulary creation (the data base) and "
                  "- 'vocabulary_<ligs_file.name>.txt' containing all SP classes resulting from the SP hybridization classification of the smiles's atoms (the vocabulary itself);\n"
