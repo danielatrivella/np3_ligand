@@ -230,5 +230,11 @@ It was part of the [Master's thesis](https://repositorio.unicamp.br/acervo/detal
 
 --------------------------------------
 
+### Citing
+Bazzano, C.F., Alves, L.F.G., Telles, G.P. et al. Labeled dataset of X-ray protein ligand images in 3D point cloud and validated deep learning models. Sci Data 12, 1726 (2025). https://doi.org/10.1038/s41597-025-06002-8
+
+_NP³ Blob label - Paper in preparation to be published._
+
+
 ### License
 LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud Representations and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under CC BY 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by/4.0/
