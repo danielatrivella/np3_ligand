@@ -129,9 +129,8 @@ hyper_arg.add_argument(
 # Training / test parameters
 train_arg = add_argument_group('Training')
 train_arg.add_argument('--is_train', type=str2bool, default=True, help='set to False for testing')
-train_arg.add_argument('--log_freq', type=int, default=3000, help='statistics logging frequency in number of steps')
-train_arg.add_argument('--save_freq', type=int, default=1000, help='checkpoint save frequency in terms of steps; also used to log_every_n_steps in the Trainer setup in pytorch-lightning')
-train_arg.add_argument('--val_freq', type=int, default=5000, help='validation frequency in number of steps')
+train_arg.add_argument('--log_freq', type=int, default=3000, help='statistics logging frequency in number of training steps for the Trainer setup - checkpoint save frequency in terms of steps')
+train_arg.add_argument('--val_freq', type=int, default=1500, help='validation frequency in number of steps')
 train_arg.add_argument(
     '--empty_cache_freq', type=int, default=1, help='Clear pytorch cache frequency in number of steps')
 
@@ -180,7 +179,6 @@ test_arg.add_argument('--save_pred_dir', type=str, default='outputs/pred',
 # Misc
 misc_arg = add_argument_group('Misc')
 misc_arg.add_argument('--is_cuda', type=str2bool, default=True, help="Defines to use GPU (if cuda is available) or CPU.")
-misc_arg.add_argument('--log_step', type=int, default=50, help="Number of steps to log the results.")
 misc_arg.add_argument('--log_level', type=str, default='INFO', choices=['INFO', 'DEBUG', 'WARN'], help="Logging level.")
 misc_arg.add_argument('--num_devices', type=int, default=1, help="Number of CPU or GPU devices to be used, depending on the is_cuda value. "
                                                              "If > 1 multi-CPU/GPU is enabled when possible, "
