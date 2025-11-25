@@ -6,6 +6,8 @@ torchaudio==2.6.0
 torchmetrics
 pytorch-lightning>=2.0.0
 tensorboardX
+tensorboard
+tensorflow
 gemmi>=0.7.0
 numpy
 mkl-include
