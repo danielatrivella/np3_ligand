@@ -323,19 +323,20 @@ class HistIoU(Metric):
         self.hist += current_hist
         # return per_class_iu(current_hist) * 100
     def compute(self):
-        res = per_class_iu(self.hist.detach().cpu()) * 100
-        # print('compute hist iou', torch.Tensor([np.nanmean(res)]))
+        return self.hist.detach().cpu()
+    def compute_miou(self):
+        res = per_class_iu(self.compute()) * 100
         return torch.Tensor([np.nanmean(res)])
     def compute_iou(self):
-        return per_class_iu(self.hist.detach().cpu()) * 100
+        return per_class_iu(self.compute()) * 100
     def compute_confusion_matrix(self):
-        return per_class_confusion_matrix(self.hist.detach().cpu()) * 100
+        return per_class_confusion_matrix(self.compute()) * 100
     def compute_f1_dice(self):
-        return per_class_dice_f1(self.hist.detach().cpu()) * 100
+        return per_class_dice_f1(self.compute()) * 100
     def compute_precision(self):
-        return per_class_precision(self.hist.detach().cpu()) * 100
+        return per_class_precision(self.compute()) * 100
     def compute_recall(self):
-        return per_class_recall(self.hist.detach().cpu()) * 100
+        return per_class_recall(self.compute()) * 100
     def reset(self):
         self.hist = torch.Tensor(np.zeros((len(self.class_names), len(self.class_names)))).to(self.hist.device)
 
