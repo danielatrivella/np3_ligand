@@ -113,16 +113,19 @@ To train a DL model, first the number of threads for multiprocessing paralleliza
 Then, the pipeline may be executed passing the desired parameters. 
 The parameter `--resume` may be used to continue the training of a previous trained model. 
 
-Example training model AtomC347CA56 in CPU using a small set of entries from the stratified training dataset from LigPCDS, data available in the 'test' folder.
-This training example will be executed for 10 epochs, using a batch_size equals 4, with logging after every 8 steps.
+Example training model AtomC347CA56 in CPU using 2 devices with a small set of entries from the stratified training dataset from LigPCDS, data available in the 'test' folder.
+This training example will be executed for 10 epochs, using a batch size and number of workers equals to 2 in train, validation and test, 
+and with logging after every 4 steps for training and after 2 steps for validation and test.
 
 Execute the following commands from this repository 'np3_DL_segmentation' folder:
 
 ```
 conda activate np3_lig
 export OMP_NUM_THREADS=4
-python main.py --ligs_data_filepath /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/training_dataset_small_top_down_example_SP.csv --lig_pcds_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example --vocab_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --is_cuda False --batch_size 8 --max_epoch 10 --log_freq 8 --log_dir test/outputs/out_train_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example
+python main.py --ligs_data_filepath /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/training_dataset_small_top_down_example_SP.csv --lig_pcds_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example --vocab_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --is_cuda False --batch_size 2 --max_epoch 10 --log_freq 4 --val_freq 2 --log_dir test/outputs/out_train_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example --num_devices 2 --num_workers 2 --num_val_workers 2 --test_batch_size 2 --val_batch_size 2
 ```
+
+This is only a small example to test the training pipeline, the model will not converge using this small sample dataset. Zeros (no convergence) and NaNs (missing classes) are expected in the result.
 
 ------------------------------------------
 ## How to test a DL model
@@ -136,9 +139,11 @@ export OMP_NUM_THREADS=4
 python main.py --is_train False --ligs_data_filepath /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/training_dataset_small_top_down_example_SP.csv --lig_pcds_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir test/outputs/out_test_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example --test_batch_size 4 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --is_cuda False
 ```
 
+A mIoU equals to 70.4% is expected in this sample testing.
+
 #### Test and save the predictions
 
-  To save the predictions result of a testing, the parameters `--save_prediction` and `--save_pred_dir` must be defined together with `--test_batch_size 1`.
+To save the predictions result of a testing, the parameters `--save_prediction` and `--save_pred_dir` must be defined together with `--test_batch_size 1`.
 
 Example of testing a DL model and saving the predictions result of each test entry.
 
@@ -146,29 +151,46 @@ Example of testing a DL model and saving the predictions result of each test ent
 python main.py --is_train False --ligs_data_filepath /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/training_dataset_small_top_down_example_SP.csv --lig_pcds_path /home/crisfbazz/Documents/CNPEM/np3_ligand/np3_DL_segmentation/test/LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example/ --vocab_path ../np3_LigPCDS/vocabularies/SP-based/vocabulary_valid_ligands_PDB_1.5_2.2_SP-based.txt --class_mapping_path ../np3_LigPCDS/vocabularies/SP-based/mapping_atomC347CA56.csv --log_dir test/outputs/out_test_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example --test_batch_size 1 --kfold 13 --weights ../np3_blob_label/models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --is_cuda False --save_prediction True --save_pred_dir test/outputs/out_test_predictions_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example 
 ```
 
+The prediction of the single test entry '4rvn_AMP_A_502' will be stored in the 
+'test/outputs/out_test_predictions_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example' folder.
+It contains two point clouds by test entry: one with the predicted class number (its order in the vocabulary) 
+stored in its rgb channels and named with the suffix '_predicted.xyzrgb';
+and another with the expected class number of each point (the target classes) in its rgb channels and 
+named with the suffix '_target.xyzrgb'.
+
+Additionally, two CSV tables are created to store the IoU ('entries_ious.csv') and F1 metrics ('entries_f1_recall_precision.csv') 
+score by test entry and by class.
+
+The visualization script is described below. 
+
 -----------------------------------------------
 
 ## How to visualize the training curves
 
-The visualization of the training curves of a training job is done with the [TensorboadX](https://www.tensorflow.org/tensorboard) platform.
+The visualization of the training curves of a training job is done with the [Tensorboad](https://www.tensorflow.org/tensorboard) platform.
 
 Example:
 ```
 tensorboard --logdir=<your_log_dir>
 ```
 
+Then, open the url: http://localhost:6006/
+
 -----------------------------------------------
 
 ## How to visualize the prediction results
 
-The visualization of the predictions result, together with an error mask of each test entry, can be assessed with the following code:
+The visualization of the predictions result, together with an error mask of each test entry, 
+can be assessed with the following script:
 
 ```
 python src/visualize_predictions.py test/outputs/out_test_predictions_LigPCDS_SP_1.5_2.2_gridspace_0.5_28022023_small_top_down_example
 ```
 
 The error mask point cloud have the points with a wrong prediction colored in red and the rest in grey. 
-The points predicted as Background class are removed in another representation to ease the visualization of the results.
+The points predicted as Background class are removed in another representation (last column) to ease the visualization of the results.
+
+Close the display to load the next prediction.
 
 ----------------------------
 
@@ -191,5 +213,4 @@ The dataset created by LigPCDS and the validated models can be retrieved from [Z
 ---------------------------------------------------------------
 
 ## Citing
-
-_Paper in preparation to be published._
+Bazzano, C.F., Alves, L.F.G., Telles, G.P. et al. Labeled dataset of X-ray protein ligand images in 3D point cloud and validated deep learning models. Sci Data 12, 1726 (2025). https://doi.org/10.1038/s41597-025-06002-8
