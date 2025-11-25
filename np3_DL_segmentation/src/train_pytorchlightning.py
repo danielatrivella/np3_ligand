@@ -23,6 +23,7 @@ from src.solvers import initialize_optimizer, initialize_scheduler
 
 import pandas as pd
 # torch.multiprocessing.set_start_method('spawn')
+import os
 
 class MinkowskiSegmentationModule(LightningModule):
     r"""
@@ -37,8 +38,17 @@ class MinkowskiSegmentationModule(LightningModule):
         for name, value in vars().items():
             if name != "self":
                 setattr(self, name, value)
+        # check if this is the main process
+        self.is_main_process = False
+        if os.getenv("LOCAL_RANK", '0') == '0':
+            # ddp main process
+            # @see https://github.com/Lightning-AI/lightning/issues/8563
+            self.is_main_process = True
+        #print('is_main_process: ', self.is_main_process)
         # save the config and any extra arguments
         self.save_hyperparameters(config)
+        # stor the num of devices
+        self.num_devices = config.num_devices
         # read save the classes names
         self.class_names = config.class_names
         # initialize loss weights, 1 is no weight else use the provided list (splitted by ,)
@@ -116,35 +126,42 @@ class MinkowskiSegmentationModule(LightningModule):
             #print("log metrics updated ")
             # log scalars
             if self.global_step % self.config.log_freq == 0 or self.global_step == 0:
-                self.log('train/train_loss', self.loss_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
-                self.log('train/train_acc', self.score_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=on_epoch)
-                self.log('train/train_mIoU', self.hist_IoU_train.to(self.device), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
-                self.log('train/train_lr', float(lrs), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=on_epoch)
+                self.log('train/train_loss', self.loss_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=(self.num_devices>1))
+                self.log('train/train_acc', self.score_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=(self.num_devices>1))
+                self.log('train/train_mIoU', self.hist_IoU_train.compute_miou().to(self.device), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=(self.num_devices>1))
+                self.log('train/train_lr', float(lrs), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=(self.num_devices>1))
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
-            # log to file
+            # log to file - call compute to sync
             debug_str = "===> Epoch[{}/{}] Training: Loss {:.4f} - LR: {} - ".format(
                 self.current_epoch+1, self.config.max_epoch, self.loss_train.compute().detach().item(), lrs)
             debug_str += "Score {:.3f}, mIoU {:.3f}".format(
-                self.score_train.compute().detach().item(), self.hist_IoU_train.compute().detach().item())
-            # log f1 score and precision and recall
+                self.score_train.compute().detach().item(), self.hist_IoU_train.compute_miou().detach().item())
+            # compute syncronized metrics
+            # compute f1 score and precision and recall
             f1_per_class = self.hist_IoU_train.compute_f1_dice()
             precision_per_class = self.hist_IoU_train.compute_precision()
             recall_per_class = self.hist_IoU_train.compute_recall()
-            debug_str += " - Macro - F1-Dice {:.3f}, Precision {:.3f}, Recall {:.3f}".format(
-                f1_per_class.nanmean(), precision_per_class.nanmean(), recall_per_class.nanmean())
-            logging.info(debug_str)
             # compute iou per class
             iou_per_class = self.hist_IoU_train.compute_iou()
-            self.print_metric_perclass(iou_per_class)
+            # log f1 score and precision and recall
+            debug_str += " - Macro - F1-Dice {:.3f}, Precision {:.3f}, Recall {:.3f}".format(
+                f1_per_class.nanmean(), precision_per_class.nanmean(), recall_per_class.nanmean())
             # log IoU to tensorboard
             for i in range(len(iou_per_class)):
                 self.log('train_IoU/'+self.class_names[i],
                          iou_per_class[i].to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=True)
-            # log f1 score and precision and recall
-            self.print_metric_perclass(f1_per_class, data_type='Train', metric_type="F1")
-            self.print_metric_perclass(precision_per_class, data_type='Train', metric_type="Precision")
-            self.print_metric_perclass(recall_per_class, data_type='Train', metric_type="Recall")
+            # log IoU f1 score and precision and recall per class
+            if self.is_main_process:
+                logging.info(debug_str)
+                self.print_metric_perclass(iou_per_class)
+                self.print_metric_perclass(f1_per_class, data_type='Train', metric_type="F1")
+                self.print_metric_perclass(precision_per_class, data_type='Train', metric_type="Precision")
+                self.print_metric_perclass(recall_per_class, data_type='Train', metric_type="Recall")
+            # log F1 to tensorboard
+            #for i in range(len(f1_per_class)):
+            #    self.log('train_F1/' + self.class_names[i],
+            #             f1_per_class[i].to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=True)
     #
     def log_metrics_val(self, output, on_step=False, on_epoch=False):
         # update accuracy and loss, on_epoch for val is always true
@@ -155,35 +172,36 @@ class MinkowskiSegmentationModule(LightningModule):
             self.hist_IoU_val(output['preds'], output['target'])
             # log scalars
             if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
-                self.log('validation/val_loss', self.loss_val.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-                self.log('validation/val_acc', self.score_val.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-                self.log('validation/val_mIoU', self.hist_IoU_val.to(self.device), on_step=on_step, on_epoch=True, prog_bar=True, sync_dist=on_epoch)
+                self.log('validation/val_loss', self.loss_val.to(self.device), on_step=on_step, on_epoch=True, sync_dist=(self.num_devices>1))
+                self.log('validation/val_acc', self.score_val.to(self.device), on_step=on_step, on_epoch=True, sync_dist=(self.num_devices>1))
+                self.log('validation/val_mIoU', self.hist_IoU_val.compute_miou().to(self.device), on_step=on_step, on_epoch=True, prog_bar=True, sync_dist=(self.num_devices>1))
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
-            # log to file
+            # log to file - call compute to sync
             debug_str = "===> Epoch[{}/{}] Validation: Loss {:.4f} - LR: {} - ".format(
                 self.current_epoch+1, self.config.max_epoch, self.loss_val.compute().detach().item(), lrs)
             debug_str += "Score {:.3f}, mIoU {:.3f}".format(
-                self.score_val.compute().detach().item(), self.hist_IoU_val.compute().detach().item())
+                self.score_val.compute().detach().item(), self.hist_IoU_val.compute_miou().detach().item())
             # log f1 score and precision and recall
             f1_per_class = self.hist_IoU_val.compute_f1_dice()
             precision_per_class = self.hist_IoU_val.compute_precision()
             recall_per_class = self.hist_IoU_val.compute_recall()
             debug_str += " - Macro - F1-Dice {:.3f}, Precision {:.3f}, Recall {:.3f}".format(
                 f1_per_class.nanmean(), precision_per_class.nanmean(), recall_per_class.nanmean())
-            logging.info(debug_str)
             # compute iou per class
             iou_per_class = self.hist_IoU_val.compute_iou()
-            self.print_metric_perclass(iou_per_class, data_type='Validation')
             # log IoU to tensorboard
             for i in range(len(iou_per_class)):
                 self.log('validation_IoU/'+self.class_names[i],
                          iou_per_class[i].to(self.device), on_step=on_step, on_epoch=True, sync_dist=True) # sync dist across checkpoints, in not tensor metrics
-            # log f1 score and precision and recall
-            self.print_metric_perclass(f1_per_class.to(self.device), data_type='Validation', metric_type="F1")
-            self.print_metric_perclass(precision_per_class.to(self.device), data_type='Validation', metric_type="Precision")
-            self.print_metric_perclass(recall_per_class.to(self.device), data_type='Validation', metric_type="Recall")
+            # log IoU f1 score and precision and recall per class
+            if self.is_main_process:
+                logging.info(debug_str)
+                self.print_metric_perclass(iou_per_class, data_type='Validation')
+                self.print_metric_perclass(f1_per_class.to(self.device), data_type='Validation', metric_type="F1")
+                self.print_metric_perclass(precision_per_class.to(self.device), data_type='Validation', metric_type="Precision")
+                self.print_metric_perclass(recall_per_class.to(self.device), data_type='Validation', metric_type="Recall")
     #
     def log_metrics_test(self, output, on_step=False, on_epoch=False):
         # update accuracy and loss, on_epoch for test is always true
@@ -195,35 +213,36 @@ class MinkowskiSegmentationModule(LightningModule):
             #print("updated metrics")
             # log scalars
             if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
-                self.log('test/test_loss', self.loss_test.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-                self.log('test/test_acc', self.score_test.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
-                self.log('test/test_mIoU', self.hist_IoU_test.to(self.device), on_step=on_step, on_epoch=True, sync_dist=on_epoch)
+                self.log('test/test_loss', self.loss_test.to(self.device), on_step=on_step, on_epoch=True, sync_dist=(self.num_devices>1))
+                self.log('test/test_acc', self.score_test.to(self.device), on_step=on_step, on_epoch=True, sync_dist=(self.num_devices>1))
+                self.log('test/test_mIoU', self.hist_IoU_test.compute_miou().to(self.device), on_step=on_step, on_epoch=True, sync_dist=(self.num_devices>1))
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             lrs = self.config.lr
-            # log to file
+            # log to file - call compute to sync
             debug_str = "===> Epoch[{}/{}] Test: Loss {:.4f} - LR: {} - ".format(
                 self.current_epoch+1, self.config.max_epoch, self.loss_test.compute().detach().item(), lrs)
             debug_str += "Score {:.3f}, mIoU {:.3f}".format(
-                self.score_test.compute().detach().item(), self.hist_IoU_test.compute().detach().item())
+                self.score_test.compute().detach().item(), self.hist_IoU_test.compute_miou().detach().item())
             # compute f1 score and precision and recall
             f1_per_class = self.hist_IoU_test.compute_f1_dice()
             precision_per_class = self.hist_IoU_test.compute_precision()
             recall_per_class = self.hist_IoU_test.compute_recall()
             debug_str += " - Macro - F1-Dice {:.3f}, Precision {:.3f}, Recall {:.3f}".format(
                 f1_per_class.nanmean(), precision_per_class.nanmean(), recall_per_class.nanmean())
-            logging.info(debug_str)
             # compute iou per class
             iou_per_class = self.hist_IoU_test.compute_iou()
-            self.print_metric_perclass(iou_per_class, data_type='Test')
             # log IoU to tensorboard
             for i in range(len(iou_per_class)):
                 self.log('test_IoU/'+self.class_names[i],
                          iou_per_class[i].to(self.device), on_step=on_step, on_epoch=True, sync_dist=True)
-            # log f1 score and precision and recall
-            self.print_metric_perclass(f1_per_class, data_type='Test', metric_type="F1")
-            self.print_metric_perclass(precision_per_class, data_type='Test', metric_type="Precision")
-            self.print_metric_perclass(recall_per_class, data_type='Test', metric_type="Recall")
+            # log IoU f1 score and precision and recall per class
+            if self.is_main_process:
+                logging.info(debug_str)
+                self.print_metric_perclass(iou_per_class, data_type='Test')
+                self.print_metric_perclass(f1_per_class, data_type='Test', metric_type="F1")
+                self.print_metric_perclass(precision_per_class, data_type='Test', metric_type="Precision")
+                self.print_metric_perclass(recall_per_class, data_type='Test', metric_type="Recall")
         elif self.config.save_prediction and self.config.test_batch_size == 1:
             # at the end of each step save the predictions
             # the quantization divided the coords by the grid_space in the reading,
@@ -290,9 +309,9 @@ class MinkowskiSegmentationModule(LightningModule):
         self.log_metrics_train(None, on_epoch=True)
         # print(outs)
         #print("current_epoch", self.current_epoch)
-        if self.current_epoch+1 == self.config.max_epoch:
+        if (self.current_epoch+1 == self.config.max_epoch) and self.is_main_process:
             # save final confusion matrix in the last epoch
-            confusion_m = self.hist_IoU_train.compute_confusion_matrix()
+            confusion_m = self.hist_IoU_train.compute_confusion_matrix() #(sync=(self.num_devices>1))
             m_not_nan = (np.diag(confusion_m) == np.diag(confusion_m))
             pd.DataFrame(confusion_m[m_not_nan][:, m_not_nan], columns=self.class_names[m_not_nan],
                          index=self.class_names[m_not_nan]).to_csv(self.config.log_dir + "/train_confusion_matrix.csv")
@@ -337,7 +356,7 @@ class MinkowskiSegmentationModule(LightningModule):
     #
     def on_validation_end(self):
         # if last epoch, save validation confusion matrix
-        if self.current_epoch + 1 == self.config.max_epoch:
+        if (self.current_epoch + 1 == self.config.max_epoch) and self.is_main_process:
             # save final confusion matrix
             confusion_m = self.hist_IoU_val.compute_confusion_matrix()
             m_not_nan = (np.diag(confusion_m) == np.diag(confusion_m))
@@ -430,10 +449,11 @@ class MinkowskiSegmentationModule(LightningModule):
     #
     def on_test_end(self):
         # save final confusion matrix
-        confusion_m = self.hist_IoU_test.compute_confusion_matrix()
-        m_not_nan = (np.diag(confusion_m) == np.diag(confusion_m))
-        pd.DataFrame(confusion_m[m_not_nan][:, m_not_nan], columns=self.class_names[m_not_nan],
-                     index=self.class_names[m_not_nan]).to_csv(self.config.log_dir + "/test_confusion_matrix.csv")
+        if self.is_main_process:
+            confusion_m = self.hist_IoU_test.compute_confusion_matrix()
+            m_not_nan = (np.diag(confusion_m) == np.diag(confusion_m))
+            pd.DataFrame(confusion_m[m_not_nan][:, m_not_nan], columns=self.class_names[m_not_nan],
+                         index=self.class_names[m_not_nan]).to_csv(self.config.log_dir + "/test_confusion_matrix.csv")
         # reset histogram for next test
         self.loss_test.reset()
         self.score_test.reset()
