@@ -1,4 +1,4 @@
-# NP³ Ligand
+ # NP³ Ligand
 
 ---------------------------------------
 
@@ -133,6 +133,9 @@ More instructions are present in each repository documentation.
 
 This research was funded by the [Serrapilheira](https://serrapilheira.org/en/) Institute, grant number Serra-1709-19681 (to Daniela B. B. Trivella).
 It was part of the [Master's thesis](https://repositorio.unicamp.br/acervo/detalhe/1371294) of Cristina Freitas Bazzano, developed within an interdisciplinary project from the DDP-LNBio-CNPEM and the Institute of Computing from the University of Campinas (UNICAMP). 
+
+### Citing
+Bazzano, C.F., Alves, L.F.G., Telles, G.P. et al. Labeled dataset of X-ray protein ligand images in 3D point cloud and validated deep learning models. Sci Data 12, 1726 (2025). https://doi.org/10.1038/s41597-025-06002-8
 
 ### License
 LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud Representations and Validated Deep Learning Models  © 2023 by Cristina Freitas Bazzano, Luiz F. G. Alves, Guilherme P. Telles, Daniela B. B. Trivella is licensed under CC BY 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by/4.0/
