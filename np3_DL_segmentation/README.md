@@ -203,7 +203,7 @@ Close the display to load the next prediction.
 
 #### LigPCDS records
 
-The dataset created by LigPCDS and the validated models can be retrieved from [Zenodo](https://zenodo.org/), an open dissemination research data repository. The deposit data is located in the following ling [LigPCDS-Zenodo](https://zenodo.org/records/15174758), and contains:
+The dataset created by LigPCDS and the validated models can be retrieved from [Zenodo](https://zenodo.org/), an open dissemination research data repository. The deposit data is located in the following link [LigPCDS-Zenodo](https://zenodo.org/records/15174758), and contains:
 
 - LigPCDS-SP_record : The dataset with the SP-based modeling representations in 3D point clouds, vocabulary, structure labeling result (xyz record) and validated DL models.
 - LigPCDS-AtomSymbol_record : The dataset with the AtomSymbol-based modeling representations in 3D point clouds, vocabulary, structure labeling result (xyz record) and validated DL models.
