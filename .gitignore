@@ -7,8 +7,14 @@ __pychache__
 *.pdb
 *.mtz
 *.csv
-np3_encode_JTVAE/icml18-jtnn/
 *.ent
-np3_SP_segm/outputs*
-np3_pointcloud_DB/outs*
+np3_DL_segmentation/outputs*
+np3_LigPCDS/outs*
 data/*
+np3_blob_label/examples_top_down/refinement*/*/entry-view-coot.py
+np3_blob_label/examples_top_down/refinement*/*/*_fofc.ccp4
+np3_blob_label/lib/*
+np3_blob_label/lightning_logs/
+np3_blob_label/examples_top_down/np3_blob_label_*
+lib/*
+np3_DL_segmentation/test/outputs/*
