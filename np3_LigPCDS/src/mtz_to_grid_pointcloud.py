@@ -24,13 +24,13 @@ def create_PDB_ligs_grid_pc(pdb_entry, lig_data_out, refinement_data_path, outpu
     t1 = time.time()
     n = lig_data_out.shape[0]
     lig_data_out.loc[:,"point_cloud"] = False
-    lig_data_out.loc[:,"rho_mean"] = -1
-    lig_data_out.loc[:,"rho_std"] = -1
-    lig_data_out.loc[:,"rho_median"] = -1
-    lig_data_out.loc[:,"rho_q25th"] = -1
-    lig_data_out.loc[:,"rho_q75th"] = -1
+    lig_data_out.loc[:,"rho_mean"] = -1.0
+    lig_data_out.loc[:,"rho_std"] = -1.0
+    lig_data_out.loc[:,"rho_median"] = -1.0
+    lig_data_out.loc[:,"rho_q25th"] = -1.0
+    lig_data_out.loc[:,"rho_q75th"] = -1.0
     lig_data_out.loc[:,"missing_ligand"] = "False"
-    lig_data_out.loc[:,"time_process"] = -1
+    lig_data_out.loc[:,"time_process"] = -1.0
     #
     mtz_file = refinement_data_path / pdb_entry / (pdb_entry + ".mtz")
     if not Path(mtz_file).is_file():
