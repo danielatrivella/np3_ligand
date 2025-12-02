@@ -8,7 +8,7 @@ def str2opt(arg):
 
 
 def str2scheduler(arg):
-    assert arg in ['StepLR', 'PolyLR', 'ExpLR', 'SquaredLR']
+    assert arg in ['StepLR', 'PolyLR', 'ExpLR', 'SquaredLR', 'CosAnnLR']
     return arg
 
 
@@ -65,7 +65,7 @@ opt_arg.add_argument('--bn_momentum', type=float, default=0.05, help="batch norm
 
 # Scheduler
 opt_arg = add_argument_group('Scheduler')
-opt_arg.add_argument('--scheduler', type=str2scheduler, default='StepLR', help="Scheduler name to be used.")
+opt_arg.add_argument('--scheduler', type=str2scheduler, default='StepLR', help="Scheduler name to be used. One of: 'StepLR', 'PolyLR', 'ExpLR', 'SquaredLR', 'CosAnnLR'.")
 opt_arg.add_argument('--max_iter', type=int, default=1e6, help="Max iteration")
 opt_arg.add_argument('--step_size', type=int, default=200, help="Number of steps in epochs")
 opt_arg.add_argument('--step_gamma', type=float, default=0.1, help="Scheduler step gamma parm.")
@@ -135,7 +135,7 @@ train_arg.add_argument(
     '--empty_cache_freq', type=int, default=1, help='Clear pytorch cache frequency in number of steps')
 
 train_arg.add_argument(
-    '--stochastic_weight_avg',
+        '--stochastic_weight_avg',
     type=str2bool,
     default=False,
     help='Apply the Stochastic Weight Averaging (SWA), which can make your DL models generalize better at virtually no additional cost. This can be used with both non-trained and trained DL models. The SWA procedure smooths the loss landscape thus making it harder to end up in a local minimum during optimization.')

@@ -1,7 +1,7 @@
 import logging
 
 from torch.optim import SGD, Adam
-from torch.optim.lr_scheduler import LambdaLR, StepLR
+from torch.optim.lr_scheduler import LambdaLR, StepLR, CosineAnnealingLR
 
 
 class LambdaStepLR(LambdaLR):
@@ -74,5 +74,7 @@ def initialize_scheduler(optimizer, config, last_step=-1):
     elif config.scheduler == 'ExpLR':
         return ExpLR(
             optimizer, step_size=config.exp_step_size, gamma=config.exp_gamma, last_step=last_step)
+    elif config.scheduler == 'CosAnnLR':
+        return CosineAnnealingLR(optimizer, T_max=config.max_epoch, last_epoch=last_step)
     else:
         logging.error('Scheduler not supported')
