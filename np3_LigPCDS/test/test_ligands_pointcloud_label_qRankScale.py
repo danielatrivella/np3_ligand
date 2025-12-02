@@ -259,7 +259,7 @@ def check_ligands_point_clouds(db_ligxyz_path, pc_data_path, num_processors=2, d
     ligs_retrieve = ligs_retrieve[ligs_retrieve.filter_quality]
     n = ligs_retrieve.shape[0]
     # sort by ligand Code, to test the same ligands together
-    ligs_retrieve = ligs_retrieve.sort_values(['ligCode', 'missingHeavyAtoms']).reset_index(drop=True)
+    ligs_retrieve = ligs_retrieve.sort_values(['ligCode']).reset_index(drop=True)
 
     # set grid_space information from the grid pc creation table
     ligs_retrieve_grid_space = pd.read_csv(valid_ligs_pc_file, na_values=['null', 'N/A'], keep_default_na=False,
