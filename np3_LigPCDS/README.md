@@ -537,7 +537,7 @@ It will also add columns with the electron density descriptive statistics of the
 
 > ``` python src/mtz_to_grid_pointcloud.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/refinement/ data/ligs_point_cloud_grid True 4 0.5```
 
-#### 2.3 Ligands Final 3D Point Clouds Creation and Step 4 - Labeling** 
+#### 2.3 **Ligands Final 3D Point Clouds Creation and Step 4 - Labeling** 
 
 Create the final representations of the ligands in 3D point cloud and also create their labeling files for each representation type.
 The output folder will be a LigPCDS dataset
@@ -552,9 +552,6 @@ qRank0.5, qRank0.7, qRank0.75, qRank0.8, qRank0.85, qRank0.9, qRank0.95, qRankMa
 At the end, the final representations will be stored in a 3D point cloud file inside the subfolder of each PDB entry of 
 the ligand entries in the provided output path (parameter output_LigPCDS_path), together with its labeling file.
 
-If one wants to use the ligand grids (present in the output_grid_path) created with another xyz directory (using another vocabulary),
-the user must manually copy the file xyz_\<the other ligand file name\>_<SP|AtomSymbol>/\<the other ligand file name\>_<SP|AtomSymbol>_box_pc.csv
-to the current xyz_labels_path or recreate the grids using the last step with the current xyz_labels_path to create this file (more disk space and time required).
 
 *Run:*
 
@@ -591,6 +588,12 @@ The size of these representations is equal to the number of points in their poin
 *Example:*
 
 > ``` python src/grid_pointcloud_to_quantile_rank_scale.py data/ligands/xyz_ligands_valid_sdf_info_filter_bfactor_10000_occ_10000_missHAtoms_TRUE_numDisorder_10000_SP data/ligs_point_cloud_grid data/ligs_pcds_SP 4```
+
+###### Reusing the ligand grids from another structure labeling vocabulary
+
+If one wants to use the ligand grids (present in the output_grid_path) created with another xyz directory (using another vocabulary),
+the user must manually copy the file 'xyz_\<the other ligand file name\>_<SP|AtomSymbol>/\<the other ligand file name\>_<SP|AtomSymbol>_box_pc.csv'
+to the current xyz_labels_path. Otherwise, the user must recreate the grids using the last step with the current xyz_labels_path to create this file (more disk space and time required).
 
 #### 4.1 Ligand Representation Labeling Test 
 
