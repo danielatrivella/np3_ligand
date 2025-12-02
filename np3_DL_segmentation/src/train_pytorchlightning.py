@@ -8,7 +8,6 @@ except ImportError:
     raise ImportError(
         "Please install requirements with `pip install open3d pytorch_lightning`."
     )
-
 import torch
 import torch.nn as nn
 import numpy as np
@@ -118,7 +117,7 @@ class MinkowskiSegmentationModule(LightningModule):
         # update accuracy and loss
         # only update in the step on_step=True, which counts for new data
         # on_epoch=True will only compute and print the stats stored so far - no redundancy with the entries result already stored
-        lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
+        lrs = self.get_last_learning_rate()
         if on_step:
             self.score_train(output['preds'], output['target'])
             self.loss_train(output['loss'], output['target'].size(0))
@@ -177,7 +176,7 @@ class MinkowskiSegmentationModule(LightningModule):
                 self.log('validation/val_mIoU', self.hist_IoU_val.compute_miou().to(self.device), on_step=on_step, on_epoch=True, prog_bar=True, sync_dist=(self.num_devices>1))
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
-            lrs = ', '.join(['{:.3e}'.format(x) for x in self.lr_schedulers().get_last_lr()])
+            lrs = self.get_last_learning_rate()
             # log to file - call compute to sync
             debug_str = "===> Epoch[{}/{}] Validation: Loss {:.4f} - LR: {} - ".format(
                 self.current_epoch+1, self.config.max_epoch, self.loss_val.compute().detach().item(), lrs)
@@ -472,6 +471,32 @@ class MinkowskiSegmentationModule(LightningModule):
             torch.cuda.empty_cache()
         # return preds
         return {'preds': preds, 'coords': batch[0], 'batch_idx': batch_idx}
+    #
+    def get_last_learning_rate(self):
+        if self.lr_schedulers():
+            lrs = self.lr_schedulers().get_last_lr()
+        else:
+            # Access SWA LR after swa_epoch_start
+            if type(self.trainer.callbacks[0]).__name__ == "StochasticWeightAveraging":
+                print("is stochastic weight averaging!")
+                # Assuming StochasticWeightAveraging is the first callback
+                swa_callback = self.trainer.callbacks[0]
+                if self.trainer.current_epoch >= swa_callback._swa_epoch_start:
+                    if hasattr(swa_callback, '_swa_scheduler') and swa_callback._swa_scheduler is not None:
+                        lrs = swa_callback._swa_scheduler.get_last_lr()[0]
+                        print("current_swa_lr ", lrs)
+                    else:
+                        lrs = [swa_callback._swa_lrs]
+                        print("initi swa_lr ", lrs)
+                else:
+                    lrs = [swa_callback._swa_lrs]
+                    print("initi swa_lr before _swa_epoch_start ", lrs)
+            else:
+                print('no LR scheduler')
+                return 0
+        # convert to joined string and return
+        lrs_str = ', '.join(['{:.3e}'.format(x) for x in lrs])
+        return lrs_str
     #
     def configure_optimizers(self):
         optimizer = initialize_optimizer(self.model.parameters(), self.config)
