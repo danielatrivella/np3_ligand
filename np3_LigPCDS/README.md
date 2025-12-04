@@ -650,7 +650,8 @@ by ligand code (unique structure) and by the size of their qRank0.95 representat
 An anti-clustering algorithm is used in the undersampling approach to keep diversity among the filtered entries 
 related to their occurrence by class, size of the qRank0.95 representation, B factor, resolution and occupancy.
 
-This step is intended to remove bias in the list of valid ligands towards frequent ligand codes and frequent classes. It also removes entries with a small number of points of less than 150 in its qRank0.95 point clound.
+This step is intended to remove bias in the list of valid ligands towards frequent ligand codes and frequent classes. 
+It also removes entries with a small number of points in its qRank0.95 point cloud (parameter min_qRank095_size).
 
 *Run:*
 
@@ -663,7 +664,7 @@ This list is expected to be inside the xyz directory as a result of the labeling
 The undersampling technique will be applied in this list to filter the ligands entries (rows), it will remove bias towards frequent ligand codes and frequent classes. Mandatory columns: ligCode, entry, bfactor, AverageBFactor, RefinementResolution, point_cloud_size_qRank0.95, and '0' to the number of classes in the vocabulary minus one;
 2. vocab_path: Path to the vocabulary file used to label the ligands entries present in the valid_ligands_list_path table. It must contain one label by row, defining their order (the Background class is not used);
 3. classes_list: The list of classes of the vocabulary that will be used in the undersampling of the entries by the anti-clustering algorithm (stratified approach). The names of the selected classes separated by comma or the word 'all' to use the entire vocabulary (all the classes). Only the ligands that were labeled with this list of classes will be kept, the rest will be filtered out; 
-4. min_qRank095_size: The minimum size of the qRank0.95 point cloud representation that a ligand must have. Ligand entries with the qRank0.95 representation with fewer points than this will be removed. (recommended to 100 points - which is equivalent to the volume of 5 atoms when only 65% of its atomic sphere is considered); 
+4. min_qRank095_size: The minimum size of the qRank0.95 point cloud representation that a ligand must have. Ligand entries with the qRank0.95 representation with fewer points than this will be removed. (recommended to at least 100 points - which is equivalent to the volume of 5 atoms when only 65% of its atomic sphere is considered); 
 5. max_ligCode_occ: The maximum number of ligand entries occurrences by ligCode - balance the occurrence of different ligands structures in the dataset; 
 6. min_class_occ: The minimum number of classes occurrences by ligand entry (minimum number of entries in which the class appear); 
 7. max_class_occ: The maximum number of classes occurrences by ligand entry (maximum number of entries in which the class appear)
