@@ -13,7 +13,7 @@ import torch.nn as nn
 import numpy as np
 from src.SCELoss import SCELoss
 
-from src.utils import get_prediction, WeightAverageMeter, ScoreAccuracy, HistIoU, save_predictions, fast_hist
+from src.utils import get_prediction, WeightAverageMeter, ScoreAccuracy, HistIoU, save_predictions
 from src.lig_pc_data_loader import ligands_dataloader
 import MinkowskiEngine as ME
 
@@ -246,10 +246,10 @@ class MinkowskiSegmentationModule(LightningModule):
             # at the end of each step save the predictions
             # the quantization divided the coords by the grid_space in the reading,
             # # revert this operation before saving by multiplying by the grid_space
-            save_predictions(output['coords'].numpy()*self.test_dataset.get_grid_space(),
-                             output['target'], output['preds'],
+            save_predictions(output['coords'].cpu().numpy()*self.test_dataset.get_grid_space(),
+                             output['target'].cpu(), output['preds'].cpu(),
                              self.test_dataset.get_entry_id(output['batch_idx']),
-                             fast_hist(output['preds'], output['target'], len(self.class_names)),
+                             self.class_names,
                              self.config.save_pred_dir)
     #
     def train_dataloader(self):

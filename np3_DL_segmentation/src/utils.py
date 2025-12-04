@@ -439,11 +439,12 @@ elements_color_SP_test = {'0': np.array([0, 0, 0]), '1': np.array([0, 1, 1]),
                           '22': np.array([0, 1, 1]), '23': np.array([0, 1, 0]),
                           '24': np.array([0, 0.5, 0])}
 
-def save_predictions(coords, labels, pred, ligID, entry_hist, save_pred_dir):
+def save_predictions(coords, labels, pred, ligID, class_names, save_pred_dir):
     """Save predictions results in the voxelized coords scale, save original coords and labels and the predicted labels
     Save the ious by entry, with all confusion matrix information by class,
     and also save f1, precision and recall by entry and by class in a separated csv"""
     # coords = coords.numpy() # converting to numpy in the function call -> reverting the spacing by * grid_space
+    entry_hist = fast_hist(pred, labels, len(class_names))
     labels = labels.numpy().astype(int)
     pred = pred.numpy().astype(int)
     pcd = o3d.geometry.PointCloud()
