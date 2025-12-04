@@ -10,7 +10,7 @@ library(readr)
 # read input
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) < 6) {
-  cat("Seven parameters must be supplied to undersample the given list of valid ligands (dataset) using the ligands",
+  cat("Seven parameters must be supplied to undersample the given list of valid ligands (dataset) using the ligands ",
        "entries occurrence by class (within the selected ones) and by ligand code (unique structure) and their thinner representation qRank0.95 size. ",
        "Outputs the undersampled list to the current directory.\nParameters:\n",
        " 1. valid_ligands_list_path: Path to the CSV table with the list of valid ligands. This is expected to be inside the xyz directory as a result of the labeling testing of the ligands representations. ",
