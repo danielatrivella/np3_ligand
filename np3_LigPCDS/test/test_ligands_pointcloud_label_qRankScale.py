@@ -88,14 +88,14 @@ def check_ligand_point_cloud(lig_data_row, db_ligxyz_path, pc_data_path, element
     ligand_out["point_cloud_size_qRank0.85"] = -1
     ligand_out["point_cloud_size_qRank0.9"] = -1
     ligand_out["point_cloud_size_qRank0.95"] = -1
-    ligand_out["point_cloud_pBackground_qRankMask"] = -1
-    ligand_out["point_cloud_pBackground_qRank0.5"] = -1
-    ligand_out["point_cloud_pBackground_qRank0.7"] = -1
-    ligand_out["point_cloud_pBackground_qRank0.75"] = -1
-    ligand_out["point_cloud_pBackground_qRank0.8"] = -1
-    ligand_out["point_cloud_pBackground_qRank0.85"] = -1
-    ligand_out["point_cloud_pBackground_qRank0.9"] = -1
-    ligand_out["point_cloud_pBackground_qRank0.95"] = -1
+    ligand_out["point_cloud_pBackground_qRankMask"] = -1.0
+    ligand_out["point_cloud_pBackground_qRank0.5"] = -1.0
+    ligand_out["point_cloud_pBackground_qRank0.7"] = -1.0
+    ligand_out["point_cloud_pBackground_qRank0.75"] = -1.0
+    ligand_out["point_cloud_pBackground_qRank0.8"] = -1.0
+    ligand_out["point_cloud_pBackground_qRank0.85"] = -1.0
+    ligand_out["point_cloud_pBackground_qRank0.9"] = -1.0
+    ligand_out["point_cloud_pBackground_qRank0.95"] = -1.0
     #
     # round the ligand pdb entry resolution
     reso = str(round(float(lig_data_row['RefinementResolution']), 1))
