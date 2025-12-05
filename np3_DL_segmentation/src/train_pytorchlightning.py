@@ -314,10 +314,11 @@ class MinkowskiSegmentationModule(LightningModule):
             m_not_nan = (np.diag(confusion_m) == np.diag(confusion_m))
             pd.DataFrame(confusion_m[m_not_nan][:, m_not_nan], columns=self.class_names[m_not_nan],
                          index=self.class_names[m_not_nan]).to_csv(self.config.log_dir + "/train_confusion_matrix.csv")
-        # reset histogram for next epoch train and IoU computation
-        self.hist_IoU_train.reset()
-        self.loss_train.reset()
-        self.score_train.reset()
+        # reset histogram for next epoch train and IoU computation, if not the last epoch
+        if (self.current_epoch+1 < self.config.max_epoch):
+            self.hist_IoU_train.reset()
+            self.loss_train.reset()
+            self.score_train.reset()
     #
     def validation_step(self, batch, batch_idx):
         # print('start val')
