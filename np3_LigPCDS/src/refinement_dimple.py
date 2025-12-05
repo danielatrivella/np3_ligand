@@ -1,5 +1,5 @@
 import sys
-from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen, TimeoutExpired
 from pathlib import Path
 from pandas import read_csv, Series, DataFrame
 import time, os
@@ -42,7 +42,8 @@ def refine_pdb_entry(pdbid_i, pdb_path, mtz_path, refinement_path, overwrite_ref
 		p = Popen("dimple " + entry_mtz_file.as_posix() + " " + entry_pdb_file.as_posix() +
 						" " + out_dir.as_posix() + ' --hklout ' + entry_mtz_file.name + " --xyzout " +
 						pdbid + ".pdb --no-hetatm -s -s", shell=True, stdout=PIPE, stderr=PIPE)
-		stdout, stderr = p.communicate()
+		timeout_seconds = 14400 # timeout in seconds to 4 hours, then skip entry
+		stdout, stderr = p.communicate(timeout=timeout_seconds)
 		stdout = str(stdout)
 		stderr = str(stderr)
 		# dimple_stats = stream.read()
@@ -51,12 +52,18 @@ def refine_pdb_entry(pdbid_i, pdb_path, mtz_path, refinement_path, overwrite_ref
 			#       ('' if not dimple_stats.stdout else str(dimple_stats.stdout + "\n" + dimple_stats.stderr)))
 			# entries_errors.append(pdbid)
 			# continue
-			refinement_out['error'] = "ERROR refining entry " + pdbid + "\n" + \
+			refinement_out['error'] = "ERROR refining entry " + pdbid + " - Dimple Error\n" + \
 									  (stdout if stderr == '' else str(stdout + "\nERROR\n" + stderr))
-	except:
+	except TimeoutExpired:
+		p.kill()  # Terminate the process
+		stdout, stderr = p.communicate()  # Get any remaining output
+		refinement_out['error'] = "ERROR refining entry " + pdbid + " - TimeoutExpired > 4h\n" + \
+		                          (stdout if stderr == '' else str(stdout + "\nERROR\n" + stderr))
+	except Exception as e:
 		# print("ERROR Dimple FAILED to refine entry " + pdbid + "\n" +
 		#       ('' if not dimple_stats.stdout else str(dimple_stats.stdout + "\n" + dimple_stats.stderr)))
-		refinement_out['error'] = "ERROR refining entry " + pdbid + "\n" + \
+		stdout, stderr = p.communicate()  # Get any remaining output
+		refinement_out['error'] = "ERROR refining entry " + pdbid + " - Exception "+str(e)+"\n" + \
 									  (stdout if stderr == '' else str(stdout + "\nERROR\n" + stderr))
 
 	d = time.time() - t1
