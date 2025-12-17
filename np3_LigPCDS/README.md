@@ -86,6 +86,8 @@ The following steps correspond to parts A and B from the workflow to create the 
 The scripts used in each step from 1 to 5 are detailed below in separated subsections. Here Step 3 is presented before 
 Step 2 to easy the use of the available scripts, this does not affect the order of Figure 1 because Steps 2 and 3 are parallel procedures.
 
+The point cloud labeling procedure was implemented to use data in a resolution range from 0.5 to 4 Å, based on the available XGen radii table. Data outside this resolution range will not be labelled.
+
 At the end, there is also some available visualization scripts and an additional testing script.
 
 ### Step 1
@@ -540,7 +542,7 @@ It will also add columns with the electron density descriptive statistics of the
 #### 2.3 **Ligands Final 3D Point Clouds Creation and Step 4 - Labeling** 
 
 Create the final representations of the ligands in 3D point cloud and also create their labeling files for each representation type.
-The output folder will be a LigPCDS dataset
+The output folder will be a LigPCDS dataset.
 
 For each ligand entry that had its ligand grid representation successfully created, this script will scale this grid using 
 the quantile rank scale, extract the ligand mask representation and then create the final representations of the ligands. 
@@ -552,6 +554,7 @@ qRank0.5, qRank0.7, qRank0.75, qRank0.8, qRank0.85, qRank0.9, qRank0.95, qRankMa
 At the end, the final representations will be stored in a 3D point cloud file inside the subfolder of each PDB entry of 
 the ligand entries in the provided output path (parameter output_LigPCDS_path), together with its labeling file.
 
+Here only data in a resolution range from 0.5 to 4 Å is expected to be labeled, based on the XGen radii table implementation.
 
 *Run:*
 
