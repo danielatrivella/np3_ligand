@@ -489,6 +489,9 @@ def np3_ligand_listed_blob_label(db_path, output_path, blobs_list_path, model_ck
 
 if __name__ == "__main__":
     config = get_config()
+    # Set num of threats variable within the Python process's environment
+    # export OMP_NUM_THREADS=num_workers
+    os.environ['OMP_NUM_THREADS'] = str(config.num_workers)
     if config.search_blobs == 'all':
         np3_ligand_blob_label(config.data_folder, config.output_path, config.entries_list_path, config.model_ckpt_path, config.grid_space,
                               config.num_devices, config.gpu_index,
