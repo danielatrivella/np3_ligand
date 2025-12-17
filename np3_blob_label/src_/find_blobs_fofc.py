@@ -1,7 +1,7 @@
 # When we have an electron density map on a Grid we may want to check blobs – unmodelled electron density, potential ligand sites. Similarly to the “Unmodelled blobs” function in COOT, Gemmi has a function that finds such blobs. It was added to be used in CCP4 Dimple.
 # Here we search for blobs in the difference electron density map, iterate over the blobs to extract their info and
 # to add one fake atom at each returned blob in a new pdb to be used to facilitate the visualization of the results
-import gemmi ## version 0.5.3
+import gemmi
 import sys
 import numpy as np
 import pandas as pd
@@ -29,38 +29,35 @@ def retrieve_entry_density_map(entryID, refinement_data_path, grid_space, verbos
         logging.info("\n*** Start processing entry" + entryID + " electron density map ***")
     t1 = time.time()
     #
-    mtz_file = refinement_data_path / (entryID + ".mtz")
-    if not Path(mtz_file).is_file():
-        if verbose:
-            logging.info("Warning: The entry " + entryID +
-                  " was not refined successfully, the mtz file is missing. All its blobs will be skipped.")
-        return False
-
     # create the entry density map
     try:
-        # read mtz file
-        mtz = gemmi.read_mtz_file(mtz_file.as_posix())
-        # mtz.nreflections   # from MTZ record NCOL
-        # mtz.min_1_d2       # from RESO
-        # mtz.max_1_d2       # from RESO
-        # mtz.resolution_low()   # sqrt(1 / min_1_d2)
-        # mtz.resolution_high() # sqrt(1 / max_1_d2)
-        # mtz.datasets
-        resolution = mtz.resolution_high()
         # check if map already exists before creating it again
         # and allow using a different map (entryID.ccp4) for the blob search and img creation
         if (refinement_data_path / (entryID + "_fofc.ccp4")).exists():
             if verbose:
-                logging.info("* Already stored the entry Fo-Fc map in a ccp4 file. Skipping Fo-Fc map creation to blob's search. *")
+                logging.info(
+                    "* Already stored the entry Fo-Fc map in a ccp4 file. Skipping Fo-Fc map creation to blob's search. *")
             if (refinement_data_path / (entryID + ".ccp4")).exists():
                 logging.info(
-                    "* Another entry map named "+ (refinement_data_path / (entryID + ".ccp4")).name +
+                    "* Another entry map named " + (refinement_data_path / (entryID + ".ccp4")).name +
                     " was provided and will be used in the blob's search. *")
                 map_grid_file = (refinement_data_path / (entryID + ".ccp4")).as_posix()
             else:
                 map_grid_file = (refinement_data_path / (entryID + "_fofc.ccp4")).as_posix()
             map_grid = gemmi.read_ccp4_map(map_grid_file, setup=True).grid
-            return map_grid, resolution
+            return map_grid, None
+        
+        mtz_file = refinement_data_path / (entryID + ".mtz")
+        if not Path(mtz_file).is_file():
+            if verbose:
+                logging.info("Warning: The entry " + entryID +
+                             " was not refined successfully, the mtz file is missing. All its blobs will be skipped.")
+            return False
+        
+        # read mtz file
+        mtz = gemmi.read_mtz_file(mtz_file.as_posix())
+        # mtz.datasets
+        resolution = mtz.resolution_high()
         #
         # define sample rate to interpolate density grid values
         # grid_space was informed
@@ -72,12 +69,6 @@ def retrieve_entry_density_map(entryID, refinement_data_path, grid_space, verbos
         # mtz columns after REFMAC - https://www.globalphasing.com/buster/wiki/index.cgi?MTZcolumns
         # 2Fo-Fc map coefficients ->  amplitude: FWT pahses: PHWT
         # Fo-Fc (difference map) coefficients -> amplitude: DELFWT pahses: PHDELWT
-        # Figure of merit -> FOM
-        # Model structure factor -> FC_ALL PHIC_ALL : Atomic and bulk-solvent model;
-        # Reflection indices -> H,K,L -> no scale
-        # Observed data -> FP,SIGFP (or similar) : (amplitude and sigma). The column names will be identical to the column names of the input data -> scale Observational (unmodified from input)
-        # Flag indicating which reflections are in the free set -> FreeR_flag : Copied from input if present, otherwise created afresh.
-        # Calculated structure factors -> FC,PHIC
         #
         # obtain map 2Fo-Fc in direct space xyz
         # map_grid_2fofc = mtz.transform_f_phi_to_map('FWT', 'PHWT', sample_rate=sample_rate)
