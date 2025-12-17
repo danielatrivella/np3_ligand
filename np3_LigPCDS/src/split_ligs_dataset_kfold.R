@@ -17,7 +17,7 @@ if (length(args) < 3) {
       " 2. vocab_path: Path to the vocabulary file used to label the ligands entries present in the ",
       "valid_ligands_list_path table. It must contain one label by row, defining their order (the Background class is not used);\n",
       " 3. k: The number of anti-clusters (groups with high diversity) to be created. This is the number of k-folds. ",
-      "Each k group will be separated in another two similar groups;\n",
+      "Each k group will be separated in another two similar groups for test and validation;\n",
       " 4. classes_list: (optional) The list of classes of the vocabulary that will be used in the separation of ",
       "the entries by the anti-clustering algorithm (stratified approach). The names of the selected classes ",
       "separated by comma or the word 'all' to use the entire vocabulary (all the classes). Default to 'all'.\n\n", sep="")
