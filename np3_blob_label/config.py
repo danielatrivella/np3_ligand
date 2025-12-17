@@ -89,8 +89,8 @@ data_arg.add_argument('--refinement_path', type=str, default=None,
                           "Used to continue from a previous result. "
                           "If it is 'None' a new refinement output directory is created. "
                           "A CCP4 map with the difference electron density map will be created inside the refinement "
-                          "folder of each entry, named as <entryID>_fofc.ccp4. "
-                          "If this file already exists it will not be overwritten.")
+                          "folder of each entry, named as <entryID>_fofc.ccp4, if it doesn't exists yet nor the map <entryID>.ccp4 (prioritized). "
+                          "If one of these files already exists, the difference map is not created.")
 
 # find blobs
 find_b_arg = add_argument_group('Find blobs')
@@ -127,7 +127,7 @@ blob_segm_arg.add_argument('--gpu_index', type=int, default=None,
                            help="Do not inform any value (None) for CPU process (default) or an integer number defining the GPU index to be "
                                 "used in the segmentation model prediction. Only one device is used in any case.")
 blob_segm_arg.add_argument('--num_workers', type=int, default=1,
-                           help="A numeric defining the number of workers to be used in the model prediction")
+                           help="A numeric defining the number of workers to be used in the model prediction. This value will be used to set the environment variable 'OMP_NUM_THREADS'.")
 
 
 
