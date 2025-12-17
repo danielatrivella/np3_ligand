@@ -26,11 +26,20 @@ def read_radii_table_to_dict(radii_table_path="atomic_radii_tables.csv", radii_w
     radii_table.columns = radii_table.columns.str.split("_").str[-1]
     # apply the weight value to the atomic radius in all resolutions
     radii_table=radii_table*radii_weight
+    # convert tabel to dict
+    dict_reso_atomic_radii = radii_table.to_dict()
+    # set atomic radii outside the range defined in the xgen table,
+    # # set them as the first limit to the right and to the left
+    for radii in np.arange(0.5, 1.0, 0.1):
+        dict_reso_atomic_radii[str(np.round(radii, 1))] = dict_reso_atomic_radii["1.0"]
+    for radii in np.arange(3.1, 4.1, 0.1):
+        dict_reso_atomic_radii[str(np.round(radii, 1))] = dict_reso_atomic_radii["3.0"]
     # return the table of atomic radii by resolution as a dictionary
-    return radii_table.to_dict()
+    return dict_reso_atomic_radii
 
 # read atomic table and apply a weight of 65%
-elements_radii_w_reso = read_radii_table_to_dict(radii_table_path="atomic_radii_tables.csv", radii_weight=0.65)
+np3_atomic_radii_table_path = Path(Path(__file__).parent, "..", "atomic_radii_tables.csv")
+elements_radii_w_reso = read_radii_table_to_dict(radii_table_path=np3_atomic_radii_table_path, radii_weight=0.65)
 expansion_radii = np.round(max(list(elements_radii_w_reso['2.2'].values())), 1)
 
 # for testing with visual inspection color the points according to their label

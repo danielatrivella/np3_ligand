@@ -14,65 +14,28 @@ if test_mode:
     # import seaborn as sns
     import matplotlib.pyplot as plt
 
-# def plot_dist(data):
-#     sns.set_theme(style="darkgrid")
-#     sns.displot(data, height=5)
-#     # plt.show()
-#     plt.savefig('distribution_rho.png')
 
-# the Van der Waals Radii of Elements from  S. S. Batsanov 2001
-# elements_radii = {'B': 1.8, 'C': 1.7,
-#                   'N': 1.6, 'P': 1.95,
-#                   'O': 1.55, 'S': 1.8, 'Se': 1.9,
-#                   'Cl': 1.8, 'F': 1.5, 'Br': 1.9, 'I': 2.1}
-# the experimental Van der Waals Radii averaged from 1.5A to 1.8A rounded in 2 decimals from XGen 2020
-# - B received S and Se received Br radii
-# elements_radii = {'B': 1.4, 'C': 1.46,
-#                   'N': 1.44, 'P': 1.4,
-#                   'O': 1.42, 'S': 1.4, 'Se': 1.37,
-#                   'Cl': 1.4, 'F': 1.4, 'Br': 1.37, 'I': 1.37}
-raddi_weight = 0.65
-elements_radii_w_reso = {'1.5': {'B': 1.3363*raddi_weight, 'C': 1.3960*raddi_weight,
-                                 'N': 1.3774*raddi_weight, 'P': 1.3315*raddi_weight,
-                                 'O': 1.3576*raddi_weight, 'S': 1.3363*raddi_weight, 'Se': 1.3036*raddi_weight,
-                                 'Cl': 1.3381*raddi_weight, 'F': 1.3405*raddi_weight, 'Br': 1.3036*raddi_weight,
-                                 'I': 1.3003*raddi_weight},
-                         '1.6': {'B': 1.3777 * raddi_weight, 'C': 1.4329 * raddi_weight,
-                                 'N': 1.4140 * raddi_weight, 'P': 1.3735 * raddi_weight,
-                                 'O': 1.3945 * raddi_weight, 'S': 1.3777 * raddi_weight, 'Se': 1.3459 * raddi_weight,
-                                 'Cl': 1.3786 * raddi_weight, 'F': 1.3783 * raddi_weight, 'Br': 1.3459 * raddi_weight,
-                                 'I': 1.3429 * raddi_weight},
-                         '1.7': {'B': 1.4212*raddi_weight, 'C': 1.4728*raddi_weight,
-                                 'N': 1.4536*raddi_weight, 'P': 1.4179*raddi_weight,
-                                 'O': 1.4347*raddi_weight, 'S': 1.4212*raddi_weight, 'Se': 1.3906*raddi_weight,
-                                 'Cl': 1.4218*raddi_weight, 'F': 1.4191*raddi_weight, 'Br': 1.3906*raddi_weight,
-                                 'I': 1.3876*raddi_weight},
-                         '1.8': {'B': 1.4713*raddi_weight, 'C': 1.5184*raddi_weight,
-                                 'N': 1.4992*raddi_weight, 'P': 1.4686*raddi_weight,
-                                 'O': 1.4812*raddi_weight, 'S': 1.4713*raddi_weight, 'Se': 1.4413*raddi_weight,
-                                 'Cl': 1.4710*raddi_weight, 'F': 1.4665*raddi_weight, 'Br': 1.4413*raddi_weight,
-                                 'I': 1.4383*raddi_weight},
-                         '1.9': {'B': 1.5193*raddi_weight, 'C': 1.5634*raddi_weight,
-                                 'N': 1.5442*raddi_weight, 'P': 1.5175*raddi_weight,
-                                 'O': 1.5268*raddi_weight, 'S': 1.5193*raddi_weight, 'Se': 1.4902*raddi_weight,
-                                 'Cl': 1.5184*raddi_weight, 'F': 1.5127*raddi_weight, 'Br': 1.4902*raddi_weight,
-                                 'I': 1.4878*raddi_weight},
-                         '2.0': {'B': 1.5748*raddi_weight, 'C': 1.6159*raddi_weight,
-                                 'N': 1.5967*raddi_weight, 'P': 1.5739*raddi_weight,
-                                 'O': 1.5799*raddi_weight, 'S': 1.5748*raddi_weight, 'Se': 1.5472*raddi_weight,
-                                 'Cl': 1.5739*raddi_weight, 'F': 1.5664*raddi_weight, 'Br': 1.5472*raddi_weight,
-                                 'I': 1.5448*raddi_weight},
-                         '2.1': {'B': 1.6252*raddi_weight, 'C': 1.6636*raddi_weight,
-                                 'N': 1.6444*raddi_weight, 'P': 1.6246*raddi_weight,
-                                 'O': 1.6282*raddi_weight, 'S': 1.6252*raddi_weight, 'Se': 1.5979*raddi_weight,
-                                 'Cl': 1.6234*raddi_weight, 'F': 1.6153*raddi_weight, 'Br': 1.5979*raddi_weight,
-                                 'I': 1.5955*raddi_weight},
-                         '2.2': {'B': 1.6813*raddi_weight, 'C': 1.7173*raddi_weight,
-                                 'N': 1.6984*raddi_weight, 'P': 1.6810*raddi_weight,
-                                 'O': 1.6825*raddi_weight, 'S': 1.6813*raddi_weight, 'Se': 1.6549*raddi_weight,
-                                 'Cl': 1.6792*raddi_weight, 'F': 1.6702*raddi_weight, 'Br': 1.6549*raddi_weight,
-                                 'I': 1.6525*raddi_weight}
-                         }
+def read_radii_table_to_dict(radii_table_path="atomic_radii_tables.csv", radii_weight=0.65):
+    # read table with atomic radii, use first row as index = atoms symbols
+    radii_table = pd.read_csv(radii_table_path, index_col=0)
+    # change columns names to match the resolution of each set of radii
+    radii_table.columns = radii_table.columns.str.split("_").str[-1]
+    # apply the weight value to the atomic radius in all resolutions
+    radii_table=radii_table*radii_weight
+    # convert tabel to dict
+    dict_reso_atomic_radii = radii_table.to_dict()
+    # set atomic radii outside the range defined in the xgen table,
+    # # set them as the first limit to the right and to the left
+    for radii in np.arange(0.5, 1.0, 0.1):
+        dict_reso_atomic_radii[str(np.round(radii, 1))] = dict_reso_atomic_radii["1.0"]
+    for radii in np.arange(3.1, 4.1, 0.1):
+        dict_reso_atomic_radii[str(np.round(radii, 1))] = dict_reso_atomic_radii["3.0"]
+    # return the table of atomic radii by resolution as a dictionary
+    return dict_reso_atomic_radii
+
+
+np3_atomic_radii_table_path = Path(Path(__file__).parent, "..", "..", "np3_LigPCDS", "atomic_radii_tables.csv")
+elements_radii_w_reso = read_radii_table_to_dict(np3_atomic_radii_table_path)
 
 expansion_radii = np.round(max(list(elements_radii_w_reso['2.2'].values())), 1)
 
