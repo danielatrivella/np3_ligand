@@ -312,7 +312,7 @@ if __name__ == "__main__":
         sys.exit("Wrong number of arguments. Three arguments must be supplied in order to read the ligands "
                  ".sdf data and a vocabulary text file, and then label the ligands atoms using this information and "
                  "store the results in the xyz directory inside the parent folder of the provided ligands data folder: \n"
-                 "  1. ligands_data_folder: The path to the data folder called 'ligands' where the ligands sdf files are located. "
+                 "  1. ligands_data_folder: The path to the data folder called 'ligands' where the ligands sdf files are located. The ligands sdf file must have a suffix equals to '_NO_H.sdf'. "
                  "One folder will be created inside its parent folder: 'xyz_<ligand csv name>_<SP|AtomSymbol>' to store the coordinates files of the "
                  "ligand's atoms labeled with the given vocabulary;\n"
                  "  2. valid_ligands_filtered_list_file: The path to the CSV file containing the valid ligands list and their IDs. "
