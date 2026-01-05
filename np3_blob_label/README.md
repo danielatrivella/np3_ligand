@@ -227,18 +227,18 @@ contain all the data from the stratified training dataset from LigPCDS. Start as
    - Column 'noHetatm' equals to 0; and
    - Column 'entryID' equals to column 'entry'
 ```
-ligs_training_dataset = pd.read_csv("../np3_DL_segmentation/training_datasets/training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv")
-ligs_training_dataset['blobID'] = ligs.ligID
-ligs_training_dataset['refinement'] = 0
-ligs_training_dataset['noHetatm'] = 0
-ligs_training_dataset['entryID'] = ligs.entry
-ligs_training_dataset.to_csv("../np3_DL_segmentation/training_datasets/training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP_np3_blob_label.csv", index=False)
+ligs = pd.read_csv("../np3_DL_segmentation/training_datasets/training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP.csv")
+ligs['blobID'] = ligs.ligID
+ligs['refinement'] = 0
+ligs['noHetatm'] = 0
+ligs['entryID'] = ligs.entry
+ligs.to_csv("../np3_DL_segmentation/training_datasets/training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP_np3_blob_label.csv", index=False)
 ```
 3. Use a previous refinement from LigPCDS entries and a previous structure labeling result (xyz directory)
 4. Execute np3_blob_label with LigPCDS using a sigma cutoff value equal to 3 (most similar to qRank0.95 used in LigPCDS):
 ` python np3_blob_label.py --search_blobs list --output_name ligPCDS_1.5_2.2_SP --entries_list_path training_dataset_valid_ligands_undersampling_maxLigCode_1000_kfolds_13_gridspace_0.5_SP_blobLabel.csv --refinement_path data/refinement_LigPCDS --model_ckpt_path models/AtomC347CA56/modelAtomC347CA56_ligs-78911_img-qRankMask_5_gridspace-05_k13.ckpt --output_path outputs/ --num_workers 4 --parallel_cores 2 --sigma_cutoff 3 `
 5. Then organize the NP³ Blob Label result following the LigPCDS format and naming formats using the script:
-`python test/test_app_blobs_imgs_to_ligPCDS.py entries_list_path np3_blob_label_output_path new_output_path db_ligxyz_path`  
+`python test/test_app_blobs_imgs_to_ligPCDS.py entries_list_path np3_blob_label_output_path new_output_path db_ligxyz_path`
 6. Finally, run a testing of the LigPCDS models following the np3_DL_segmentation tutorials, using the new_output_path as the 'lig_pcds_path' and the
 entries_list_path as the 'ligs_data_filepath' parameters.
 
