@@ -337,7 +337,8 @@ if (length(keep_labels) != num_classes) {
 min_class_occ <- min(class_by_entry_ratio)
 max_class_occ <- max(class_by_entry_ratio)
 
-write_csv(ligs_data, file=sub(x=basename(ligs_data_path), pattern = "\\_filter.*\\.csv", 
+write_csv(ligs_data, file=sub(x=basename(ligs_data_path), 
+                              pattern = "(\\_filter.*\\.csv)|(.csv)", 
                               replacement = paste0("_undersampling_", keep_labels,
                               			   "_size0.95_", min_qRank095_size,
                                                    "_maxLigCode_",max_num_ligCode,
