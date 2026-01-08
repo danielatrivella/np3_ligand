@@ -644,17 +644,17 @@ It will print to the screen the inconsistencies found for each valid ligand in t
 Creation of a stratified training dataset from a list of valid ligands of LigPCDS. 
 This dataset is intended to be used in the training pipeline of the DL semantic segmentation task (np3_DL_segmentation repository).
 
-#### 5.1 Undersampling in LigPCDS
+#### 5.1 Undersampling in LigPCDS for Stratification
 
-Applies an undersampling technique in a list of valid ligands (provided dataset) from LigPCDS. 
+Applies an undersampling technique in a list of valid ligands from LigPCDS (provided dataset) for creating a stratified dataset. 
 It will filter the ligands entries using their occurrence by the selected classes of the given vocabulary,
 by ligand code (unique structure) and by the size of their qRank0.95 representation.
 
 An anti-clustering algorithm is used in the undersampling approach to keep diversity among the filtered entries 
 related to their occurrence by class, size of the qRank0.95 representation, B factor, resolution and occupancy.
 
-This step is intended to remove bias in the list of valid ligands towards frequent ligand codes and frequent classes. 
-It also removes entries with a small number of points in its qRank0.95 point cloud (parameter min_qRank095_size).
+This step is intended to remove bias in a list of valid ligands towards frequent ligand codes and frequent classes. 
+It also removes entries with a small number of points in its qRank0.95 point cloud, which may indicate noise entries (parameter min_qRank095_size).
 
 *Run:*
 
@@ -674,8 +674,8 @@ The undersampling technique will be applied in this list to filter the ligands e
 
 *Output:*
 
-One file is created in the current directory containing the list of valid ligands that were kept by the undersampling technique::
-- One CSV file named '<valid_ligands_list_path.name>_undersampling_<classes_list>_size0.95_<min_qRank095_size>_maxLigCode_<max_ligCode_occ>_classOcc_<min_class_occ>_<max_class_occ>.csv', the valid_ligands_list_path.name after the '_filter' tag until the '.csv' extension is removed from the naming to shorten the final filename.
+One CSV table file is created in the current directory containing the list of valid ligands that were kept by the undersampling technique named as:
+- '<valid_ligands_list_path.name>_undersampling_<classes_list>_size0.95_<min_qRank095_size>_maxLigCode_<max_ligCode_occ>_classOcc_<min_class_occ>_<max_class_occ>.csv', the valid_ligands_list_path.name after the '_filter' tag until the '.csv' extension is removed from the naming to shorten the final filename.
 
 It will print to the screen the occurrences of the vocabulary classes by ligand entry and by labeled atom. 
 The user may analyse this values to accept the result or plan a new undersampling job.
