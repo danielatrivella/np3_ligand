@@ -71,7 +71,8 @@ def save_class_stats_plot(ligand_classes_freq_stats, ligands_classes_file_path, 
         plt.xticks(rotation= 45)
 
     plt.savefig(output_path / ('classes_distribution_by_labeled_'+title_prefix+'.png'))
-    plt.show()
+    plt.close()
+    #plt.show()
 
 def compute_plot_SP_classes_stats(ligands_classes_file_path, vocabulary_path, count_cut_off, mapping_path=None):
     ligands_classes_file_path = Path(ligands_classes_file_path)
