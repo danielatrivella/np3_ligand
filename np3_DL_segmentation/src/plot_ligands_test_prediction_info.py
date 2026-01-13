@@ -16,27 +16,8 @@ from pathlib import Path
 # set result table names with test prediction
 f1_recall_precision_results_name = "entries_f1_recall_precision.csv"
 mIou_result_name = "entries_ious.csv"
-colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink',
-          'tab:gray', 'tab:olive', 'tab:cyan']
-
-## INPUTS
-# ligands training dataset with the list of ligands used for training. Mandatory columns ["ligID", "RefinementResolution","bfactor","bfactor_std","AverageBFactor","bfactor_ratio","numAtoms",
-#                  "point_cloud_size_qRankMask",'point_cloud_size_qRank0.95']
-#ligs_dataset_path = "/media/crisfbazz/Seagate_Backup_Plus_Drive/Cristina/LigPCDS_2025/data_PDB_freeLigands_0.5_1.5_2008-2025/PDB_lists/ligands_valid_sdf_info_PDB_0.5_1.4999_NP_atoms_free_ligands_1_counts_2008-02-06_depDate_undersampling_20classes_size0.95_150_maxLigCode_500_classOcc_0_14306_split_20classes_kfolds_5_testOnly.csv"
-# one or more prediction dirs separated by ;
-#prediction_dirs_input = ("/home/crisfbazz/Documents/CNPEM/LigPCDS_new_train_test_2025/PDB_0.5_1.5_2008-2025/test_predictions_modelAtomC347CA56-k13_ligs-78911_gridspace-05_kfold1/;"+
-#                         "/home/crisfbazz/Documents/CNPEM/LigPCDS_new_train_test_2025/PDB_0.5_1.5_2008-2025/test_predictions_modelAtomC347CA56-k13_ligs-78911_gridspace-05_kfold2/;"+
-#                         "/home/crisfbazz/Documents/CNPEM/LigPCDS_new_train_test_2025/PDB_0.5_1.5_2008-2025/test_predictions_modelAtomC347CA56-k13_ligs-78911_gridspace-05_kfold3/;"+
-#                         "/home/crisfbazz/Documents/CNPEM/LigPCDS_new_train_test_2025/PDB_0.5_1.5_2008-2025/test_predictions_modelAtomC347CA56-k13_ligs-78911_gridspace-05_kfold4/;"+
-#                         "/home/crisfbazz/Documents/CNPEM/LigPCDS_new_train_test_2025/PDB_0.5_1.5_2008-2025/test_predictions_modelAtomC347CA56-k13_ligs-78911_gridspace-05_kfold5/")
-# one or more class names separated by , - all classes are expected
-#classes_names_input = "background_solvent,atom,C5,CA5,C6,CA6,C3,C4,C7"
-# data name to use in the plots title
-#data_name = "PDB 0.5 to 2.2 from 2008-2025"
-# output dir path
-#output_path = Path("/home/crisfbazz/Documents/CNPEM/LigPCDS_new_train_test_2025/PDB_0.5_1.5_2008-2025/prediction_plots")
-# output name to store the final table
-#output_name = "data_0.5_2.2_2008-2025"
+#colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink',
+#          'tab:gray', 'tab:olive', 'tab:cyan']
 
 def adjacent_values(vals, q1, q3):
     upper_adjacent_value = q3 + (q3 - q1) * 1.5
