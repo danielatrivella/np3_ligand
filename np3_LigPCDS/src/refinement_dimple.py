@@ -6,6 +6,17 @@ import time, os
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing import cpu_count
 from tqdm import tqdm
+import psutil
+
+def kill_process_and_children(pid):
+    try:
+        parent = psutil.Process(pid)
+        children = parent.children(recursive=True)
+        for child in children:
+            child.kill()
+        parent.kill()
+    except psutil.NoSuchProcess:
+        pass
 
 def refine_pdb_entry(pdbid_i, pdb_path, mtz_path, refinement_path, overwrite_refinement, pbar):
 	i = pdbid_i[0]
@@ -32,17 +43,10 @@ def refine_pdb_entry(pdbid_i, pdb_path, mtz_path, refinement_path, overwrite_ref
 
 	# run dimple with default parameters, no-hetatm and 2xSlow
 	try:
-		# dimple_stats = subprocess.run(
-		#     shlex.split("dimple " + entry_mtz_file.as_posix() + " " + entry_pdb_file.as_posix() +
-		#                 " " + out_dir.as_posix() + ' --hklout ' + entry_mtz_file.name + " --xyzout " +
-		#                 pdbid + ".pdb --no-hetatm -s -s"), capture_output=True)
-		# stream = os.popen("dimple " + entry_mtz_file.as_posix() + " " + entry_pdb_file.as_posix() +
-		#                 " " + out_dir.as_posix() + ' --hklout ' + entry_mtz_file.name + " --xyzout " +
-		#                 pdbid + ".pdb --no-hetatm -s -s")
 		p = Popen("dimple " + entry_mtz_file.as_posix() + " " + entry_pdb_file.as_posix() +
 						" " + out_dir.as_posix() + ' --hklout ' + entry_mtz_file.name + " --xyzout " +
 						pdbid + ".pdb --no-hetatm -s -s", shell=True, stdout=PIPE, stderr=PIPE)
-		timeout_seconds = 14400 # timeout in seconds to 4 hours, then skip entry
+		timeout_seconds = 7200 # timeout in seconds to 2 hours, then skip entry
 		stdout, stderr = p.communicate(timeout=timeout_seconds)
 		stdout = str(stdout)
 		stderr = str(stderr)
@@ -55,13 +59,14 @@ def refine_pdb_entry(pdbid_i, pdb_path, mtz_path, refinement_path, overwrite_ref
 			refinement_out['error'] = "ERROR refining entry " + pdbid + " - Dimple Error\n" + \
 									  (stdout if stderr == '' else str(stdout + "\nERROR\n" + stderr))
 	except TimeoutExpired:
-		p.kill()  # Terminate the process
+		kill_process_and_children(p.pid) # Terminate the process and any child process - in case phaser got stuck
 		stdout, stderr = p.communicate()  # Get any remaining output
-		refinement_out['error'] = "ERROR refining entry " + pdbid + " - TimeoutExpired > 4h\n" + \
+		refinement_out['error'] = "ERROR refining entry " + pdbid + " - TimeoutExpired > 2h\n" + \
 		                          (stdout if stderr == '' else str(stdout + "\nERROR\n" + stderr))
 	except Exception as e:
 		# print("ERROR Dimple FAILED to refine entry " + pdbid + "\n" +
 		#       ('' if not dimple_stats.stdout else str(dimple_stats.stdout + "\n" + dimple_stats.stderr)))
+		kill_process_and_children(p.pid)  # Terminate the process and any child process - in case phaser got stuck
 		stdout, stderr = p.communicate()  # Get any remaining output
 		refinement_out['error'] = "ERROR refining entry " + pdbid + " - Exception "+str(e)+"\n" + \
 									  (stdout if stderr == '' else str(stdout + "\nERROR\n" + stderr))
