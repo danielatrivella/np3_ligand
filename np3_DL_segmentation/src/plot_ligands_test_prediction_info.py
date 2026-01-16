@@ -118,8 +118,8 @@ def extract_ligand_prediction_info_plot(ligs_dataset_path, prediction_dirs_input
         
     # read the ligands training dataset and merge with the metrics prediction avg result
     ligs = pd.read_csv(ligs_dataset_path)
-    ligs = ligs[["ligID", "RefinementResolution","bfactor","bfactor_std","AverageBFactor","bfactor_ratio","numAtoms",
-                 "point_cloud_size_qRankMask",'point_cloud_size_qRank0.95']]
+    ligs = ligs[["ligID", "ligCode", "RefinementResolution","bfactor","bfactor_std","AverageBFactor","bfactor_ratio",
+                 "numAtoms","point_cloud_size_qRankMask",'point_cloud_size_qRank0.95']]
     ligs = ligs.merge(prediction_results)
     ligs.to_csv(output_path/("ligands_prediction_info_"+output_name+".csv"), index=False)
     
