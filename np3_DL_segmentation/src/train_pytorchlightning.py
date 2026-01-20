@@ -123,7 +123,7 @@ class MinkowskiSegmentationModule(LightningModule):
             self.loss_train(output['loss'], output['target'].size(0))
             self.hist_IoU_train(output['preds'], output['target'])
             #print("log metrics updated ")
-            # log scalars
+            # log scalars - extra logging
             if self.global_step % self.config.log_freq == 0 or self.global_step == 0:
                 self.log('train/train_loss', self.loss_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=(self.num_devices>1))
                 self.log('train/train_acc', self.score_train.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=(self.num_devices>1))
@@ -136,6 +136,15 @@ class MinkowskiSegmentationModule(LightningModule):
                 self.current_epoch+1, self.config.max_epoch, self.loss_train.compute().detach().item(), lrs)
             debug_str += "Score {:.3f}, mIoU {:.3f}".format(
                 self.score_train.compute().detach().item(), self.hist_IoU_train.compute_miou().detach().item())
+            # log averages
+            self.log('train/train_loss', self.loss_train.to(self.device), on_step=on_step, on_epoch=on_epoch,
+                     sync_dist=(self.num_devices > 1))
+            self.log('train/train_acc', self.score_train.to(self.device), on_step=on_step, on_epoch=on_epoch,
+                     sync_dist=(self.num_devices > 1))
+            self.log('train/train_mIoU', self.hist_IoU_train.compute_miou().to(self.device), on_step=on_step,
+                     on_epoch=on_epoch, prog_bar=True, sync_dist=(self.num_devices > 1))
+            self.log('train/train_lr', float(lrs), on_step=on_step, on_epoch=on_epoch, prog_bar=True,
+                     sync_dist=(self.num_devices > 1))
             # compute syncronized metrics
             # compute f1 score and precision and recall
             f1_per_class = self.hist_IoU_train.compute_f1_dice()
@@ -169,11 +178,11 @@ class MinkowskiSegmentationModule(LightningModule):
             self.score_val(output['preds'], output['target'])
             self.loss_val(output['loss'], output['target'].size(0))
             self.hist_IoU_val(output['preds'], output['target'])
-            # log scalars
+            # log scalars - extra logging
             if self.global_step % self.config.val_freq == 0 or self.global_step == 0:
-                self.log('validation/val_loss', self.loss_val.to(self.device), on_step=on_step, on_epoch=True, sync_dist=(self.num_devices>1))
-                self.log('validation/val_acc', self.score_val.to(self.device), on_step=on_step, on_epoch=True, sync_dist=(self.num_devices>1))
-                self.log('validation/val_mIoU', self.hist_IoU_val.compute_miou().to(self.device), on_step=on_step, on_epoch=True, prog_bar=True, sync_dist=(self.num_devices>1))
+                self.log('validation/val_loss', self.loss_val.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=(self.num_devices>1))
+                self.log('validation/val_acc', self.score_val.to(self.device), on_step=on_step, on_epoch=on_epoch, sync_dist=(self.num_devices>1))
+                self.log('validation/val_mIoU', self.hist_IoU_val.compute_miou().to(self.device), on_step=on_step, on_epoch=on_epoch, prog_bar=True, sync_dist=(self.num_devices>1))
         # at the end of an epoch also log the IoU by class and print to file current progress
         if on_epoch:
             lrs = self.get_last_learning_rate()
@@ -182,6 +191,13 @@ class MinkowskiSegmentationModule(LightningModule):
                 self.current_epoch+1, self.config.max_epoch, self.loss_val.compute().detach().item(), lrs)
             debug_str += "Score {:.3f}, mIoU {:.3f}".format(
                 self.score_val.compute().detach().item(), self.hist_IoU_val.compute_miou().detach().item())
+            # log averages
+            self.log('validation/val_loss', self.loss_val.to(self.device), on_step=on_step, on_epoch=on_epoch,
+                     sync_dist=(self.num_devices > 1))
+            self.log('validation/val_acc', self.score_val.to(self.device), on_step=on_step, on_epoch=on_epoch,
+                     sync_dist=(self.num_devices > 1))
+            self.log('validation/val_mIoU', self.hist_IoU_val.compute_miou().to(self.device), on_step=on_step,
+                     on_epoch=on_epoch, prog_bar=True, sync_dist=(self.num_devices > 1))
             # log f1 score and precision and recall
             f1_per_class = self.hist_IoU_val.compute_f1_dice()
             precision_per_class = self.hist_IoU_val.compute_precision()
