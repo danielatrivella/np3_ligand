@@ -46,7 +46,7 @@ def plot_learning_curves(curves_path, curves_names, curves_colors, curves_steps_
     # set max_epoch limit in the data for better plotting
     curves_data = [curve.loc[curve.epoch <= max_epoch, :] for curve in curves_data]
     # set styling
-    mpl.style.use('seaborn')
+    mpl.style.use('seaborn-v0_8')
     params = {'legend.fontsize': 'x-large',
               'figure.figsize': figsize,
               'axes.labelsize': 'xx-large',
