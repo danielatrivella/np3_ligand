@@ -1,4 +1,15 @@
-# NP³ DL Segmentation: A Deep Learning Pipeline for the Semantic Segmentation of LigPCDS
+# NP³ DL Segmentation
+
+#### Current Version: 2.0.0
+
+New features:
+- Training pipeline updated to pytorch-lightning module version >= 2.0.0
+- Compatibility with LigPCDS new code version 2.0.0
+- Added more documentations for training, testing and a small example dataset
+
+--------------------------
+
+# A Deep Learning Pipeline for the Semantic Segmentation of LigPCDS
 
   This repository contains the code for training and validation of the DL models from LigPCDS (step 6 from part B and part C of the workflow presented in np3_LigPCDS).
 

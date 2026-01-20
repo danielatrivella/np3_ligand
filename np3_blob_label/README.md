@@ -1,5 +1,12 @@
 # NP³ Blob Label
 
+#### Current Version: 2.0.0
+
+New features:
+- Compatibility with np3_LigPCDS and np3_DL_segmentation new codes version 2.0.0
+- Added more documentation about testing this application result using LigPCDS data
+- Installation instruction updated
+
 --------------------------
 
   The NP³ Blob Label is a semi-automatic approach for ligand building tasks from Fo-Fc maps of X-ray protein crystallography based on deep learning. 

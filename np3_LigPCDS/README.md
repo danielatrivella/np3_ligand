@@ -1,6 +1,22 @@
-# NP³ LigPCDS: Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud and Validated Deep Learning Models
+# NP³ LigPCDS
 
-This repository contains the code used to create the **LigPCDS v1.0.1** dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
+#### Current Version: 2.0.0
+
+New features:
+- PDB access updated to APIs from september 2025
+  - Pre-filtered table updated, new column names: {'Resolution': 'RefinementResolution', 'DepDate': 'DepositionDate'}
+  - All scripts updated for the new table results
+- Packages versions updated
+- Now, PDB data in any resolution range is accepted for creating a LigPCDS dataset. 
+The experimental atomic radii are tabled for resolutions from 1.0 Å to 3.0 Å, 
+any resolution outside these limits receive the closer limit value.
+- Documentation is up to date
+
+--------------------------
+
+# Labeled Dataset of X-ray Protein Ligand Images in 3D Point Cloud and Validated Deep Learning Models
+
+This repository contains the code used to create the deposited **LigPCDS v1.0.1** dataset and the stratified training dataset (steps 1 to 5 from parts A and B of the workflow). 
 The code for the models training pipeline and validation (step 6 from part B and part C of the workflow) is presented in the np3_DL_segmentation repository.
 
 The workflow used to obtain LigPCDS, the deep learning models, and the validated labeling approaches is presented in the figure below.
