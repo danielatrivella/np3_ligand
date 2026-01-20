@@ -224,4 +224,5 @@ The dataset created by LigPCDS and the validated models can be retrieved from [Z
 ---------------------------------------------------------------
 
 ## Citing
+
 Bazzano, C.F., Alves, L.F.G., Telles, G.P. et al. Labeled dataset of X-ray protein ligand images in 3D point cloud and validated deep learning models. Sci Data 12, 1726 (2025). https://doi.org/10.1038/s41597-025-06002-8
